@@ -5,8 +5,6 @@ import Clock from './components/Clock.jsx'
 import Calendar from './components/Calendar.jsx'
 import Pomodoro from './components/Pomodoro.jsx'
 import SystemInfo from './components/SystemInfo.jsx'
-import RecentSites from './components/RecentSites.jsx'
-import Bookmark from './components/Bookmark.jsx'
 import Weather from './components/Weather.jsx'
 import Settings from './components/Settings.jsx'
 import Draggable from './components/Draggable.jsx'
@@ -58,9 +56,7 @@ function loadAllSettings() {
       showCalendarWidget: data.showCalendarWidget !== undefined ? data.showCalendarWidget : true,
       showPomodoroWidget: data.showPomodoroWidget !== undefined ? data.showPomodoroWidget : false,
       showSystemInfoWidget: data.showSystemInfoWidget !== undefined ? data.showSystemInfoWidget : false,
-      showRecentSitesWidget: data.showRecentSitesWidget !== undefined ? data.showRecentSitesWidget : false,
       showWeatherWidget: data.showWeatherWidget !== undefined ? data.showWeatherWidget : false,
-      showBookmarkWidget: data.showBookmarkWidget !== undefined ? data.showBookmarkWidget : false,
     }
   } catch {
     return {
@@ -75,9 +71,7 @@ function loadAllSettings() {
       showCalendarWidget: true,
       showPomodoroWidget: false,
       showSystemInfoWidget: false,
-      showRecentSitesWidget: false,
       showWeatherWidget: false,
-      showBookmarkWidget: false,
     }
   }
 }
@@ -210,21 +204,9 @@ export default function App() {
         </Draggable>
       )}
 
-      {appSettings.showRecentSitesWidget && (
-        <Draggable id="recent-sites" defaultPosition={{ x: 10, y: 50 }}>
-          <RecentSites />
-        </Draggable>
-      )}
-
       {appSettings.showWeatherWidget && (
         <Draggable id="weather" defaultPosition={{ x: 85, y: 50 }}>
           <Weather />
-        </Draggable>
-      )}
-
-      {appSettings.showBookmarkWidget && (
-        <Draggable id="bookmark" defaultPosition={{ x: 85, y: 70 }}>
-          <Bookmark />
         </Draggable>
       )}
 

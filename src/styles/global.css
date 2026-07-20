@@ -499,58 +499,6 @@ html, body {
   transition: width 0.5s ease;
 }
 
-/* ─── Recent Visited Sites Widget ─── */
-
-.recents-widget {
-  background: var(--wallpaper-color);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-radius: var(--radius-lg);
-  padding: 0.5rem;
-  width: 240px;
-  font-family: var(--font-family);
-  color: var(--text-primary);
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.recents-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 5px 8px;
-  border-radius: 6px;
-  text-decoration: none;
-  color: var(--text-primary);
-  transition: background var(--transition-fast);
-}
-
-.recents-item:hover { background: var(--bg-glass-hover); }
-
-.recents-favicon {
-  width: 18px;
-  height: 18px;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.recents-favicon img {
-  width: 16px;
-  height: 16px;
-  border-radius: 2px;
-}
-
-.recents-title {
-  font-size: 0.75rem;
-  font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 /* ─── Weather Widget ─── */
 
 .weather-widget {
@@ -625,75 +573,6 @@ html, body {
 .weather-loading {
   font-size: 0.75rem;
   color: var(--text-tertiary);
-}
-
-/* ─── Bookmark Widget ─── */
-
-.bookmark-widget {
-  background: var(--wallpaper-color);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-radius: var(--radius-lg);
-  padding: 1rem;
-  width: 240px;
-  font-family: var(--font-family);
-  color: var(--text-primary);
-}
-
-.bookmark-title {
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--text-tertiary);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 0.5rem;
-  text-align: center;
-}
-
-.bookmark-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0.5rem;
-}
-
-.bookmark-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 6px;
-  border-radius: 8px;
-  text-decoration: none;
-  color: var(--text-primary);
-  transition: background var(--transition-fast);
-}
-
-.bookmark-item:hover { background: var(--bg-glass-hover); }
-
-.bookmark-favicon {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 255, 255, 0.06);
-  border-radius: 8px;
-}
-
-.bookmark-favicon img {
-  width: 20px;
-  height: 20px;
-  border-radius: 4px;
-}
-
-.bookmark-name {
-  font-size: 0.6rem;
-  color: var(--text-secondary);
-  text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 48px;
 }
 
 /* ─── Search Bar ─── */

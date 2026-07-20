@@ -97,9 +97,7 @@ function loadSettings() {
       showCalendarWidget: data.showCalendarWidget !== undefined ? data.showCalendarWidget : true,
       showPomodoroWidget: data.showPomodoroWidget !== undefined ? data.showPomodoroWidget : false,
       showSystemInfoWidget: data.showSystemInfoWidget !== undefined ? data.showSystemInfoWidget : false,
-      showRecentSitesWidget: data.showRecentSitesWidget !== undefined ? data.showRecentSitesWidget : false,
       showWeatherWidget: data.showWeatherWidget !== undefined ? data.showWeatherWidget : false,
-      showBookmarkWidget: data.showBookmarkWidget !== undefined ? data.showBookmarkWidget : false,
       pomodoroWork: data.pomodoroWork ?? 25,
       pomodoroShort: data.pomodoroShort ?? 5,
       pomodoroLong: data.pomodoroLong ?? 15,
@@ -161,9 +159,7 @@ function loadSettings() {
       showCalendarWidget: true,
       showPomodoroWidget: false,
       showSystemInfoWidget: false,
-      showRecentSitesWidget: false,
       showWeatherWidget: false,
-      showBookmarkWidget: false,
       pomodoroWork: 25,
       pomodoroShort: 5,
       pomodoroLong: 15,
@@ -199,7 +195,7 @@ function Settings({ isOpen, onClose }) {
           'enableWeather', 'geolocation', 'manualLocation', 'tempUnit', 'forecast', 'tempDisplay', 'weatherShow',
           'enableGreeting', 'greetingName', 'greetingSize',
           'enableSearchBar', 'openInNewTab', 'showSuggestions', 'searchPlaceholder', 'searchWidth', 'searchBgOpacity', 'searchBlur',
-          'showClockWidget', 'showCalendarWidget', 'showPomodoroWidget', 'showSystemInfoWidget', 'showRecentSitesWidget', 'showWeatherWidget', 'showBookmarkWidget',
+          'showClockWidget', 'showCalendarWidget', 'showPomodoroWidget', 'showSystemInfoWidget', 'showWeatherWidget',
           'pomodoroWork', 'pomodoroShort', 'pomodoroLong', 'pomodoroCycles',
         ])
         setSettings((prev) => ({ ...prev, ...stored }))
@@ -644,13 +640,6 @@ function Settings({ isOpen, onClose }) {
                   onChange={() => update('showSystemInfoWidget', !settings.showSystemInfoWidget)}
                 />
               </div>
-              <div className="settings-group-inline">
-                <span className="settings-group-inline-title">Recent Visited Sites</span>
-                <ToggleSwitch
-                  checked={settings.showRecentSitesWidget}
-                  onChange={() => update('showRecentSitesWidget', !settings.showRecentSitesWidget)}
-                />
-              </div>
               <div className="settings-group">
                 <div className="settings-group-title">Pomodoro</div>
                 <div className="setting-row">
@@ -895,13 +884,6 @@ function Settings({ isOpen, onClose }) {
                     </div>
                   </>
                 )}
-              </div>
-              <div className="settings-group-inline">
-                <span className="settings-group-inline-title">Bookmark</span>
-                <ToggleSwitch
-                  checked={settings.showBookmarkWidget}
-                  onChange={() => update('showBookmarkWidget', !settings.showBookmarkWidget)}
-                />
               </div>
             </div>
           )}
