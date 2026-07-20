@@ -141,13 +141,13 @@ html, body {
   border-radius: 4px;
   cursor: grab;
   color: rgba(255, 255, 255, 0.7);
-  opacity: 0;
-  transition: opacity 0.15s ease;
   padding: 0;
   z-index: 5;
+  opacity: 0.2;
+  transition: opacity 0.15s ease;
 }
 
-.draggable:hover .drag-handle,
+.drag-handle:hover,
 .draggable.dragging .drag-handle {
   opacity: 1;
 }
