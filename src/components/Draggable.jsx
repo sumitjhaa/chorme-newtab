@@ -63,8 +63,8 @@ export default function Draggable({ id, defaultPosition, children }) {
       let ny = ((e.clientY - parentRect.top - offset.current.y) / parentRect.height) * 100
       const elW = (elRect.width / parentRect.width) * 100
       const elH = (elRect.height / parentRect.height) * 100
-      nx = Math.max(elW / 2, Math.min(100 - elW / 2, nx))
-      ny = Math.max(elH / 2, Math.min(100 - elH / 2, ny))
+      nx = Math.max(0, Math.min(100 - elW, nx))
+      ny = Math.max(0, Math.min(100 - elH, ny))
       setPos({ x: Math.round(nx * 10) / 10, y: Math.round(ny * 10) / 10 })
     }
 
@@ -78,8 +78,8 @@ export default function Draggable({ id, defaultPosition, children }) {
       let ny = ((touch.clientY - parentRect.top - offset.current.y) / parentRect.height) * 100
       const elW = (elRect.width / parentRect.width) * 100
       const elH = (elRect.height / parentRect.height) * 100
-      nx = Math.max(elW / 2, Math.min(100 - elW / 2, nx))
-      ny = Math.max(elH / 2, Math.min(100 - elH / 2, ny))
+      nx = Math.max(0, Math.min(100 - elW, nx))
+      ny = Math.max(0, Math.min(100 - elH, ny))
       setPos({ x: Math.round(nx * 10) / 10, y: Math.round(ny * 10) / 10 })
     }
 
