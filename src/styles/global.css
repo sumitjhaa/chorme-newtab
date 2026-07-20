@@ -143,8 +143,8 @@ html, body {
   color: rgba(255, 255, 255, 0.7);
   padding: 0;
   z-index: 5;
-  opacity: 0.2;
-  transition: opacity 0.15s ease;
+  opacity: 0.01;
+  transition: opacity 0.2s ease;
 }
 
 .drag-handle:hover,
