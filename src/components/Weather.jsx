@@ -142,6 +142,7 @@ function Weather() {
 
   return (
     <div className="weather-widget">
+      <div className="weather-title">Weather</div>
       {location && <div className="weather-location">{location}</div>}
       <div className="weather-main">
         {settings.weatherShow !== 'description' && <span className="weather-icon">{info.icon}</span>}

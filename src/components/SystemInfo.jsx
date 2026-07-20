@@ -15,14 +15,17 @@ function getInfo() {
   else if (ua.includes('Android')) os = 'Android'
   else if (ua.includes('iOS')) os = 'iOS'
 
+  const cores = navigator.hardwareConcurrency || 4
+  const mem = navigator.deviceMemory || 8
+
   return [
-    { label: 'Browser', value: browser },
-    { label: 'OS', value: os },
-    { label: 'Resolution', value: `${screen.width}×${screen.height}` },
-    ...(navigator.deviceMemory ? [{ label: 'RAM', value: `${navigator.deviceMemory} GB` }] : []),
-    { label: 'CPU cores', value: String(navigator.hardwareConcurrency || '?') },
-    { label: 'Language', value: navigator.language },
-    { label: 'Timezone', value: Intl.DateTimeFormat().resolvedOptions().timeZone },
+    { icon: '🌐', label: 'Browser', value: browser },
+    { icon: '💻', label: 'OS', value: os },
+    { icon: '📐', label: 'Resolution', value: `${screen.width}×${screen.height}` },
+    { icon: '🧠', label: 'RAM', value: `${mem} GB`, bar: mem / 16 },
+    { icon: '⚡', label: 'CPU', value: `${cores} cores`, bar: cores / 16 },
+    { icon: '🌍', label: 'Language', value: navigator.language },
+    { icon: '🕐', label: 'Timezone', value: Intl.DateTimeFormat().resolvedOptions().timeZone.split('/').pop().replace(/_/g, ' ') },
   ]
 }
 
@@ -32,10 +35,16 @@ function SystemInfo() {
   return (
     <div className="sysinfo-widget">
       <div className="sysinfo-title">System Info</div>
-      {info.map(({ label, value }) => (
+      {info.map(({ icon, label, value, bar }) => (
         <div key={label} className="sysinfo-row">
+          <span className="sysinfo-icon">{icon}</span>
           <span className="sysinfo-label">{label}</span>
           <span className="sysinfo-value">{value}</span>
+          {bar !== undefined && (
+            <div className="sysinfo-bar">
+              <div className="sysinfo-bar-fill" style={{ width: `${Math.min(bar * 100, 100)}%` }} />
+            </div>
+          )}
         </div>
       ))}
     </div>

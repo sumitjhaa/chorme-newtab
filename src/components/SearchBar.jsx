@@ -51,7 +51,15 @@ export default function SearchBar() {
     e.preventDefault()
     if (!query.trim()) return
     const selectedEngine = SEARCH_ENGINES[engine]
-    window.location.href = `${selectedEngine.url}${encodeURIComponent(query.trim())}`
+    const url = `${selectedEngine.url}${encodeURIComponent(query.trim())}`
+    try {
+      const sites = JSON.parse(localStorage.getItem('newtab_recent_sites') || '[]')
+      const entry = { url, title: query.trim() }
+      const filtered = sites.filter((s) => s.url !== url)
+      filtered.unshift(entry)
+      localStorage.setItem('newtab_recent_sites', JSON.stringify(filtered.slice(0, 8)))
+    } catch {}
+    window.location.href = url
   }, [query, engine])
 
   const handleEngineSelect = useCallback((name) => {

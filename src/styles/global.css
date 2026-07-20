@@ -193,14 +193,23 @@ html, body {
   color: var(--text-primary);
 }
 
-.clock-time {
-  font-size: 2rem;
-  font-weight: 300;
+.clock-title {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
   letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
+.clock-time {
+  font-size: 1.5rem;
+  font-weight: 300;
+  letter-spacing: 0.03em;
 }
 
 .clock-date {
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   font-weight: 400;
   color: var(--text-secondary);
   margin-top: 0.25rem;
@@ -385,21 +394,6 @@ html, body {
 .pomo-tab:hover { color: var(--text-primary); border-color: rgba(255, 255, 255, 0.2); }
 .pomo-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 
-.pomo-bar {
-  height: 3px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 2px;
-  margin-bottom: 0.5rem;
-  overflow: hidden;
-}
-
-.pomo-bar-fill {
-  height: 100%;
-  background: var(--accent);
-  border-radius: 2px;
-  transition: width 0.3s linear;
-}
-
 .pomo-time {
   font-size: 2rem;
   font-weight: 300;
@@ -466,14 +460,20 @@ html, body {
 }
 
 .sysinfo-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
+  display: grid;
+  grid-template-columns: 18px 50px 1fr;
+  align-items: center;
+  gap: 0.5rem;
   padding: 3px 0;
 }
 
+.sysinfo-icon {
+  font-size: 0.8rem;
+  text-align: center;
+}
+
 .sysinfo-label {
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   color: var(--text-tertiary);
 }
 
@@ -481,6 +481,22 @@ html, body {
   font-size: 0.7rem;
   color: var(--text-primary);
   font-weight: 500;
+}
+
+.sysinfo-bar {
+  grid-column: 1 / -1;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 1px;
+  margin-top: 2px;
+  overflow: hidden;
+}
+
+.sysinfo-bar-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 1px;
+  transition: width 0.5s ease;
 }
 
 /* ─── Recent Visited Sites Widget ─── */
@@ -549,9 +565,18 @@ html, body {
   color: var(--text-primary);
 }
 
+.weather-title {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
 .weather-location {
   font-size: 0.7rem;
-  color: var(--text-tertiary);
+  color: var(--text-secondary);
   margin-bottom: 0.25rem;
 }
 
@@ -600,6 +625,75 @@ html, body {
 .weather-loading {
   font-size: 0.75rem;
   color: var(--text-tertiary);
+}
+
+/* ─── Bookmark Widget ─── */
+
+.bookmark-widget {
+  background: var(--wallpaper-color);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+  width: 240px;
+  font-family: var(--font-family);
+  color: var(--text-primary);
+}
+
+.bookmark-title {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.bookmark-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+}
+
+.bookmark-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--text-primary);
+  transition: background var(--transition-fast);
+}
+
+.bookmark-item:hover { background: var(--bg-glass-hover); }
+
+.bookmark-favicon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+}
+
+.bookmark-favicon img {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+}
+
+.bookmark-name {
+  font-size: 0.6rem;
+  color: var(--text-secondary);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 48px;
 }
 
 /* ─── Search Bar ─── */
@@ -946,6 +1040,25 @@ html, body {
   letter-spacing: 0.04em;
   color: var(--accent);
   margin-bottom: 0.125rem;
+}
+
+.settings-group-inline {
+  background: var(--group-bg);
+  border-radius: var(--group-radius);
+  padding: var(--group-padding);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.settings-group-inline-title {
+  font-size: var(--group-title-size);
+  font-weight: 600;
+  font-family: 'CaskaydiaCove Nerd Font Mono', monospace;
+  text-transform: capitalize;
+  letter-spacing: 0.04em;
+  color: var(--accent);
 }
 
 /* ─── Setting Rows ─── */

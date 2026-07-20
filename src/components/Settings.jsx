@@ -99,6 +99,7 @@ function loadSettings() {
       showSystemInfoWidget: data.showSystemInfoWidget !== undefined ? data.showSystemInfoWidget : false,
       showRecentSitesWidget: data.showRecentSitesWidget !== undefined ? data.showRecentSitesWidget : false,
       showWeatherWidget: data.showWeatherWidget !== undefined ? data.showWeatherWidget : false,
+      showBookmarkWidget: data.showBookmarkWidget !== undefined ? data.showBookmarkWidget : false,
       pomodoroWork: data.pomodoroWork ?? 25,
       pomodoroShort: data.pomodoroShort ?? 5,
       pomodoroLong: data.pomodoroLong ?? 15,
@@ -162,6 +163,7 @@ function loadSettings() {
       showSystemInfoWidget: false,
       showRecentSitesWidget: false,
       showWeatherWidget: false,
+      showBookmarkWidget: false,
       pomodoroWork: 25,
       pomodoroShort: 5,
       pomodoroLong: 15,
@@ -197,7 +199,7 @@ function Settings({ isOpen, onClose }) {
           'enableWeather', 'geolocation', 'manualLocation', 'tempUnit', 'forecast', 'tempDisplay', 'weatherShow',
           'enableGreeting', 'greetingName', 'greetingSize',
           'enableSearchBar', 'openInNewTab', 'showSuggestions', 'searchPlaceholder', 'searchWidth', 'searchBgOpacity', 'searchBlur',
-          'showClockWidget', 'showCalendarWidget', 'showPomodoroWidget', 'showSystemInfoWidget', 'showRecentSitesWidget', 'showWeatherWidget',
+          'showClockWidget', 'showCalendarWidget', 'showPomodoroWidget', 'showSystemInfoWidget', 'showRecentSitesWidget', 'showWeatherWidget', 'showBookmarkWidget',
           'pomodoroWork', 'pomodoroShort', 'pomodoroLong', 'pomodoroCycles',
         ])
         setSettings((prev) => ({ ...prev, ...stored }))
@@ -628,11 +630,26 @@ function Settings({ isOpen, onClose }) {
 
           {activeTab === 'widgets' && (
             <div className="settings-groups">
-              <div className="settings-group">
-                <div className="settings-group-title">Board</div>
+              <div className="settings-group-inline">
+                <span className="settings-group-inline-title">Calendar</span>
+                <ToggleSwitch
+                  checked={settings.showCalendarWidget}
+                  onChange={() => update('showCalendarWidget', !settings.showCalendarWidget)}
+                />
               </div>
-              <div className="settings-group">
-                <div className="settings-group-title">Theme</div>
+              <div className="settings-group-inline">
+                <span className="settings-group-inline-title">System Info</span>
+                <ToggleSwitch
+                  checked={settings.showSystemInfoWidget}
+                  onChange={() => update('showSystemInfoWidget', !settings.showSystemInfoWidget)}
+                />
+              </div>
+              <div className="settings-group-inline">
+                <span className="settings-group-inline-title">Recent Visited Sites</span>
+                <ToggleSwitch
+                  checked={settings.showRecentSitesWidget}
+                  onChange={() => update('showRecentSitesWidget', !settings.showRecentSitesWidget)}
+                />
               </div>
               <div className="settings-group">
                 <div className="settings-group-title">Pomodoro</div>
@@ -689,36 +706,6 @@ function Settings({ isOpen, onClose }) {
                     />
                   </div>
                 </>)}
-              </div>
-              <div className="settings-group">
-                <div className="settings-group-title">System Info</div>
-                <div className="setting-row">
-                  <span className="setting-label">Show system info</span>
-                  <ToggleSwitch
-                    checked={settings.showSystemInfoWidget}
-                    onChange={() => update('showSystemInfoWidget', !settings.showSystemInfoWidget)}
-                  />
-                </div>
-              </div>
-              <div className="settings-group">
-                <div className="settings-group-title">Recent Visited Sites</div>
-                <div className="setting-row">
-                  <span className="setting-label">Show recent sites</span>
-                  <ToggleSwitch
-                    checked={settings.showRecentSitesWidget}
-                    onChange={() => update('showRecentSitesWidget', !settings.showRecentSitesWidget)}
-                  />
-                </div>
-              </div>
-              <div className="settings-group">
-                <div className="settings-group-title">Calendar</div>
-                <div className="setting-row">
-                  <span className="setting-label">Show calendar</span>
-                  <ToggleSwitch
-                    checked={settings.showCalendarWidget}
-                    onChange={() => update('showCalendarWidget', !settings.showCalendarWidget)}
-                  />
-                </div>
               </div>
               <div className="settings-group">
                 <div className="settings-group-title">Date</div>
@@ -909,8 +896,12 @@ function Settings({ isOpen, onClose }) {
                   </>
                 )}
               </div>
-              <div className="settings-group">
-                <div className="settings-group-title">Speed Dial</div>
+              <div className="settings-group-inline">
+                <span className="settings-group-inline-title">Bookmark</span>
+                <ToggleSwitch
+                  checked={settings.showBookmarkWidget}
+                  onChange={() => update('showBookmarkWidget', !settings.showBookmarkWidget)}
+                />
               </div>
             </div>
           )}

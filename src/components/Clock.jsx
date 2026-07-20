@@ -126,6 +126,7 @@ function Clock() {
 
   return (
     <div className="clock" style={{ opacity: settings.uiOpacity / 100, transform: `scale(${scale})` }}>
+      <div className="clock-title">Clock</div>
       {showClock && (
         settings.analogClock ? (
           <AnalogClock date={time} timeZone={settings.timeZone} />

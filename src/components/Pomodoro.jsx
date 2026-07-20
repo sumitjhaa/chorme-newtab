@@ -108,9 +108,6 @@ function Pomodoro() {
     setRunning(false)
   }, [])
 
-  const total = durations[phase]
-  const pct = ((total - timeLeft) / total) * 100
-
   const tabs = [
     { id: 'work', label: 'Work' },
     { id: 'short_break', label: 'Short' },
@@ -129,9 +126,6 @@ function Pomodoro() {
             {t.label}
           </button>
         ))}
-      </div>
-      <div className="pomo-bar">
-        <div className="pomo-bar-fill" style={{ width: `${pct}%` }} />
       </div>
       <div className="pomo-time">{formatTime(timeLeft)}</div>
       <div className="pomo-cycles">
