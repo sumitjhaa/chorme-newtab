@@ -3,6 +3,10 @@ import SearchBar from './components/SearchBar.jsx'
 import Wallpaper from './components/Wallpaper.jsx'
 import Clock from './components/Clock.jsx'
 import Calendar from './components/Calendar.jsx'
+import Pomodoro from './components/Pomodoro.jsx'
+import SystemInfo from './components/SystemInfo.jsx'
+import RecentSites from './components/RecentSites.jsx'
+import Weather from './components/Weather.jsx'
 import Settings from './components/Settings.jsx'
 import Draggable from './components/Draggable.jsx'
 import { fetchRandomWallpaper } from './api/index.js'
@@ -51,6 +55,10 @@ function loadAllSettings() {
       language: data.language || 'en',
       showClockWidget: data.showClockWidget !== undefined ? data.showClockWidget : true,
       showCalendarWidget: data.showCalendarWidget !== undefined ? data.showCalendarWidget : true,
+      showPomodoroWidget: data.showPomodoroWidget !== undefined ? data.showPomodoroWidget : false,
+      showSystemInfoWidget: data.showSystemInfoWidget !== undefined ? data.showSystemInfoWidget : false,
+      showRecentSitesWidget: data.showRecentSitesWidget !== undefined ? data.showRecentSitesWidget : false,
+      showWeatherWidget: data.showWeatherWidget !== undefined ? data.showWeatherWidget : false,
     }
   } catch {
     return {
@@ -63,6 +71,10 @@ function loadAllSettings() {
       language: 'en',
       showClockWidget: true,
       showCalendarWidget: true,
+      showPomodoroWidget: false,
+      showSystemInfoWidget: false,
+      showRecentSitesWidget: false,
+      showWeatherWidget: false,
     }
   }
 }
@@ -180,6 +192,30 @@ export default function App() {
       {appSettings.showCalendarWidget && (
         <Draggable id="calendar" defaultPosition={{ x: 50, y: 35 }}>
           <Calendar />
+        </Draggable>
+      )}
+
+      {appSettings.showPomodoroWidget && (
+        <Draggable id="pomodoro" defaultPosition={{ x: 10, y: 10 }}>
+          <Pomodoro />
+        </Draggable>
+      )}
+
+      {appSettings.showSystemInfoWidget && (
+        <Draggable id="system-info" defaultPosition={{ x: 85, y: 10 }}>
+          <SystemInfo />
+        </Draggable>
+      )}
+
+      {appSettings.showRecentSitesWidget && (
+        <Draggable id="recent-sites" defaultPosition={{ x: 10, y: 50 }}>
+          <RecentSites />
+        </Draggable>
+      )}
+
+      {appSettings.showWeatherWidget && (
+        <Draggable id="weather" defaultPosition={{ x: 85, y: 50 }}>
+          <Weather />
         </Draggable>
       )}
 

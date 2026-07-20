@@ -95,6 +95,10 @@ function loadSettings() {
       searchBlur: data.searchBlur !== undefined ? data.searchBlur : 20,
       showClockWidget: data.showClockWidget !== undefined ? data.showClockWidget : true,
       showCalendarWidget: data.showCalendarWidget !== undefined ? data.showCalendarWidget : true,
+      showPomodoroWidget: data.showPomodoroWidget !== undefined ? data.showPomodoroWidget : false,
+      showSystemInfoWidget: data.showSystemInfoWidget !== undefined ? data.showSystemInfoWidget : false,
+      showRecentSitesWidget: data.showRecentSitesWidget !== undefined ? data.showRecentSitesWidget : false,
+      showWeatherWidget: data.showWeatherWidget !== undefined ? data.showWeatherWidget : false,
     }
   } catch {
     return {
@@ -150,6 +154,10 @@ function loadSettings() {
       searchBlur: 20,
       showClockWidget: true,
       showCalendarWidget: true,
+      showPomodoroWidget: false,
+      showSystemInfoWidget: false,
+      showRecentSitesWidget: false,
+      showWeatherWidget: false,
     }
   }
 }
@@ -181,7 +189,7 @@ function Settings({ isOpen, onClose }) {
           'enableWeather', 'geolocation', 'manualLocation', 'tempUnit', 'forecast', 'tempDisplay', 'weatherShow',
           'enableGreeting', 'greetingName', 'greetingSize',
           'enableSearchBar', 'openInNewTab', 'showSuggestions', 'searchPlaceholder', 'searchWidth', 'searchBgOpacity', 'searchBlur',
-          'showClockWidget', 'showCalendarWidget',
+          'showClockWidget', 'showCalendarWidget', 'showPomodoroWidget', 'showSystemInfoWidget', 'showRecentSitesWidget', 'showWeatherWidget',
         ])
         setSettings((prev) => ({ ...prev, ...stored }))
       } catch {
@@ -447,100 +455,6 @@ function Settings({ isOpen, onClose }) {
                   </select>
                 </div>
               </>)}
-            </div>
-
-            <div className="settings-group">
-              <div className="settings-group-title">Weather</div>
-
-              <div className="setting-row">
-                <span className="setting-label">Enable weather</span>
-                <ToggleSwitch
-                  checked={settings.enableWeather}
-                  onChange={() => update('enableWeather', !settings.enableWeather)}
-                />
-              </div>
-
-              {settings.enableWeather && (
-                <>
-                  <div className="setting-row">
-                    <span className="setting-label">Geolocation</span>
-                    <select
-                      className="setting-select"
-                      value={settings.geolocation}
-                      onChange={(e) => update('geolocation', e.target.value)}
-                    >
-                      <option value="approximate">Approximate</option>
-                      <option value="manual">Manual</option>
-                      <option value="precise">Precise</option>
-                    </select>
-                  </div>
-
-                  {settings.geolocation === 'manual' && (
-                    <div className="setting-row">
-                      <span className="setting-label">Location</span>
-                      <input
-                        type="text"
-                        className="setting-input"
-                        value={settings.manualLocation}
-                        onChange={(e) => update('manualLocation', e.target.value)}
-                        placeholder="City name or coordinates"
-                      />
-                    </div>
-                  )}
-
-                  <div className="setting-row">
-                    <span className="setting-label">Temperature unit</span>
-                    <select
-                      className="setting-select"
-                      value={settings.tempUnit}
-                      onChange={(e) => update('tempUnit', e.target.value)}
-                    >
-                      <option value="celsius">Celsius</option>
-                      <option value="fahrenheit">Fahrenheit</option>
-                    </select>
-                  </div>
-
-                  <div className="setting-row">
-                    <span className="setting-label">Forecast</span>
-                    <select
-                      className="setting-select"
-                      value={settings.forecast}
-                      onChange={(e) => update('forecast', e.target.value)}
-                    >
-                      <option value="automatic">Automatic</option>
-                      <option value="always">Always</option>
-                      <option value="never">Never</option>
-                    </select>
-                  </div>
-
-                  <div className="setting-row">
-                    <span className="setting-label">Temperature</span>
-                    <select
-                      className="setting-select"
-                      value={settings.tempDisplay}
-                      onChange={(e) => update('tempDisplay', e.target.value)}
-                    >
-                      <option value="actual">Actual</option>
-                      <option value="feels_like">Feels like</option>
-                      <option value="both">Both</option>
-                    </select>
-                  </div>
-
-                  <div className="setting-row">
-                    <span className="setting-label">Show</span>
-                    <select
-                      className="setting-select"
-                      value={settings.weatherShow}
-                      onChange={(e) => update('weatherShow', e.target.value)}
-                    >
-                      <option value="description_icon">Description & icon</option>
-                      <option value="description">Description</option>
-                      <option value="icon">Icon</option>
-                      <option value="nothing">Nothing</option>
-                    </select>
-                  </div>
-                </>
-              )}
             </div>
 
             <div className="settings-group">
@@ -821,12 +735,33 @@ function Settings({ isOpen, onClose }) {
               </div>
               <div className="settings-group">
                 <div className="settings-group-title">Pomodoro</div>
+                <div className="setting-row">
+                  <span className="setting-label">Show pomodoro</span>
+                  <ToggleSwitch
+                    checked={settings.showPomodoroWidget}
+                    onChange={() => update('showPomodoroWidget', !settings.showPomodoroWidget)}
+                  />
+                </div>
               </div>
               <div className="settings-group">
                 <div className="settings-group-title">System Info</div>
+                <div className="setting-row">
+                  <span className="setting-label">Show system info</span>
+                  <ToggleSwitch
+                    checked={settings.showSystemInfoWidget}
+                    onChange={() => update('showSystemInfoWidget', !settings.showSystemInfoWidget)}
+                  />
+                </div>
               </div>
               <div className="settings-group">
                 <div className="settings-group-title">Recent Visited Sites</div>
+                <div className="setting-row">
+                  <span className="setting-label">Show recent sites</span>
+                  <ToggleSwitch
+                    checked={settings.showRecentSitesWidget}
+                    onChange={() => update('showRecentSitesWidget', !settings.showRecentSitesWidget)}
+                  />
+                </div>
               </div>
               <div className="settings-group">
                 <div className="settings-group-title">Calendar</div>
@@ -850,6 +785,95 @@ function Settings({ isOpen, onClose }) {
               </div>
               <div className="settings-group">
                 <div className="settings-group-title">Weather</div>
+                <div className="setting-row">
+                  <span className="setting-label">Show weather</span>
+                  <ToggleSwitch
+                    checked={settings.showWeatherWidget}
+                    onChange={() => update('showWeatherWidget', !settings.showWeatherWidget)}
+                  />
+                </div>
+
+                {settings.showWeatherWidget && (
+                  <>
+                    <div className="setting-row">
+                      <span className="setting-label">Geolocation</span>
+                      <select
+                        className="setting-select"
+                        value={settings.geolocation}
+                        onChange={(e) => update('geolocation', e.target.value)}
+                      >
+                        <option value="approximate">Approximate</option>
+                        <option value="manual">Manual</option>
+                        <option value="precise">Precise</option>
+                      </select>
+                    </div>
+
+                    {settings.geolocation === 'manual' && (
+                      <div className="setting-row">
+                        <span className="setting-label">Location</span>
+                        <input
+                          type="text"
+                          className="setting-input"
+                          value={settings.manualLocation}
+                          onChange={(e) => update('manualLocation', e.target.value)}
+                          placeholder="City name or coordinates"
+                        />
+                      </div>
+                    )}
+
+                    <div className="setting-row">
+                      <span className="setting-label">Temperature unit</span>
+                      <select
+                        className="setting-select"
+                        value={settings.tempUnit}
+                        onChange={(e) => update('tempUnit', e.target.value)}
+                      >
+                        <option value="celsius">Celsius</option>
+                        <option value="fahrenheit">Fahrenheit</option>
+                      </select>
+                    </div>
+
+                    <div className="setting-row">
+                      <span className="setting-label">Forecast</span>
+                      <select
+                        className="setting-select"
+                        value={settings.forecast}
+                        onChange={(e) => update('forecast', e.target.value)}
+                      >
+                        <option value="automatic">Automatic</option>
+                        <option value="always">Always</option>
+                        <option value="never">Never</option>
+                      </select>
+                    </div>
+
+                    <div className="setting-row">
+                      <span className="setting-label">Temperature</span>
+                      <select
+                        className="setting-select"
+                        value={settings.tempDisplay}
+                        onChange={(e) => update('tempDisplay', e.target.value)}
+                      >
+                        <option value="actual">Actual</option>
+                        <option value="feels_like">Feels like</option>
+                        <option value="both">Both</option>
+                      </select>
+                    </div>
+
+                    <div className="setting-row">
+                      <span className="setting-label">Show</span>
+                      <select
+                        className="setting-select"
+                        value={settings.weatherShow}
+                        onChange={(e) => update('weatherShow', e.target.value)}
+                      >
+                        <option value="description_icon">Description & icon</option>
+                        <option value="description">Description</option>
+                        <option value="icon">Icon</option>
+                        <option value="nothing">Nothing</option>
+                      </select>
+                    </div>
+                  </>
+                )}
               </div>
               <div className="settings-group">
                 <div className="settings-group-title">Speed Dial</div>

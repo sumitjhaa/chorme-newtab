@@ -270,6 +270,204 @@ html, body {
 
 .cal-today:hover { background: var(--accent-hover); }
 
+/* ─── Pomodoro Widget ─── */
+
+.pomodoro-widget {
+  background: var(--wallpaper-color);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+  min-width: 160px;
+  text-align: center;
+  font-family: var(--font-family);
+  color: var(--text-primary);
+}
+
+.pomo-phase {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.pomo-bar {
+  height: 3px;
+  background: var(--bg-glass);
+  border-radius: 2px;
+  margin-bottom: 0.5rem;
+  overflow: hidden;
+}
+
+.pomo-bar-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+  transition: width 0.3s linear;
+}
+
+.pomo-time {
+  font-size: 2rem;
+  font-weight: 300;
+  letter-spacing: 0.03em;
+  margin-bottom: 0.5rem;
+}
+
+.pomo-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.pomo-btn {
+  background: var(--bg-glass);
+  border: none;
+  color: var(--text-primary);
+  padding: 4px 14px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.pomo-btn:hover { background: var(--bg-glass-hover); }
+
+/* ─── System Info Widget ─── */
+
+.sysinfo-widget {
+  background: var(--wallpaper-color);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: var(--radius-lg);
+  padding: 0.75rem 1rem;
+  min-width: 160px;
+  font-family: var(--font-family);
+  color: var(--text-primary);
+}
+
+.sysinfo-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 3px 0;
+}
+
+.sysinfo-label {
+  font-size: 0.7rem;
+  color: var(--text-tertiary);
+}
+
+.sysinfo-value {
+  font-size: 0.7rem;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+/* ─── Recent Visited Sites Widget ─── */
+
+.recents-widget {
+  background: var(--wallpaper-color);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: var(--radius-lg);
+  padding: 0.75rem;
+  min-width: 180px;
+  font-family: var(--font-family);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.recents-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 5px 8px;
+  border-radius: 6px;
+  text-decoration: none;
+  color: var(--text-primary);
+  transition: background var(--transition-fast);
+}
+
+.recents-item:hover { background: var(--bg-glass-hover); }
+
+.recents-favicon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.recents-favicon img {
+  width: 16px;
+  height: 16px;
+  border-radius: 2px;
+}
+
+.recents-title {
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ─── Weather Widget ─── */
+
+.weather-widget {
+  background: var(--wallpaper-color);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+  min-width: 140px;
+  text-align: center;
+  font-family: var(--font-family);
+  color: var(--text-primary);
+}
+
+.weather-location {
+  font-size: 0.7rem;
+  color: var(--text-tertiary);
+  margin-bottom: 0.25rem;
+}
+
+.weather-main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.weather-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.weather-desc {
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.weather-temp {
+  font-size: 1.8rem;
+  font-weight: 200;
+  letter-spacing: 0.02em;
+  margin-top: 0.25rem;
+}
+
+.weather-error,
+.weather-loading {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+}
+
 /* ─── Search Bar ─── */
 
 .search-bar { position: relative; width: 100%; max-width: 500px; }
