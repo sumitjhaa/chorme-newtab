@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "New Tab Wallpaper",
+  "version": "1.0.0",
+  "description": "Beautiful wallpapers on every new tab with Google search",
+  "chrome_url_overrides": {
+    "newtab": "index.html",
+    "homepage": "index.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://wallhaven.cc/*",
+    "https://pixabay.com/*",
+    "https://picsum.photos/*",
+    "https://catbox.moe/*"
+  ]
+}
