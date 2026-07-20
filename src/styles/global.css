@@ -147,6 +147,12 @@ html, body {
   transition: opacity 0.2s ease;
 }
 
+.drag-handle::before {
+  content: '';
+  position: absolute;
+  inset: -1em;
+}
+
 .drag-handle:hover,
 .draggable.dragging .drag-handle {
   opacity: 1;
