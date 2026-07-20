@@ -17,9 +17,7 @@ describe('Clock', () => {
     render(<Clock />)
 
     expect(screen.getByText(/02:30/)).toBeInTheDocument()
-    expect(screen.getByText(/January/)).toBeInTheDocument()
-    expect(screen.getByText(/15/)).toBeInTheDocument()
-    expect(screen.getByText(/Wednesday/)).toBeInTheDocument()
+    expect(screen.getByText(/15\/01\/2025/)).toBeInTheDocument()
   })
 
   it('updates time every second', () => {
@@ -39,6 +37,25 @@ describe('Clock', () => {
 
   it('renders clock container with correct class', () => {
     render(<Clock />)
-    expect(screen.getByText(/AM|PM/).closest('.clock')).toBeInTheDocument()
+    const clock = document.querySelector('.clock')
+    expect(clock).toBeInTheDocument()
+  })
+
+  it('shows AM/PM in 12h format', () => {
+    vi.setSystemTime(new Date(2025, 0, 15, 14, 30))
+    localStorage.setItem('newtab_settings', JSON.stringify({ clockFormat: '12h', showAmPm: true }))
+
+    render(<Clock />)
+
+    expect(screen.getByText('PM')).toBeInTheDocument()
+  })
+
+  it('hides AM/PM in 24h format', () => {
+    vi.setSystemTime(new Date(2025, 0, 15, 14, 30))
+    localStorage.setItem('newtab_settings', JSON.stringify({ clockFormat: '24h', showAmPm: false }))
+
+    render(<Clock />)
+
+    expect(screen.queryByText(/PM/)).not.toBeInTheDocument()
   })
 })

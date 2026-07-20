@@ -15,20 +15,15 @@ function getInfo() {
   else if (ua.includes('Android')) os = 'Android'
   else if (ua.includes('iOS')) os = 'iOS'
 
-  const lines = [
+  return [
     { label: 'Browser', value: browser },
     { label: 'OS', value: os },
     { label: 'Resolution', value: `${screen.width}×${screen.height}` },
+    ...(navigator.deviceMemory ? [{ label: 'RAM', value: `${navigator.deviceMemory} GB` }] : []),
     { label: 'CPU cores', value: String(navigator.hardwareConcurrency || '?') },
     { label: 'Language', value: navigator.language },
     { label: 'Timezone', value: Intl.DateTimeFormat().resolvedOptions().timeZone },
   ]
-
-  if (navigator.deviceMemory) {
-    lines.splice(3, 0, { label: 'RAM', value: `${navigator.deviceMemory} GB` })
-  }
-
-  return lines
 }
 
 function SystemInfo() {
@@ -36,6 +31,7 @@ function SystemInfo() {
 
   return (
     <div className="sysinfo-widget">
+      <div className="sysinfo-title">System Info</div>
       {info.map(({ label, value }) => (
         <div key={label} className="sysinfo-row">
           <span className="sysinfo-label">{label}</span>

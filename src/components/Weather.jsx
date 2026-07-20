@@ -66,28 +66,23 @@ const WEATHER_CODES = {
   51: { label: 'Light drizzle', icon: '🌦️' },
   53: { label: 'Moderate drizzle', icon: '🌦️' },
   55: { label: 'Dense drizzle', icon: '🌧️' },
-  56: { label: 'Light freezing drizzle', icon: '🌧️' },
-  57: { label: 'Dense freezing drizzle', icon: '🌧️' },
   61: { label: 'Slight rain', icon: '🌦️' },
   63: { label: 'Moderate rain', icon: '🌧️' },
   65: { label: 'Heavy rain', icon: '🌧️' },
-  66: { label: 'Light freezing rain', icon: '🌧️' },
-  67: { label: 'Heavy freezing rain', icon: '🌧️' },
   71: { label: 'Slight snow', icon: '🌨️' },
   73: { label: 'Moderate snow', icon: '🌨️' },
   75: { label: 'Heavy snow', icon: '❄️' },
-  77: { label: 'Snow grains', icon: '❄️' },
-  80: { label: 'Slight rain showers', icon: '🌦️' },
-  81: { label: 'Moderate rain showers', icon: '🌧️' },
-  82: { label: 'Violent rain showers', icon: '🌧️' },
-  85: { label: 'Slight snow showers', icon: '🌨️' },
-  86: { label: 'Heavy snow showers', icon: '🌨️' },
+  80: { label: 'Rain showers', icon: '🌦️' },
+  81: { label: 'Moderate showers', icon: '🌧️' },
+  82: { label: 'Heavy showers', icon: '🌧️' },
   95: { label: 'Thunderstorm', icon: '⛈️' },
-  96: { label: 'Thunderstorm with slight hail', icon: '⛈️' },
-  99: { label: 'Thunderstorm with heavy hail', icon: '⛈️' },
+  96: { label: 'Thunderstorm & hail', icon: '⛈️' },
+  99: { label: 'Heavy thunderstorm', icon: '⛈️' },
 }
 
 function toF(c) { return Math.round(c * 9 / 5 + 32) }
+function convertTemp(c, unit) { return unit === 'fahrenheit' ? toF(c) : Math.round(c) }
+function unitLabel(unit) { return unit === 'fahrenheit' ? '°F' : '°C' }
 
 function Weather() {
   const [settings, setSettings] = useState(loadSettings)
@@ -133,14 +128,17 @@ function Weather() {
 
   const code = weather.current.weather_code
   const info = WEATHER_CODES[code] || { label: 'Unknown', icon: '❓' }
-  const temp = settings.tempUnit === 'fahrenheit' ? toF(weather.current.temperature_2m) : Math.round(weather.current.temperature_2m)
-  const feels = settings.tempUnit === 'fahrenheit' ? toF(weather.current.apparent_temperature) : Math.round(weather.current.apparent_temperature)
-  const unit = settings.tempUnit === 'fahrenheit' ? '°F' : '°C'
+  const u = settings.tempUnit
+  const temp = convertTemp(weather.current.temperature_2m, u)
+  const feels = convertTemp(weather.current.apparent_temperature, u)
+  const hi = convertTemp(weather.daily.temperature_2m_max[0], u)
+  const lo = convertTemp(weather.daily.temperature_2m_min[0], u)
+  const label = unitLabel(u)
 
   let tempStr = ''
-  if (settings.tempDisplay === 'actual') tempStr = `${temp}${unit}`
-  else if (settings.tempDisplay === 'feels_like') tempStr = `${feels}${unit}`
-  else tempStr = `${temp}${unit} / Feels ${feels}${unit}`
+  if (settings.tempDisplay === 'actual') tempStr = `${temp}${label}`
+  else if (settings.tempDisplay === 'feels_like') tempStr = `${feels}${label}`
+  else tempStr = `${temp}${label} / Feels ${feels}${label}`
 
   return (
     <div className="weather-widget">
@@ -150,6 +148,10 @@ function Weather() {
         {settings.weatherShow !== 'icon' && <span className="weather-desc">{info.label}</span>}
       </div>
       <div className="weather-temp">{tempStr}</div>
+      <div className="weather-hilo">
+        <span className="weather-hi">↑ {hi}{label}</span>
+        <span className="weather-lo">↓ {lo}{label}</span>
+      </div>
     </div>
   )
 }

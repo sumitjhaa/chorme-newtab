@@ -206,6 +206,75 @@ html, body {
   margin-top: 0.25rem;
 }
 
+.clock-ampm {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-tertiary);
+}
+
+.analog-face {
+  width: 100%;
+  max-width: 160px;
+  margin: 0 auto;
+  display: block;
+}
+
+.analog-rim {
+  fill: none;
+  stroke: var(--text-tertiary);
+  stroke-width: 1;
+}
+
+.analog-tick {
+  stroke: var(--text-secondary);
+  stroke-width: 1.2;
+  stroke-linecap: round;
+}
+
+.analog-hour {
+  stroke: var(--text-primary);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.analog-minute {
+  stroke: var(--text-primary);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.analog-second {
+  stroke: var(--accent);
+  stroke-width: 1;
+  stroke-linecap: round;
+}
+
+.analog-center {
+  fill: var(--accent);
+}
+
+.world-clocks {
+  margin-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 0.5rem;
+}
+
+.world-clock-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 0;
+  font-size: 0.75rem;
+}
+
+.world-clock-label {
+  color: var(--text-tertiary);
+}
+
+.world-clock-time {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
 /* ─── Calendar Widget ─── */
 
 .calendar-widget {
@@ -292,18 +361,33 @@ html, body {
   color: var(--text-primary);
 }
 
-.pomo-phase {
-  font-size: 0.65rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  color: var(--text-tertiary);
-  text-transform: uppercase;
+.pomo-tabs {
+  display: flex;
+  gap: 4px;
   margin-bottom: 0.5rem;
 }
 
+.pomo-tab {
+  flex: 1;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-tertiary);
+  padding: 4px 0;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.pomo-tab:hover { color: var(--text-primary); border-color: rgba(255, 255, 255, 0.2); }
+.pomo-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
 .pomo-bar {
   height: 3px;
-  background: var(--bg-glass);
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 2px;
   margin-bottom: 0.5rem;
   overflow: hidden;
@@ -320,8 +404,25 @@ html, body {
   font-size: 2rem;
   font-weight: 300;
   letter-spacing: 0.03em;
+  margin-bottom: 0.35rem;
+}
+
+.pomo-cycles {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
   margin-bottom: 0.5rem;
 }
+
+.pomo-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  transition: background var(--transition-fast);
+}
+
+.pomo-dot.done { background: var(--accent); }
 
 .pomo-actions {
   display: flex;
@@ -330,7 +431,7 @@ html, body {
 }
 
 .pomo-btn {
-  background: var(--bg-glass);
+  background: rgba(255, 255, 255, 0.08);
   border: none;
   color: var(--text-primary);
   padding: 4px 14px;
@@ -355,6 +456,13 @@ html, body {
   width: 240px;
   font-family: var(--font-family);
   color: var(--text-primary);
+}
+
+.sysinfo-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--text-secondary);
 }
 
 .sysinfo-row {
@@ -469,6 +577,23 @@ html, body {
   font-weight: 200;
   letter-spacing: 0.02em;
   margin-top: 0.25rem;
+}
+
+.weather-hilo {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 0.35rem;
+  font-size: 0.8rem;
+}
+
+.weather-hi {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.weather-lo {
+  color: var(--text-secondary);
 }
 
 .weather-error,

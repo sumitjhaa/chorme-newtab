@@ -99,6 +99,10 @@ function loadSettings() {
       showSystemInfoWidget: data.showSystemInfoWidget !== undefined ? data.showSystemInfoWidget : false,
       showRecentSitesWidget: data.showRecentSitesWidget !== undefined ? data.showRecentSitesWidget : false,
       showWeatherWidget: data.showWeatherWidget !== undefined ? data.showWeatherWidget : false,
+      pomodoroWork: data.pomodoroWork ?? 25,
+      pomodoroShort: data.pomodoroShort ?? 5,
+      pomodoroLong: data.pomodoroLong ?? 15,
+      pomodoroCycles: data.pomodoroCycles ?? 4,
     }
   } catch {
     return {
@@ -158,6 +162,10 @@ function loadSettings() {
       showSystemInfoWidget: false,
       showRecentSitesWidget: false,
       showWeatherWidget: false,
+      pomodoroWork: 25,
+      pomodoroShort: 5,
+      pomodoroLong: 15,
+      pomodoroCycles: 4,
     }
   }
 }
@@ -190,6 +198,7 @@ function Settings({ isOpen, onClose }) {
           'enableGreeting', 'greetingName', 'greetingSize',
           'enableSearchBar', 'openInNewTab', 'showSuggestions', 'searchPlaceholder', 'searchWidth', 'searchBgOpacity', 'searchBlur',
           'showClockWidget', 'showCalendarWidget', 'showPomodoroWidget', 'showSystemInfoWidget', 'showRecentSitesWidget', 'showWeatherWidget',
+          'pomodoroWork', 'pomodoroShort', 'pomodoroLong', 'pomodoroCycles',
         ])
         setSettings((prev) => ({ ...prev, ...stored }))
       } catch {
@@ -347,114 +356,6 @@ function Settings({ isOpen, onClose }) {
                   <span className="range-value">{settings.fontShadow}px</span>
                 </div>
               </div>
-            </div>
-
-            <div className="settings-group">
-              <div className="settings-group-title">Time & Date</div>
-
-              <div className="setting-row">
-                <span className="setting-label">Enable time & date</span>
-                <ToggleSwitch
-                  checked={settings.enableTimeDate}
-                  onChange={() => update('enableTimeDate', !settings.enableTimeDate)}
-                />
-              </div>
-
-              {settings.enableTimeDate && (<>
-                <div className="setting-row">
-                  <span className="setting-label">12 hr format</span>
-                  <ToggleSwitch
-                    checked={settings.clockFormat === '12h'}
-                    onChange={() => update('clockFormat', settings.clockFormat === '12h' ? '24h' : '12h')}
-                  />
-                </div>
-
-                <div className="setting-row">
-                  <span className="setting-label">Show AM/PM</span>
-                  <ToggleSwitch
-                    checked={settings.showAmPm}
-                    onChange={() => update('showAmPm', !settings.showAmPm)}
-                  />
-                </div>
-
-                <div className="setting-row">
-                  <span className="setting-label">Show seconds</span>
-                  <ToggleSwitch
-                    checked={settings.showSeconds}
-                    onChange={() => update('showSeconds', !settings.showSeconds)}
-                  />
-                </div>
-
-                <div className="setting-row">
-                  <span className="setting-label">Analog clock</span>
-                  <ToggleSwitch
-                    checked={settings.analogClock}
-                    onChange={() => update('analogClock', !settings.analogClock)}
-                  />
-                </div>
-
-                <div className="setting-row">
-                  <span className="setting-label">World clocks</span>
-                  <ToggleSwitch
-                    checked={settings.worldClocks}
-                    onChange={() => update('worldClocks', !settings.worldClocks)}
-                  />
-                </div>
-
-                <div className="setting-row">
-                  <span className="setting-label">Clock size</span>
-                  <div className="range-control">
-                    <input
-                      type="range"
-                      min="50"
-                      max="200"
-                      value={settings.clockSize}
-                      onChange={(e) => update('clockSize', Number(e.target.value))}
-                      className="slider"
-                    />
-                    <span className="range-value">{settings.clockSize}%</span>
-                  </div>
-                </div>
-
-                <div className="setting-row">
-                  <span className="setting-label">Time zone</span>
-                  <select
-                    className="setting-select"
-                    value={settings.timeZone}
-                    onChange={(e) => update('timeZone', e.target.value)}
-                  >
-                    {Intl.supportedValuesOf('timeZone').map((tz) => (
-                      <option key={tz} value={tz}>{tz.replace(/_/g, ' ')}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="setting-row">
-                  <span className="setting-label">Date format</span>
-                  <select
-                    className="setting-select"
-                    value={settings.dateFormat}
-                    onChange={(e) => update('dateFormat', e.target.value)}
-                  >
-                    <option value="DD/MM/YYYY">DD/MM/YYYY</option>
-                    <option value="MM/DD/YYYY">MM/DD/YYYY</option>
-                    <option value="YYYY-MM-DD">YYYY-MM-DD</option>
-                  </select>
-                </div>
-
-                <div className="setting-row">
-                  <span className="setting-label">Show</span>
-                  <select
-                    className="setting-select"
-                    value={settings.showClockDate}
-                    onChange={(e) => update('showClockDate', e.target.value)}
-                  >
-                    <option value="both">Clock & Date</option>
-                    <option value="clock">Clock only</option>
-                    <option value="date">Date only</option>
-                  </select>
-                </div>
-              </>)}
             </div>
 
             <div className="settings-group">
@@ -742,6 +643,52 @@ function Settings({ isOpen, onClose }) {
                     onChange={() => update('showPomodoroWidget', !settings.showPomodoroWidget)}
                   />
                 </div>
+                {settings.showPomodoroWidget && (<>
+                  <div className="setting-row">
+                    <span className="setting-label">Work (min)</span>
+                    <input
+                      type="number"
+                      className="setting-input"
+                      min="1"
+                      max="120"
+                      value={settings.pomodoroWork ?? 25}
+                      onChange={(e) => update('pomodoroWork', Number(e.target.value))}
+                    />
+                  </div>
+                  <div className="setting-row">
+                    <span className="setting-label">Short break (min)</span>
+                    <input
+                      type="number"
+                      className="setting-input"
+                      min="1"
+                      max="30"
+                      value={settings.pomodoroShort ?? 5}
+                      onChange={(e) => update('pomodoroShort', Number(e.target.value))}
+                    />
+                  </div>
+                  <div className="setting-row">
+                    <span className="setting-label">Long break (min)</span>
+                    <input
+                      type="number"
+                      className="setting-input"
+                      min="1"
+                      max="60"
+                      value={settings.pomodoroLong ?? 15}
+                      onChange={(e) => update('pomodoroLong', Number(e.target.value))}
+                    />
+                  </div>
+                  <div className="setting-row">
+                    <span className="setting-label">Long break after</span>
+                    <input
+                      type="number"
+                      className="setting-input"
+                      min="1"
+                      max="10"
+                      value={settings.pomodoroCycles ?? 4}
+                      onChange={(e) => update('pomodoroCycles', Number(e.target.value))}
+                    />
+                  </div>
+                </>)}
               </div>
               <div className="settings-group">
                 <div className="settings-group-title">System Info</div>
@@ -782,6 +729,93 @@ function Settings({ isOpen, onClose }) {
                     onChange={() => update('showClockWidget', !settings.showClockWidget)}
                   />
                 </div>
+                {settings.showClockWidget && (<>
+                  <div className="setting-row">
+                    <span className="setting-label">12 hr format</span>
+                    <ToggleSwitch
+                      checked={settings.clockFormat === '12h'}
+                      onChange={() => update('clockFormat', settings.clockFormat === '12h' ? '24h' : '12h')}
+                    />
+                  </div>
+                  <div className="setting-row">
+                    <span className="setting-label">Show AM/PM</span>
+                    <ToggleSwitch
+                      checked={settings.showAmPm}
+                      onChange={() => update('showAmPm', !settings.showAmPm)}
+                    />
+                  </div>
+                  <div className="setting-row">
+                    <span className="setting-label">Show seconds</span>
+                    <ToggleSwitch
+                      checked={settings.showSeconds}
+                      onChange={() => update('showSeconds', !settings.showSeconds)}
+                    />
+                  </div>
+                  <div className="setting-row">
+                    <span className="setting-label">Analog clock</span>
+                    <ToggleSwitch
+                      checked={settings.analogClock}
+                      onChange={() => update('analogClock', !settings.analogClock)}
+                    />
+                  </div>
+                  <div className="setting-row">
+                    <span className="setting-label">World clocks</span>
+                    <ToggleSwitch
+                      checked={settings.worldClocks}
+                      onChange={() => update('worldClocks', !settings.worldClocks)}
+                    />
+                  </div>
+                  <div className="setting-row">
+                    <span className="setting-label">Clock size</span>
+                    <div className="range-control">
+                      <input
+                        type="range"
+                        min="50"
+                        max="200"
+                        value={settings.clockSize}
+                        onChange={(e) => update('clockSize', Number(e.target.value))}
+                        className="slider"
+                      />
+                      <span className="range-value">{settings.clockSize}%</span>
+                    </div>
+                  </div>
+                  <div className="setting-row">
+                    <span className="setting-label">Time zone</span>
+                    <select
+                      className="setting-select"
+                      value={settings.timeZone}
+                      onChange={(e) => update('timeZone', e.target.value)}
+                    >
+                      {Intl.supportedValuesOf('timeZone').map((tz) => (
+                        <option key={tz} value={tz}>{tz.replace(/_/g, ' ')}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="setting-row">
+                    <span className="setting-label">Date format</span>
+                    <select
+                      className="setting-select"
+                      value={settings.dateFormat}
+                      onChange={(e) => update('dateFormat', e.target.value)}
+                    >
+                      <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                      <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                      <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                    </select>
+                  </div>
+                  <div className="setting-row">
+                    <span className="setting-label">Show</span>
+                    <select
+                      className="setting-select"
+                      value={settings.showClockDate}
+                      onChange={(e) => update('showClockDate', e.target.value)}
+                    >
+                      <option value="both">Clock & Date</option>
+                      <option value="clock">Clock only</option>
+                      <option value="date">Date only</option>
+                    </select>
+                  </div>
+                </>)}
               </div>
               <div className="settings-group">
                 <div className="settings-group-title">Weather</div>

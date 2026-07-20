@@ -7,6 +7,8 @@ const DEFAULTS = [
   { url: 'https://www.reddit.com', title: 'Reddit' },
   { url: 'https://www.wikipedia.org', title: 'Wikipedia' },
   { url: 'https://news.ycombinator.com', title: 'Hacker News' },
+  { url: 'https://twitter.com', title: 'X / Twitter' },
+  { url: 'https://www.amazon.com', title: 'Amazon' },
 ]
 
 function loadSites() {
@@ -35,21 +37,24 @@ function RecentSites() {
 
   return (
     <div className="recents-widget">
-      {sites.slice(0, 8).map((site) => (
-        <a
-          key={site.url}
-          className="recents-item"
-          href={site.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          title={site.url}
-        >
-          <div className="recents-favicon">
-            <img src={`https://www.google.com/s2/favicons?domain=${new URL(site.url).hostname}&sz=32`} alt="" />
-          </div>
-          <span className="recents-title">{site.title}</span>
-        </a>
-      ))}
+      {sites.slice(0, 8).map((site) => {
+        const hostname = new URL(site.url).hostname.replace(/^www\./, '')
+        return (
+          <a
+            key={site.url}
+            className="recents-item"
+            href={site.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            title={hostname}
+          >
+            <div className="recents-favicon">
+              <img src={`https://www.google.com/s2/favicons?domain=${hostname}&sz=32`} alt="" />
+            </div>
+            <span className="recents-title">{hostname}</span>
+          </a>
+        )
+      })}
     </div>
   )
 }
