@@ -65,14 +65,6 @@ export default function SearchBar() {
   return (
     <form className="search-bar" onSubmit={handleSubmit}>
       <div className="search-input-wrapper">
-        <button
-          type="button"
-          className="search-engine-icon"
-          onClick={() => setIsOpen(!isOpen)}
-        >
-          <img src={iconSrc} alt="" />
-        </button>
-
         <input
           type="text"
           className="search-input"
@@ -81,6 +73,14 @@ export default function SearchBar() {
           onChange={(e) => setQuery(e.target.value)}
           autoFocus
         />
+
+        <button
+          type="button"
+          className="search-engine-icon"
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          <img src={iconSrc} alt="" />
+        </button>
       </div>
 
       {isOpen && (
