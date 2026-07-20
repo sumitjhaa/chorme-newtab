@@ -81,19 +81,8 @@ export default function App() {
   const [source, setSource] = useState(API_SOURCES.WALLHAVEN)
   const [isLoading, setIsLoading] = useState(false)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
-  const [showButtons, setShowButtons] = useState(false)
   const [appSettings, setAppSettings] = useState(loadAllSettings)
-  const hideTimer = useRef(null)
   const intervalRef = useRef(null)
-
-  const handleButtonsEnter = useCallback(() => {
-    clearTimeout(hideTimer.current)
-    setShowButtons(true)
-  }, [])
-
-  const handleButtonsLeave = useCallback(() => {
-    hideTimer.current = setTimeout(() => setShowButtons(false), 4500)
-  }, [])
 
   const loadWallpaper = useCallback(async (selectedSource) => {
     setIsLoading(true)
@@ -119,11 +108,14 @@ export default function App() {
       if (e.key === 'Escape') {
         setIsSettingsOpen((prev) => !prev)
       }
+      if (e.key === 'r' && !e.ctrlKey && !e.metaKey && !e.target.closest('input, textarea, select')) {
+        loadWallpaper()
+      }
     }
 
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [])
+  }, [loadWallpaper])
 
   useEffect(() => {
     function handleStorage() {
@@ -183,11 +175,7 @@ export default function App() {
       </Draggable>
 
       <Draggable id="bottom-buttons" defaultPosition={{ x: 50, y: 90 }}>
-        <div
-          className={`bottom-buttons ${showButtons ? 'visible' : ''} ${appSettings.hideSettingsIcons ? 'hidden-icons' : ''}`}
-          onMouseEnter={handleButtonsEnter}
-          onMouseLeave={handleButtonsLeave}
-        >
+        <div className={`bottom-buttons visible`}>
           <button
             className="refresh-btn"
             onClick={() => loadWallpaper()}

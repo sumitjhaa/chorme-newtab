@@ -397,12 +397,9 @@ html, body {
 .bottom-buttons {
   display: flex;
   gap: 0.75rem;
-  opacity: 0;
-  transition: opacity 0.3s ease;
   pointer-events: auto;
 }
 
-.bottom-buttons.visible { opacity: 1; }
 .bottom-buttons.hidden-icons .refresh-btn,
 .bottom-buttons.hidden-icons .settings-btn { display: none; }
 

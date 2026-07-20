@@ -58,8 +58,9 @@ export default function Draggable({ id, defaultPosition, children }) {
       const parent = getParent()
       if (!parent) return
       const parentRect = parent.getBoundingClientRect()
-      const nx = ((e.clientX - parentRect.left - offset.current.x) / parentRect.width) * 100
-      const ny = ((e.clientY - parentRect.top - offset.current.y) / parentRect.height) * 100
+      const elRect = elRef.current.getBoundingClientRect()
+      const nx = ((e.clientX - parentRect.left - offset.current.x + elRect.width / 2) / parentRect.width) * 100
+      const ny = ((e.clientY - parentRect.top - offset.current.y + elRect.height / 2) / parentRect.height) * 100
       setPos({ x: Math.round(nx * 10) / 10, y: Math.round(ny * 10) / 10 })
     }
 
@@ -68,8 +69,9 @@ export default function Draggable({ id, defaultPosition, children }) {
       const parent = getParent()
       if (!parent) return
       const parentRect = parent.getBoundingClientRect()
-      const nx = ((touch.clientX - parentRect.left - offset.current.x) / parentRect.width) * 100
-      const ny = ((touch.clientY - parentRect.top - offset.current.y) / parentRect.height) * 100
+      const elRect = elRef.current.getBoundingClientRect()
+      const nx = ((touch.clientX - parentRect.left - offset.current.x + elRect.width / 2) / parentRect.width) * 100
+      const ny = ((touch.clientY - parentRect.top - offset.current.y + elRect.height / 2) / parentRect.height) * 100
       setPos({ x: Math.round(nx * 10) / 10, y: Math.round(ny * 10) / 10 })
     }
 
