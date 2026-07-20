@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import SearchBar from './components/SearchBar.jsx'
 import Wallpaper from './components/Wallpaper.jsx'
 import Clock from './components/Clock.jsx'
+import Calendar from './components/Calendar.jsx'
 import Settings from './components/Settings.jsx'
 import Draggable from './components/Draggable.jsx'
 import { fetchRandomWallpaper } from './api/index.js'
@@ -48,6 +49,8 @@ function loadAllSettings() {
       tabTitle: data.tabTitle || 'New Tab',
       darkMode: data.darkMode || 'system',
       language: data.language || 'en',
+      showClockWidget: data.showClockWidget !== undefined ? data.showClockWidget : true,
+      showCalendarWidget: data.showCalendarWidget !== undefined ? data.showCalendarWidget : true,
     }
   } catch {
     return {
@@ -58,6 +61,8 @@ function loadAllSettings() {
       tabTitle: 'New Tab',
       darkMode: 'system',
       language: 'en',
+      showClockWidget: true,
+      showCalendarWidget: true,
     }
   }
 }
@@ -166,9 +171,17 @@ export default function App() {
     <div className="app">
       <Wallpaper wallpaper={wallpaper} isLoading={isLoading} />
 
-      <Draggable id="clock" defaultPosition={{ x: 50, y: 15 }}>
-        <Clock />
-      </Draggable>
+      {appSettings.showClockWidget && (
+        <Draggable id="clock" defaultPosition={{ x: 50, y: 15 }}>
+          <Clock />
+        </Draggable>
+      )}
+
+      {appSettings.showCalendarWidget && (
+        <Draggable id="calendar" defaultPosition={{ x: 50, y: 35 }}>
+          <Calendar />
+        </Draggable>
+      )}
 
       <Draggable id="search-bar" defaultPosition={{ x: 50, y: 50 }}>
         <SearchBar />

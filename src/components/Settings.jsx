@@ -93,6 +93,8 @@ function loadSettings() {
       searchWidth: data.searchWidth !== undefined ? data.searchWidth : 500,
       searchBgOpacity: data.searchBgOpacity !== undefined ? data.searchBgOpacity : 0,
       searchBlur: data.searchBlur !== undefined ? data.searchBlur : 20,
+      showClockWidget: data.showClockWidget !== undefined ? data.showClockWidget : true,
+      showCalendarWidget: data.showCalendarWidget !== undefined ? data.showCalendarWidget : true,
     }
   } catch {
     return {
@@ -146,6 +148,8 @@ function loadSettings() {
       searchWidth: 500,
       searchBgOpacity: 0,
       searchBlur: 20,
+      showClockWidget: true,
+      showCalendarWidget: true,
     }
   }
 }
@@ -177,6 +181,7 @@ function Settings({ isOpen, onClose }) {
           'enableWeather', 'geolocation', 'manualLocation', 'tempUnit', 'forecast', 'tempDisplay', 'weatherShow',
           'enableGreeting', 'greetingName', 'greetingSize',
           'enableSearchBar', 'openInNewTab', 'showSuggestions', 'searchPlaceholder', 'searchWidth', 'searchBgOpacity', 'searchBlur',
+          'showClockWidget', 'showCalendarWidget',
         ])
         setSettings((prev) => ({ ...prev, ...stored }))
       } catch {
@@ -825,9 +830,23 @@ function Settings({ isOpen, onClose }) {
               </div>
               <div className="settings-group">
                 <div className="settings-group-title">Calendar</div>
+                <div className="setting-row">
+                  <span className="setting-label">Show calendar</span>
+                  <ToggleSwitch
+                    checked={settings.showCalendarWidget}
+                    onChange={() => update('showCalendarWidget', !settings.showCalendarWidget)}
+                  />
+                </div>
               </div>
               <div className="settings-group">
                 <div className="settings-group-title">Date</div>
+                <div className="setting-row">
+                  <span className="setting-label">Show clock</span>
+                  <ToggleSwitch
+                    checked={settings.showClockWidget}
+                    onChange={() => update('showClockWidget', !settings.showClockWidget)}
+                  />
+                </div>
               </div>
               <div className="settings-group">
                 <div className="settings-group-title">Weather</div>
