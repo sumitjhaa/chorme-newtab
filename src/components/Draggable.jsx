@@ -26,10 +26,10 @@ export default function Draggable({ id, defaultPosition, children }) {
 
   posRef.current = pos
 
-  const handleMouseDown = useCallback((e) => {
+  const handleGrabMouseDown = useCallback((e) => {
     if (e.button !== 0) return
-    if (e.target.closest('button, input, select, textarea, a, [role="button"]')) return
     e.preventDefault()
+    e.stopPropagation()
     const rect = elRef.current.getBoundingClientRect()
     offset.current = {
       x: e.clientX - rect.left,
@@ -38,8 +38,8 @@ export default function Draggable({ id, defaultPosition, children }) {
     setDragging(true)
   }, [])
 
-  const handleTouchStart = useCallback((e) => {
-    if (e.target.closest('button, input, select, textarea, a, [role="button"]')) return
+  const handleGrabTouchStart = useCallback((e) => {
+    e.stopPropagation()
     const touch = e.touches[0]
     const rect = elRef.current.getBoundingClientRect()
     offset.current = {
@@ -100,14 +100,20 @@ export default function Draggable({ id, defaultPosition, children }) {
         left: `${pos.x}%`,
         top: `${pos.y}%`,
         transform: 'translate(-50%, -50%)',
-        cursor: dragging ? 'grabbing' : 'grab',
         zIndex: dragging ? 1000 : 1,
         userSelect: dragging ? 'none' : 'auto',
-        touchAction: 'none',
       }}
-      onMouseDown={handleMouseDown}
-      onTouchStart={handleTouchStart}
     >
+      <button
+        className="drag-handle"
+        onMouseDown={handleGrabMouseDown}
+        onTouchStart={handleGrabTouchStart}
+        aria-label="Drag to move"
+      >
+        <svg width="16" height="16" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+          <path d="M7 2a2 2 0 10.001 4.001A2 2 0 007 2zm0 6a2 2 0 10.001 4.001A2 2 0 007 8zm0 6a2 2 0 10.001 4.001A2 2 0 007 14zm6-8a2 2 0 10-.001-4.001A2 2 0 0013 6zm0 2a2 2 0 10.001 4.001A2 2 0 0013 8zm0 6a2 2 0 10.001 4.001A2 2 0 0013 14z" fill="currentColor"/>
+        </svg>
+      </button>
       {children}
     </div>
   )

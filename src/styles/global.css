@@ -116,6 +116,7 @@ html, body {
 /* ─── Draggable ─── */
 
 .draggable {
+  position: relative;
   z-index: 15;
   touch-action: none;
 }
@@ -123,6 +124,41 @@ html, body {
 .draggable.dragging {
   z-index: 1000;
   transition: none;
+}
+
+.drag-handle {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(4px);
+  border-radius: 4px;
+  cursor: grab;
+  color: rgba(255, 255, 255, 0.7);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  padding: 0;
+  z-index: 5;
+}
+
+.draggable:hover .drag-handle,
+.draggable.dragging .drag-handle {
+  opacity: 1;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.drag-handle svg {
+  width: 14px;
+  height: 14px;
 }
 
 /* ─── Search Top Area ─── */
