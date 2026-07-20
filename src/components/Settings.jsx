@@ -74,7 +74,7 @@ function loadSettings() {
       fontFamily: data.fontFamily || 'Inter',
       fontWeight: data.fontWeight || 400,
       fontColor: data.fontColor || '#ffffff',
-      fontSize: data.fontSize !== undefined ? data.fontSize : 16,
+      fontSize: data.fontSize !== undefined ? data.fontSize : 100,
       fontShadow: data.fontShadow !== undefined ? data.fontShadow : 0,
       enableWeather: data.enableWeather !== undefined ? data.enableWeather : false,
       geolocation: data.geolocation || 'approximate',
@@ -136,7 +136,7 @@ function loadSettings() {
       fontFamily: 'Inter',
       fontWeight: 400,
       fontColor: '#ffffff',
-      fontSize: 16,
+      fontSize: 100,
       fontShadow: 0,
       enableWeather: false,
       geolocation: 'approximate',
@@ -329,13 +329,14 @@ function Settings({ isOpen, onClose }) {
                 <div className="range-control">
                   <input
                     type="range"
-                    min="10"
-                    max="48"
+                    min="50"
+                    max="200"
+                    step="5"
                     value={settings.fontSize}
                     onChange={(e) => update('fontSize', Number(e.target.value))}
                     className="slider"
                   />
-                  <span className="range-value">{settings.fontSize}px</span>
+                  <span className="range-value">{settings.fontSize}%</span>
                 </div>
               </div>
 

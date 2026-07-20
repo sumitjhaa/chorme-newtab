@@ -110,7 +110,7 @@ export default function SearchBar() {
   const bgAlpha = bgOpacity * 0.45
 
   return (
-    <form className="search-bar" onSubmit={handleSubmit} style={{ maxWidth: `${settings.searchWidth}px` }}>
+    <form className="search-bar" onSubmit={handleSubmit} style={{ width: `${settings.searchWidth}px`, maxWidth: '100%' }}>
       <div className="search-input-wrapper" style={{
         backdropFilter: `blur(${settings.searchBlur}px)`,
         WebkitBackdropFilter: `blur(${settings.searchBlur}px)`,

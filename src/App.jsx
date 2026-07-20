@@ -172,7 +172,7 @@ export default function App() {
     document.documentElement.style.setProperty('--font-family', `'${appSettings.fontFamily}', sans-serif`)
     document.documentElement.style.setProperty('--font-weight', appSettings.fontWeight)
     document.documentElement.style.setProperty('--font-color', appSettings.fontColor)
-    document.documentElement.style.setProperty('--font-size', `${appSettings.fontSize}px`)
+    document.documentElement.style.setProperty('--font-size', `${Math.round(appSettings.fontSize)}%`)
     document.documentElement.style.setProperty('--font-shadow', appSettings.fontShadow > 0 ? `0 0 ${appSettings.fontShadow}px rgba(0,0,0,0.8)` : 'none')
   }, [appSettings.fontFamily, appSettings.fontWeight, appSettings.fontColor, appSettings.fontSize, appSettings.fontShadow])
 

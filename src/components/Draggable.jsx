@@ -58,8 +58,13 @@ export default function Draggable({ id, defaultPosition, children }) {
       const parent = getParent()
       if (!parent) return
       const parentRect = parent.getBoundingClientRect()
-      const nx = ((e.clientX - parentRect.left - offset.current.x) / parentRect.width) * 100
-      const ny = ((e.clientY - parentRect.top - offset.current.y) / parentRect.height) * 100
+      const elRect = elRef.current.getBoundingClientRect()
+      let nx = ((e.clientX - parentRect.left - offset.current.x) / parentRect.width) * 100
+      let ny = ((e.clientY - parentRect.top - offset.current.y) / parentRect.height) * 100
+      const elW = (elRect.width / parentRect.width) * 100
+      const elH = (elRect.height / parentRect.height) * 100
+      nx = Math.max(elW / 2, Math.min(100 - elW / 2, nx))
+      ny = Math.max(elH / 2, Math.min(100 - elH / 2, ny))
       setPos({ x: Math.round(nx * 10) / 10, y: Math.round(ny * 10) / 10 })
     }
 
@@ -68,8 +73,13 @@ export default function Draggable({ id, defaultPosition, children }) {
       const parent = getParent()
       if (!parent) return
       const parentRect = parent.getBoundingClientRect()
-      const nx = ((touch.clientX - parentRect.left - offset.current.x) / parentRect.width) * 100
-      const ny = ((touch.clientY - parentRect.top - offset.current.y) / parentRect.height) * 100
+      const elRect = elRef.current.getBoundingClientRect()
+      let nx = ((touch.clientX - parentRect.left - offset.current.x) / parentRect.width) * 100
+      let ny = ((touch.clientY - parentRect.top - offset.current.y) / parentRect.height) * 100
+      const elW = (elRect.width / parentRect.width) * 100
+      const elH = (elRect.height / parentRect.height) * 100
+      nx = Math.max(elW / 2, Math.min(100 - elW / 2, nx))
+      ny = Math.max(elH / 2, Math.min(100 - elH / 2, ny))
       setPos({ x: Math.round(nx * 10) / 10, y: Math.round(ny * 10) / 10 })
     }
 
