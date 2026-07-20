@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head><title>Icon Generator</title></head>
+<body>
+<canvas id="c"></canvas>
+<script>
+const sizes = [16, 48, 128];
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+
+sizes.forEach(size => {
+  canvas.width = size;
+  canvas.height = size;
+  
+  // Blue gradient background
+  const gradient = ctx.createLinearGradient(0, 0, size, size);
+  gradient.addColorStop(0, '#4a9eff');
+  gradient.addColorStop(1, '#1a5fa8');
+  
+  ctx.fillStyle = gradient;
+  ctx.beginPath();
+  ctx.roundRect(0, 0, size, size, size * 0.2);
+  ctx.fill();
+  
+  // W letter
+  ctx.fillStyle = 'white';
+  ctx.font = `bold ${size * 0.6}px Arial`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('W', size/2, size/2);
+  
+  const link = document.createElement('a');
+  link.download = `icon${size}.png`;
+  link.href = canvas.toDataURL();
+});
+</script>
+</body>
+</html>
