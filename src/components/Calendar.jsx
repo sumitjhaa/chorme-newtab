@@ -2,13 +2,30 @@ import { useState, useEffect, memo } from 'react'
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
+function loadLanguage() {
+  try {
+    const data = JSON.parse(localStorage.getItem('newtab_settings') || '{}')
+    return data.language || 'en'
+  } catch {
+    return 'en'
+  }
+}
+
 function Calendar() {
   const [today, setToday] = useState(new Date())
   const [viewMonth, setViewMonth] = useState(new Date())
+  const [lang, setLang] = useState(loadLanguage)
 
   useEffect(() => {
     const interval = setInterval(() => setToday(new Date()), 60000)
     return () => clearInterval(interval)
+  }, [])
+
+  useEffect(() => {
+    function handleStorage() { setLang(loadLanguage()) }
+    window.addEventListener('storage', handleStorage)
+    const id = setInterval(handleStorage, 500)
+    return () => { window.removeEventListener('storage', handleStorage); clearInterval(id) }
   }, [])
 
   const year = viewMonth.getFullYear()
@@ -34,7 +51,7 @@ function Calendar() {
   const prevMonth = () => setViewMonth(new Date(year, month - 1, 1))
   const nextMonth = () => setViewMonth(new Date(year, month + 1, 1))
 
-  const monthLabel = viewMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+  const monthLabel = viewMonth.toLocaleDateString(lang, { month: 'long', year: 'numeric' })
 
   return (
     <div className="calendar-widget">

@@ -748,6 +748,7 @@ function Settings({ isOpen, onClose }) {
                         type="range"
                         min="50"
                         max="200"
+                        step="5"
                         value={settings.clockSize}
                         onChange={(e) => update('clockSize', Number(e.target.value))}
                         className="slider"
@@ -762,9 +763,12 @@ function Settings({ isOpen, onClose }) {
                       value={settings.timeZone}
                       onChange={(e) => update('timeZone', e.target.value)}
                     >
-                      {Intl.supportedValuesOf('timeZone').map((tz) => (
-                        <option key={tz} value={tz}>{tz.replace(/_/g, ' ')}</option>
-                      ))}
+                      <option value="local">Local</option>
+                      {Intl.supportedValuesOf('timeZone').map((tz) => {
+                        const parts = tz.split('/')
+                        const label = parts.length > 1 ? parts[parts.length - 1].replace(/_/g, ' ') : tz
+                        return <option key={tz} value={tz}>{label}</option>
+                      })}
                     </select>
                   </div>
                   <div className="setting-row">
@@ -774,9 +778,9 @@ function Settings({ isOpen, onClose }) {
                       value={settings.dateFormat}
                       onChange={(e) => update('dateFormat', e.target.value)}
                     >
-                      <option value="DD/MM/YYYY">DD/MM/YYYY</option>
-                      <option value="MM/DD/YYYY">MM/DD/YYYY</option>
-                      <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                      <option value="DD/MM/YYYY">Day / Month / Year</option>
+                      <option value="MM/DD/YYYY">Month / Day / Year</option>
+                      <option value="YYYY-MM-DD">Year - Month - Day</option>
                     </select>
                   </div>
                   <div className="setting-row">

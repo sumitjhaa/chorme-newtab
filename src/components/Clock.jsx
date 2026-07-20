@@ -40,20 +40,11 @@ function formatTime(date, s) {
   if (s.showSeconds) opts.second = '2-digit'
   if (s.timeZone !== 'local') opts.timeZone = s.timeZone
 
-  let str = date.toLocaleTimeString('en-US', opts)
+  const str = date.toLocaleTimeString('en-US', opts)
   if (is24h || !s.showAmPm) {
-    str = str.replace(/\s?(AM|PM|am|pm)$/i, '')
+    return str.replace(/\s?(AM|PM|am|pm)$/i, '').trim()
   }
   return str
-}
-
-function ampm(date, s) {
-  if (s.clockFormat === '24h' || !s.showAmPm) return ''
-  const opts = { hour: 'numeric', hour12: true }
-  if (s.timeZone !== 'local') opts.timeZone = s.timeZone
-  const parts = new Intl.DateTimeFormat('en-US', opts).formatToParts(date)
-  const daypart = parts.find((p) => p.type === 'dayPeriod')
-  return daypart ? daypart.value.toUpperCase() : ''
 }
 
 function formatDate(date, s) {
@@ -103,38 +94,28 @@ function Clock() {
   const [settings, setSettings] = useState(loadSettings)
 
   useEffect(() => {
-    const interval = setInterval(() => setTime(new Date()), settings.showSeconds || settings.analogClock ? 1000 : 1000)
+    const interval = setInterval(() => setTime(new Date()), 1000)
     return () => clearInterval(interval)
-  }, [settings.showSeconds, settings.analogClock])
+  }, [])
 
   useEffect(() => {
-    function handleStorage() {
-      setSettings(loadSettings())
-    }
+    function handleStorage() { setSettings(loadSettings()) }
     window.addEventListener('storage', handleStorage)
-    const interval = setInterval(handleStorage, 500)
-    return () => {
-      window.removeEventListener('storage', handleStorage)
-      clearInterval(interval)
-    }
+    const id = setInterval(handleStorage, 500)
+    return () => { window.removeEventListener('storage', handleStorage); clearInterval(id) }
   }, [])
 
   const showClock = settings.showClockDate !== 'date'
   const showDate = settings.showClockDate !== 'clock'
   const scale = settings.clockSize / 100
-  const suffix = ampm(time, settings)
 
   return (
     <div className="clock" style={{ opacity: settings.uiOpacity / 100, transform: `scale(${scale})` }}>
-      <div className="clock-title">Clock</div>
       {showClock && (
         settings.analogClock ? (
           <AnalogClock date={time} timeZone={settings.timeZone} />
         ) : (
-          <div className="clock-time">
-            {formatTime(time, settings)}
-            {suffix && <span className="clock-ampm"> {suffix}</span>}
-          </div>
+          <div className="clock-time">{formatTime(time, settings)}</div>
         )
       )}
       {showDate && <div className="clock-date">{formatDate(time, settings)}</div>}

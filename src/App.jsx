@@ -6,6 +6,7 @@ import Calendar from './components/Calendar.jsx'
 import Pomodoro from './components/Pomodoro.jsx'
 import SystemInfo from './components/SystemInfo.jsx'
 import Weather from './components/Weather.jsx'
+import Greeting from './components/Greeting.jsx'
 import Settings from './components/Settings.jsx'
 import Draggable from './components/Draggable.jsx'
 import { fetchRandomWallpaper } from './api/index.js'
@@ -57,6 +58,14 @@ function loadAllSettings() {
       showPomodoroWidget: data.showPomodoroWidget !== undefined ? data.showPomodoroWidget : false,
       showSystemInfoWidget: data.showSystemInfoWidget !== undefined ? data.showSystemInfoWidget : false,
       showWeatherWidget: data.showWeatherWidget !== undefined ? data.showWeatherWidget : false,
+      enableSearchBar: data.enableSearchBar !== undefined ? data.enableSearchBar : true,
+      fontFamily: data.fontFamily || 'Inter',
+      fontWeight: data.fontWeight || 400,
+      fontColor: data.fontColor || '#ffffff',
+      fontSize: data.fontSize !== undefined ? data.fontSize : 16,
+      fontShadow: data.fontShadow !== undefined ? data.fontShadow : 0,
+      bgBlur: data.bgBlur !== undefined ? data.bgBlur : 0,
+      bgBrightness: data.bgBrightness !== undefined ? data.bgBrightness : 100,
     }
   } catch {
     return {
@@ -72,6 +81,14 @@ function loadAllSettings() {
       showPomodoroWidget: false,
       showSystemInfoWidget: false,
       showWeatherWidget: false,
+      enableSearchBar: true,
+      fontFamily: 'Inter',
+      fontWeight: 400,
+      fontColor: '#ffffff',
+      fontSize: 16,
+      fontShadow: 0,
+      bgBlur: 0,
+      bgBrightness: 100,
     }
   }
 }
@@ -152,6 +169,20 @@ export default function App() {
   }, [appSettings.tabTitle])
 
   useEffect(() => {
+    document.documentElement.style.setProperty('--font-family', `'${appSettings.fontFamily}', sans-serif`)
+    document.documentElement.style.setProperty('--font-weight', appSettings.fontWeight)
+    document.documentElement.style.setProperty('--font-color', appSettings.fontColor)
+    document.documentElement.style.setProperty('--font-size', `${appSettings.fontSize}px`)
+    document.documentElement.style.setProperty('--font-shadow', appSettings.fontShadow > 0 ? `0 0 ${appSettings.fontShadow}px rgba(0,0,0,0.8)` : 'none')
+  }, [appSettings.fontFamily, appSettings.fontWeight, appSettings.fontColor, appSettings.fontSize, appSettings.fontShadow])
+
+  useEffect(() => {
+    const root = document.documentElement
+    root.style.setProperty('--bg-blur', `${appSettings.bgBlur}px`)
+    root.style.setProperty('--bg-brightness', `${appSettings.bgBrightness}%`)
+  }, [appSettings.bgBlur, appSettings.bgBrightness])
+
+  useEffect(() => {
     async function init() {
       const savedWallpaper = await getCurrentWallpaper()
       const savedSource = await getWallpaperSource()
@@ -210,9 +241,15 @@ export default function App() {
         </Draggable>
       )}
 
-      <Draggable id="search-bar" defaultPosition={{ x: 50, y: 50 }}>
-        <SearchBar />
+      <Draggable id="greeting" defaultPosition={{ x: 50, y: 25 }}>
+        <Greeting />
       </Draggable>
+
+      {appSettings.enableSearchBar && (
+        <Draggable id="search-bar" defaultPosition={{ x: 50, y: 50 }}>
+          <SearchBar />
+        </Draggable>
+      )}
 
       <Draggable id="bottom-buttons" defaultPosition={{ x: 50, y: 90 }}>
         <div className={`bottom-buttons visible`}>

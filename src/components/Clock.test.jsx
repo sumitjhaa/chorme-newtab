@@ -47,7 +47,7 @@ describe('Clock', () => {
 
     render(<Clock />)
 
-    expect(screen.getByText('PM')).toBeInTheDocument()
+    expect(screen.getByText(/PM/)).toBeInTheDocument()
   })
 
   it('hides AM/PM in 24h format', () => {

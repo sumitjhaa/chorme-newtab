@@ -2,7 +2,7 @@ import { memo } from 'react'
 
 function Wallpaper({ wallpaper, isLoading }) {
   return (
-    <div className="wallpaper-container">
+    <div className="wallpaper-container" style={{ filter: 'var(--wallpaper-filter, none)' }}>
       {isLoading && (
         <div className="loading-overlay">
           <div className="spinner" />
