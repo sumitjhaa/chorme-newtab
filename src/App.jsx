@@ -3,6 +3,7 @@ import SearchBar from './components/SearchBar.jsx'
 import Wallpaper from './components/Wallpaper.jsx'
 import Clock from './components/Clock.jsx'
 import Settings from './components/Settings.jsx'
+import Draggable from './components/Draggable.jsx'
 import { fetchRandomWallpaper } from './api/index.js'
 import { getCurrentWallpaper, setCurrentWallpaper, getWallpaperSource } from './utils/storage.js'
 import { API_SOURCES, DEFAULT_REFRESH_INTERVAL } from './constants.js'
@@ -173,39 +174,42 @@ export default function App() {
     <div className="app">
       <Wallpaper wallpaper={wallpaper} isLoading={isLoading} />
 
-      <div className={`search-top clock-${appSettings.clockPosition}`} style={{ opacity: appSettings.uiOpacity / 100 }}>
-        <div className="clock-above-search">
-          <Clock />
-        </div>
+      <Draggable id="clock" defaultPosition={{ x: 50, y: 15 }}>
+        <Clock />
+      </Draggable>
+
+      <Draggable id="search-bar" defaultPosition={{ x: 50, y: 50 }}>
         <SearchBar />
-      </div>
+      </Draggable>
 
-      <div
-        className={`bottom-buttons ${showButtons ? 'visible' : ''} ${appSettings.hideSettingsIcons ? 'hidden-icons' : ''}`}
-        onMouseEnter={handleButtonsEnter}
-        onMouseLeave={handleButtonsLeave}
-      >
-        <button
-          className="refresh-btn"
-          onClick={() => loadWallpaper()}
-          disabled={isLoading}
-          title="Refresh wallpaper"
+      <Draggable id="bottom-buttons" defaultPosition={{ x: 50, y: 90 }}>
+        <div
+          className={`bottom-buttons ${showButtons ? 'visible' : ''} ${appSettings.hideSettingsIcons ? 'hidden-icons' : ''}`}
+          onMouseEnter={handleButtonsEnter}
+          onMouseLeave={handleButtonsLeave}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
-            <path d="M21 3v5h-5"/>
-            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
-            <path d="M8 16H3v5"/>
-          </svg>
-        </button>
+          <button
+            className="refresh-btn"
+            onClick={() => loadWallpaper()}
+            disabled={isLoading}
+            title="Refresh wallpaper"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+              <path d="M21 3v5h-5"/>
+              <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+              <path d="M8 16H3v5"/>
+            </svg>
+          </button>
 
-        <button className="settings-btn" onClick={toggleSettings} title="Settings (Esc)">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-            <circle cx="12" cy="12" r="4"/>
-          </svg>
-        </button>
-      </div>
+          <button className="settings-btn" onClick={toggleSettings} title="Settings (Esc)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+              <circle cx="12" cy="12" r="4"/>
+            </svg>
+          </button>
+        </div>
+      </Draggable>
 
       <Settings isOpen={isSettingsOpen} onClose={toggleSettings} />
     </div>
