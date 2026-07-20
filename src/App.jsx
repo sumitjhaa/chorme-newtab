@@ -212,46 +212,46 @@ export default function App() {
       <Wallpaper wallpaper={wallpaper} isLoading={isLoading} />
 
       {appSettings.showClockWidget && (
-        <Draggable id="clock" defaultPosition={{ x: 50, y: 15 }}>
+        <Draggable id="clock" defaultPosition={{ x: 42, y: 8 }}>
           <Clock />
         </Draggable>
       )}
 
       {appSettings.showCalendarWidget && (
-        <Draggable id="calendar" defaultPosition={{ x: 50, y: 35 }}>
+        <Draggable id="calendar" defaultPosition={{ x: 40, y: 25 }}>
           <Calendar />
         </Draggable>
       )}
 
       {appSettings.showPomodoroWidget && (
-        <Draggable id="pomodoro" defaultPosition={{ x: 10, y: 10 }}>
+        <Draggable id="pomodoro" defaultPosition={{ x: 5, y: 5 }}>
           <Pomodoro />
         </Draggable>
       )}
 
       {appSettings.showSystemInfoWidget && (
-        <Draggable id="system-info" defaultPosition={{ x: 85, y: 10 }}>
+        <Draggable id="system-info" defaultPosition={{ x: 75, y: 5 }}>
           <SystemInfo />
         </Draggable>
       )}
 
       {appSettings.showWeatherWidget && (
-        <Draggable id="weather" defaultPosition={{ x: 85, y: 50 }}>
+        <Draggable id="weather" defaultPosition={{ x: 75, y: 40 }}>
           <Weather />
         </Draggable>
       )}
 
-      <Draggable id="greeting" defaultPosition={{ x: 50, y: 25 }}>
+      <Draggable id="greeting" defaultPosition={{ x: 42, y: 20 }}>
         <Greeting />
       </Draggable>
 
       {appSettings.enableSearchBar && (
-        <Draggable id="search-bar" defaultPosition={{ x: 50, y: 50 }}>
+        <Draggable id="search-bar" defaultPosition={{ x: 35, y: 42 }}>
           <SearchBar />
         </Draggable>
       )}
 
-      <Draggable id="bottom-buttons" defaultPosition={{ x: 50, y: 90 }}>
+      <Draggable id="bottom-buttons" defaultPosition={{ x: 45, y: 85 }}>
         <div className={`bottom-buttons visible`}>
           <button
             className="refresh-btn"

@@ -1,11 +1,5 @@
 import { useState, useEffect, memo } from 'react'
 
-const WORLD_TIMEZONES = [
-  { label: 'New York', tz: 'America/New_York' },
-  { label: 'London', tz: 'Europe/London' },
-  { label: 'Tokyo', tz: 'Asia/Tokyo' },
-]
-
 function loadSettings() {
   try {
     const data = JSON.parse(localStorage.getItem('newtab_settings') || '{}')
@@ -14,7 +8,7 @@ function loadSettings() {
       showAmPm: data.showAmPm !== undefined ? data.showAmPm : true,
       showSeconds: data.showSeconds !== undefined ? data.showSeconds : false,
       analogClock: data.analogClock !== undefined ? data.analogClock : false,
-      worldClocks: data.worldClocks !== undefined ? data.worldClocks : false,
+      worldClockTimezones: data.worldClockTimezones || [],
       clockSize: data.clockSize !== undefined ? data.clockSize : 100,
       timeZone: data.timeZone || 'local',
       dateFormat: data.dateFormat || 'DD/MM/YYYY',
@@ -24,7 +18,7 @@ function loadSettings() {
   } catch {
     return {
       clockFormat: '12h', showAmPm: true, showSeconds: false, analogClock: false,
-      worldClocks: false, clockSize: 100, timeZone: 'local',
+      worldClockTimezones: [], clockSize: 100, timeZone: 'local',
       dateFormat: 'DD/MM/YYYY', showClockDate: 'both', uiOpacity: 80,
     }
   }
@@ -32,19 +26,28 @@ function loadSettings() {
 
 function formatTime(date, s) {
   const is24h = s.clockFormat === '24h'
-  const opts = {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: !is24h,
-  }
+  const opts = { hour: '2-digit', minute: '2-digit', hour12: !is24h }
   if (s.showSeconds) opts.second = '2-digit'
   if (s.timeZone !== 'local') opts.timeZone = s.timeZone
-
   const str = date.toLocaleTimeString('en-US', opts)
-  if (is24h || !s.showAmPm) {
-    return str.replace(/\s?(AM|PM|am|pm)$/i, '').trim()
-  }
-  return str
+  if (is24h || !s.showAmPm) return str.replace(/\s?(AM|PM|am|pm)$/i, '').trim()
+  return str.replace(/\s?(AM|PM|am|pm)$/i, '').trim()
+}
+
+function getAmPm(date, s) {
+  if (s.clockFormat === '24h' || !s.showAmPm) return ''
+  const opts = { hour: 'numeric', hour12: true }
+  if (s.timeZone !== 'local') opts.timeZone = s.timeZone
+  const parts = new Intl.DateTimeFormat('en-US', opts).formatToParts(date)
+  const daypart = parts.find((p) => p.type === 'dayPeriod')
+  return daypart ? daypart.value.toUpperCase() : ''
+}
+
+function getSeconds(date, s) {
+  if (!s.showSeconds) return ''
+  const opts = { second: '2-digit' }
+  if (s.timeZone !== 'local') opts.timeZone = s.timeZone
+  return date.toLocaleTimeString('en-US', opts)
 }
 
 function formatDate(date, s) {
@@ -55,6 +58,11 @@ function formatDate(date, s) {
   if (s.dateFormat === 'MM/DD/YYYY') return `${month}/${day}/${year}`
   if (s.dateFormat === 'YYYY-MM-DD') return `${year}-${month}-${day}`
   return `${day}/${month}/${year}`
+}
+
+function tzLabel(tz) {
+  const parts = tz.split('/')
+  return parts.length > 1 ? parts[parts.length - 1].replace(/_/g, ' ') : tz
 }
 
 function AnalogClock({ date, timeZone }) {
@@ -108,6 +116,8 @@ function Clock() {
   const showClock = settings.showClockDate !== 'date'
   const showDate = settings.showClockDate !== 'clock'
   const scale = settings.clockSize / 100
+  const ampm = getAmPm(time, settings)
+  const secs = getSeconds(time, settings)
 
   return (
     <div className="clock" style={{ opacity: settings.uiOpacity / 100, transform: `scale(${scale})` }}>
@@ -115,16 +125,20 @@ function Clock() {
         settings.analogClock ? (
           <AnalogClock date={time} timeZone={settings.timeZone} />
         ) : (
-          <div className="clock-time">{formatTime(time, settings)}</div>
+          <div className="clock-time">
+            {formatTime(time, settings)}
+            {secs && <span className="clock-secs">{secs}</span>}
+            {ampm && <span className="clock-ampm">{ampm}</span>}
+          </div>
         )
       )}
       {showDate && <div className="clock-date">{formatDate(time, settings)}</div>}
-      {settings.worldClocks && (
+      {settings.worldClockTimezones && settings.worldClockTimezones.length > 0 && (
         <div className="world-clocks">
-          {WORLD_TIMEZONES.map(({ label, tz }) => (
+          {settings.worldClockTimezones.map((tz) => (
             <div key={tz} className="world-clock-row">
-              <span className="world-clock-label">{label}</span>
-              <span className="world-clock-time">{formatTime(time, { ...settings, timeZone: tz, showSeconds: false })}</span>
+              <span className="world-clock-label">{tzLabel(tz)}</span>
+              <span className="world-clock-time">{formatTime(time, { ...settings, timeZone: tz, showSeconds: false, showAmPm: false })}</span>
             </div>
           ))}
         </div>

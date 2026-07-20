@@ -121,11 +121,6 @@ html, body {
   touch-action: none;
 }
 
-.draggable.dragging {
-  z-index: 1000;
-  transition: none;
-}
-
 .drag-handle {
   position: absolute;
   top: -10px;
@@ -197,6 +192,23 @@ html, body {
   font-size: 2rem;
   font-weight: 300;
   letter-spacing: 0.03em;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.3rem;
+}
+
+.clock-secs {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--text-tertiary);
+}
+
+.clock-ampm {
+  font-size: 0.65rem;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  margin-left: 0.15rem;
 }
 
 .clock-date {
@@ -268,6 +280,33 @@ html, body {
   color: var(--text-primary);
   font-weight: 500;
 }
+
+.wc-remove-btn {
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  font-size: 0.8rem;
+  padding: 0 0 0 6px;
+  transition: color var(--transition-fast);
+}
+
+.wc-remove-btn:hover { color: #ff6b6b; }
+
+.wc-add-btn {
+  background: var(--bg-glass);
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  color: var(--text-secondary);
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.7rem;
+  font-weight: 600;
+  width: 100%;
+  transition: all var(--transition-fast);
+}
+
+.wc-add-btn:hover { background: var(--bg-glass-hover); color: var(--text-primary); }
 
 /* ─── Calendar Widget ─── */
 
@@ -482,6 +521,38 @@ html, body {
   background: var(--accent);
   border-radius: 1px;
   transition: width 0.5s ease;
+}
+
+.sysinfo-section {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.sysinfo-section-title {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.35rem;
+}
+
+.sysinfo-badge {
+  font-size: 0.6rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.06);
+  padding: 1px 6px;
+  border-radius: 3px;
+}
+
+.sysinfo-badge.low { color: #f87171; background: rgba(248, 113, 113, 0.1); }
+
+.sys-graph {
+  width: 100%;
+  margin-top: 0.25rem;
 }
 
 /* ─── Weather Widget ─── */

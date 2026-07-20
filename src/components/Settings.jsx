@@ -737,10 +737,60 @@ function Settings({ isOpen, onClose }) {
                   <div className="setting-row">
                     <span className="setting-label">World clocks</span>
                     <ToggleSwitch
-                      checked={settings.worldClocks}
-                      onChange={() => update('worldClocks', !settings.worldClocks)}
+                      checked={(settings.worldClockTimezones || []).length > 0}
+                      onChange={() => {
+                        if ((settings.worldClockTimezones || []).length > 0) {
+                          update('worldClockTimezones', [])
+                        } else {
+                          update('worldClockTimezones', ['America/New_York', 'Europe/London', 'Asia/Tokyo'])
+                        }
+                      }}
                     />
                   </div>
+                  {(settings.worldClockTimezones || []).length > 0 && (
+                    <>
+                      {(settings.worldClockTimezones || []).map((tz, i) => (
+                        <div key={tz} className="setting-row">
+                          <select
+                            className="setting-select"
+                            value={tz}
+                            onChange={(e) => {
+                              const list = [...settings.worldClockTimezones]
+                              list[i] = e.target.value
+                              update('worldClockTimezones', list)
+                            }}
+                          >
+                            {Intl.supportedValuesOf('timeZone').map((t) => {
+                              const parts = t.split('/')
+                              const label = parts.length > 1 ? parts[parts.length - 1].replace(/_/g, ' ') : t
+                              return <option key={t} value={t}>{label}</option>
+                            })}
+                          </select>
+                          <button
+                            className="wc-remove-btn"
+                            onClick={() => {
+                              const list = [...settings.worldClockTimezones]
+                              list.splice(i, 1)
+                              update('worldClockTimezones', list)
+                            }}
+                          >✕</button>
+                        </div>
+                      ))}
+                      <div className="setting-row">
+                        <button
+                          className="wc-add-btn"
+                          onClick={() => {
+                            const list = [...(settings.worldClockTimezones || [])]
+                            if (!list.includes('America/New_York')) list.push('America/New_York')
+                            else if (!list.includes('Europe/London')) list.push('Europe/London')
+                            else if (!list.includes('Asia/Tokyo')) list.push('Asia/Tokyo')
+                            else list.push(Intl.supportedValuesOf('timeZone')[0])
+                            update('worldClockTimezones', list)
+                          }}
+                        >+ Add World Clock</button>
+                      </div>
+                    </>
+                  )}
                   <div className="setting-row">
                     <span className="setting-label">Clock size</span>
                     <div className="range-control">
