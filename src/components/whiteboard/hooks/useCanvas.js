@@ -1,0 +1,217 @@
+import { useRef, useCallback, useEffect } from 'react'
+import { getPointerPos, drawSegment, drawDot, clearCanvas, saveCanvasImage, loadCanvasImage } from '../canvas.js'
+import { isShapeTool } from '../tools.js'
+
+function getCssPointerPos(canvas, e) {
+  const rect = canvas.getBoundingClientRect()
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY
+  return {
+    x: clientX - rect.left,
+    y: clientY - rect.top,
+  }
+}
+
+export function useCanvas(tool, color) {
+  const canvasRef = useRef(null)
+  const containerRef = useRef(null)
+  const drawing = useRef(false)
+  const originPos = useRef(null)
+  const offscreenRef = useRef(null)
+
+  const getCtx = useCallback(() => {
+    return canvasRef.current?.getContext('2d')
+  }, [])
+
+  const ensureOffscreen = useCallback(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return null
+    if (!offscreenRef.current || offscreenRef.current.width !== canvas.width || offscreenRef.current.height !== canvas.height) {
+      const c = document.createElement('canvas')
+      c.width = canvas.width
+      c.height = canvas.height
+      offscreenRef.current = c
+    }
+    return offscreenRef.current
+  }, [])
+
+  const handlePointerDown = useCallback((e) => {
+    e.preventDefault()
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = getCtx()
+    if (!ctx) return
+    drawing.current = true
+    if (isShapeTool(tool.id)) {
+      const pos = getCssPointerPos(canvas, e)
+      originPos.current = pos
+      const off = ensureOffscreen()
+      if (off) {
+        const offCtx = off.getContext('2d')
+        offCtx.clearRect(0, 0, off.width, off.height)
+        offCtx.save()
+        offCtx.setTransform(1, 0, 0, 1, 0, 0)
+        offCtx.drawImage(canvas, 0, 0)
+        offCtx.restore()
+      }
+    } else {
+      const pos = getPointerPos(canvas, e)
+      originPos.current = pos
+      drawDot(ctx, pos, tool, color)
+    }
+  }, [tool, color, getCtx, ensureOffscreen])
+
+  const handlePointerMove = useCallback((e) => {
+    if (!drawing.current) return
+    e.preventDefault()
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = getCtx()
+    if (!ctx) return
+    if (isShapeTool(tool.id)) {
+      const pos = getCssPointerPos(canvas, e)
+      const off = ensureOffscreen()
+      if (off && originPos.current) {
+        const offCtx = off.getContext('2d')
+        offCtx.clearRect(0, 0, off.width, off.height)
+        offCtx.save()
+        offCtx.setTransform(1, 0, 0, 1, 0, 0)
+        offCtx.drawImage(canvas, 0, 0)
+        offCtx.restore()
+        const dpr = window.devicePixelRatio || 1
+        offCtx.save()
+        offCtx.scale(dpr, dpr)
+        drawShapeOnCtx(offCtx, originPos.current, pos, tool, color)
+        offCtx.restore()
+      }
+    } else {
+      const pos = getPointerPos(canvas, e)
+      if (originPos.current) {
+        drawSegment(ctx, originPos.current, pos, tool, color)
+      }
+      originPos.current = pos
+    }
+  }, [tool, color, getCtx, ensureOffscreen])
+
+  const handlePointerUp = useCallback(() => {
+    if (drawing.current) {
+      const canvas = canvasRef.current
+      const ctx = getCtx()
+      if (isShapeTool(tool.id) && ctx && canvas && offscreenRef.current) {
+        ctx.save()
+        ctx.setTransform(1, 0, 0, 1, 0, 0)
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        ctx.drawImage(offscreenRef.current, 0, 0)
+        ctx.restore()
+      }
+      drawing.current = false
+      originPos.current = null
+      if (offscreenRef.current) {
+        offscreenRef.current.getContext('2d').clearRect(0, 0, offscreenRef.current.width, offscreenRef.current.height)
+      }
+      saveCanvasImage(canvas)
+    }
+  }, [getCtx])
+
+  const handleClear = useCallback(() => {
+    const canvas = canvasRef.current
+    const ctx = getCtx()
+    if (ctx && canvas) {
+      clearCanvas(ctx, canvas)
+      saveCanvasImage(canvas)
+    }
+  }, [getCtx])
+
+  const handleSave = useCallback(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const link = document.createElement('a')
+    link.download = 'whiteboard.png'
+    link.href = canvas.toDataURL('image/png')
+    link.click()
+  }, [])
+
+  useEffect(() => {
+    const container = containerRef.current
+    const canvas = canvasRef.current
+    if (!container || !canvas) return
+    const ctx = canvas.getContext('2d')
+    const dpr = window.devicePixelRatio || 1
+    const w = container.clientWidth
+    const h = container.clientHeight
+    canvas.width = w * dpr
+    canvas.height = h * dpr
+    canvas.style.width = w + 'px'
+    canvas.style.height = h + 'px'
+    ctx.scale(dpr, dpr)
+    loadCanvasImage(ctx, canvas)
+  }, [])
+
+  useEffect(() => {
+    return () => {
+      if (canvasRef.current) saveCanvasImage(canvasRef.current)
+    }
+  }, [])
+
+  return {
+    canvasRef,
+    containerRef,
+    handlePointerDown,
+    handlePointerMove,
+    handlePointerUp,
+    handleClear,
+    handleSave,
+  }
+}
+
+function drawShapeOnCtx(ctx, from, to, tool, color) {
+  ctx.strokeStyle = color
+  ctx.fillStyle = color
+  ctx.lineWidth = tool.lineWidth
+  ctx.lineCap = 'round'
+  ctx.lineJoin = 'round'
+
+  switch (tool.id) {
+    case 'line':
+      ctx.beginPath()
+      ctx.moveTo(from.x, from.y)
+      ctx.lineTo(to.x, to.y)
+      ctx.stroke()
+      break
+    case 'rect':
+      ctx.beginPath()
+      ctx.rect(from.x, from.y, to.x - from.x, to.y - from.y)
+      ctx.stroke()
+      break
+    case 'circle': {
+      const rx = Math.abs(to.x - from.x) / 2
+      const ry = Math.abs(to.y - from.y) / 2
+      const cx = (from.x + to.x) / 2
+      const cy = (from.y + to.y) / 2
+      if (rx > 0 && ry > 0) {
+        ctx.beginPath()
+        ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2)
+        ctx.stroke()
+      }
+      break
+    }
+    case 'arrow': {
+      const dx = to.x - from.x
+      const dy = to.y - from.y
+      if (dx === 0 && dy === 0) break
+      const angle = Math.atan2(dy, dx)
+      const headLen = Math.max(tool.lineWidth * 5, 16)
+      ctx.beginPath()
+      ctx.moveTo(from.x, from.y)
+      ctx.lineTo(to.x, to.y)
+      ctx.stroke()
+      ctx.beginPath()
+      ctx.moveTo(to.x, to.y)
+      ctx.lineTo(to.x - headLen * Math.cos(angle - Math.PI / 6), to.y - headLen * Math.sin(angle - Math.PI / 6))
+      ctx.moveTo(to.x, to.y)
+      ctx.lineTo(to.x - headLen * Math.cos(angle + Math.PI / 6), to.y - headLen * Math.sin(angle + Math.PI / 6))
+      ctx.stroke()
+      break
+    }
+  }
+}

@@ -120,6 +120,8 @@ function loadSettings() {
       showPomodoroWidget: data.showPomodoroWidget !== undefined ? data.showPomodoroWidget : false,
       showWeatherWidget: data.showWeatherWidget !== undefined ? data.showWeatherWidget : false,
       showStickyNote: data.showStickyNote !== undefined ? data.showStickyNote : false,
+      showWhiteboard: data.showWhiteboard !== undefined ? data.showWhiteboard : false,
+      showList: data.showList !== undefined ? data.showList : false,
       pomodoroWork: data.pomodoroWork ?? 25,
       pomodoroShort: data.pomodoroShort ?? 5,
       pomodoroLong: data.pomodoroLong ?? 15,
@@ -181,6 +183,8 @@ function loadSettings() {
       showPomodoroWidget: false,
       showWeatherWidget: false,
       showStickyNote: false,
+      showWhiteboard: false,
+      showList: false,
       pomodoroWork: 25,
       pomodoroShort: 5,
       pomodoroLong: 15,
@@ -206,6 +210,12 @@ function Settings({ isOpen, onClose }) {
       return data ? JSON.parse(data) : []
     } catch { return [] }
   })
+  const [lists, setLists] = useState(() => {
+    try {
+      const data = localStorage.getItem('newtab_lists')
+      return data ? JSON.parse(data) : []
+    } catch { return [] }
+  })
   const { t, lang, getLanguageName } = useTranslation()
 
   useEffect(() => {
@@ -219,6 +229,21 @@ function Settings({ isOpen, onClose }) {
     const interval = setInterval(readNotes, 500)
     return () => {
       window.removeEventListener('sticky-update', readNotes)
+      clearInterval(interval)
+    }
+  }, [])
+
+  useEffect(() => {
+    function readLists() {
+      try {
+        const data = JSON.parse(localStorage.getItem('newtab_lists') || '[]')
+        if (Array.isArray(data)) setLists(data)
+      } catch {}
+    }
+    window.addEventListener('lists-update', readLists)
+    const interval = setInterval(readLists, 500)
+    return () => {
+      window.removeEventListener('lists-update', readLists)
       clearInterval(interval)
     }
   }, [])
@@ -246,6 +271,19 @@ function Settings({ isOpen, onClose }) {
   }
 
   const hasEmptyNote = notes.some(n => !n.html.replace(/<[^>]+>/g, '').trim())
+
+  function handleAddList() {
+    if (lists.length >= 10) return
+    if (lists.some(l => !l.title && l.items.length === 0)) return
+    const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6)
+    const updated = [...lists, { id, title: '', items: [] }]
+    setLists(updated)
+    localStorage.setItem('newtab_lists', JSON.stringify(updated))
+    window.dispatchEvent(new Event('lists-update'))
+    if (!settings.showList) update('showList', true)
+  }
+
+  const hasEmptyList = lists.some(l => !l.title && l.items.length === 0)
 
   const bgTypes = [
     { value: 'images', label: t('images') },
@@ -280,7 +318,7 @@ function Settings({ isOpen, onClose }) {
           'enableWeather', 'geolocation', 'manualLocation', 'tempUnit', 'forecast', 'tempDisplay', 'weatherShow',
           'enableGreeting', 'greetingName', 'greetingSize',
           'enableSearchBar', 'openInNewTab', 'showSuggestions', 'searchPlaceholder', 'searchBgOpacity', 'searchBlur',
-          'showClockWidget', 'showCalendarWidget', 'showPomodoroWidget', 'showWeatherWidget', 'showStickyNote',
+          'showClockWidget', 'showCalendarWidget', 'showPomodoroWidget', 'showWeatherWidget', 'showStickyNote', 'showWhiteboard', 'showList',
           'pomodoroWork', 'pomodoroShort', 'pomodoroLong', 'pomodoroCycles',
         ])
         setSettings((prev) => ({ ...prev, ...stored }))
@@ -289,6 +327,20 @@ function Settings({ isOpen, onClose }) {
       }
     }
     load()
+  }, [])
+
+  useEffect(() => {
+    if (typeof chrome === 'undefined' || !chrome?.storage?.onChanged) return
+    function onChange(changes, area) {
+      if (area !== 'local') return
+      const update = {}
+      for (const [key, { newValue }] of Object.entries(changes)) {
+        if (newValue !== undefined) update[key] = newValue
+      }
+      if (Object.keys(update).length) setSettings(prev => ({ ...prev, ...update }))
+    }
+    chrome.storage.onChanged.addListener(onChange)
+    return () => chrome.storage.onChanged.removeListener(onChange)
   }, [])
 
   function update(key, value) {
@@ -582,10 +634,29 @@ function Settings({ isOpen, onClose }) {
                 />
               </div>
               <div className="settings-group-inline">
+                <span className="settings-group-inline-title">{t('whiteboard')}</span>
+                <ToggleSwitch
+                  checked={settings.showWhiteboard}
+                  onChange={() => update('showWhiteboard', !settings.showWhiteboard)}
+                />
+              </div>
+              <div className="settings-group-inline">
                 <span className="settings-group-inline-title">{t('stickyNote')}</span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <span className="setting-dashed-btn-count">{notes.length}/10</span>
                   <button className="sticky-add-btn" onClick={handleAddNote} title="Add note" disabled={notes.length >= 10 || hasEmptyNote}>
+                    <span style={{ fontSize: '12px' }}>Add</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <div className="settings-group-inline">
+                <span className="settings-group-inline-title">{t('lists')}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <span className="setting-dashed-btn-count">{lists.length}/10</span>
+                  <button className="sticky-add-btn" onClick={handleAddList} title="Add list" disabled={lists.length >= 10 || hasEmptyList}>
                     <span style={{ fontSize: '12px' }}>Add</span>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                       <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>

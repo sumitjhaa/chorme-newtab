@@ -157,17 +157,14 @@ function StickyNote() {
   const mountedRef = useRef(false)
 
   useEffect(() => {
-    setNotes(prev => {
-      const saved = loadNotes()
-      if (saved.length > 0 && prev.length === 0) return saved
-      return prev
-    })
-    function onStickyUpdate() {
-      setNotes(loadNotes())
-    }
-    window.addEventListener('sticky-update', onStickyUpdate)
+    function refresh() { setNotes(loadNotes()) }
+    window.addEventListener('sticky-update', refresh)
+    const interval = setInterval(refresh, 300)
     mountedRef.current = true
-    return () => window.removeEventListener('sticky-update', onStickyUpdate)
+    return () => {
+      window.removeEventListener('sticky-update', refresh)
+      clearInterval(interval)
+    }
   }, [])
 
   useEffect(() => {

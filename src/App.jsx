@@ -7,6 +7,8 @@ import Pomodoro from './components/Pomodoro.jsx'
 import Weather from './components/Weather.jsx'
 import Greeting from './components/Greeting.jsx'
 import StickyNote from './components/StickyNote.jsx'
+import Lists from './components/list/Lists.jsx'
+import Whiteboard from './components/whiteboard/Whiteboard.jsx'
 import Settings from './components/Settings.jsx'
 import Draggable from './components/Draggable.jsx'
 import { fetchRandomWallpaper } from './api/index.js'
@@ -63,6 +65,8 @@ function loadAllSettings() {
       enableSearchBar: data.enableSearchBar !== undefined ? data.enableSearchBar : true,
       enableGreeting: data.enableGreeting !== undefined ? data.enableGreeting : true,
       showStickyNote: data.showStickyNote !== undefined ? data.showStickyNote : false,
+      showWhiteboard: data.showWhiteboard !== undefined ? data.showWhiteboard : false,
+      showList: data.showList !== undefined ? data.showList : false,
       fontFamily: data.fontFamily || 'Inter',
       fontWeight: data.fontWeight || 400,
       fontColor: data.fontColor || '#ffffff',
@@ -87,6 +91,8 @@ function loadAllSettings() {
       enableSearchBar: true,
       enableGreeting: true,
       showStickyNote: false,
+      showWhiteboard: false,
+      showList: false,
       fontFamily: 'Inter',
       fontWeight: 400,
       fontColor: '#ffffff',
@@ -106,6 +112,8 @@ const DEFAULT_LAYOUT = {
   'search-bar':  { col: 1, order: -1 },
   weather:     { col: 2, order: 0 },
   'sticky-note': { col: 3, order: 0 },
+  whiteboard:  { col: 4, order: 0 },
+  list:        { col: 5, order: 0 },
 }
 
 function loadLayout() {
@@ -266,6 +274,14 @@ export default function App() {
   if (appSettings.showPomodoroWidget)    visibleWidgets.push({ id: 'pomodoro', component: <Pomodoro /> })
   if (appSettings.showWeatherWidget)     visibleWidgets.push({ id: 'weather', component: <Weather /> })
   if (appSettings.showStickyNote)        visibleWidgets.push({ id: 'sticky-note', component: <StickyNote /> })
+  if (appSettings.showWhiteboard)        visibleWidgets.push({ id: 'whiteboard', component: <Whiteboard onDelete={() => {
+    const data = JSON.parse(localStorage.getItem('newtab_settings') || '{}')
+    data.showWhiteboard = false
+    localStorage.setItem('newtab_settings', JSON.stringify(data))
+    try { chrome.storage.local.set({ showWhiteboard: false }) } catch {}
+    window.dispatchEvent(new Event('storage'))
+  }} /> })
+  if (appSettings.showList)              visibleWidgets.push({ id: 'list', component: <Lists /> })
   if (appSettings.enableGreeting)          visibleWidgets.push({ id: 'greeting', component: <Greeting /> })
   if (appSettings.enableSearchBar)       visibleWidgets.push({ id: 'search-bar', component: <SearchBar /> })
 
