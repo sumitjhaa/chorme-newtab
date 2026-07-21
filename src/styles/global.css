@@ -76,6 +76,49 @@ body { font-family: var(--font-family); font-weight: var(--font-weight); color: 
   overflow: hidden;
 }
 
+.kanban-board {
+  position: relative;
+  z-index: 15;
+  display: flex;
+  gap: 1rem;
+  padding: 2rem 3rem;
+  height: 100%;
+  width: 100%;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.kanban-column {
+  flex: none;
+  width: 280px;
+  min-width: 280px;
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0.75rem;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  transition: background 0.2s ease;
+  justify-content: flex-start;
+}
+
+.kanban-column::-webkit-scrollbar { display: none; }
+
+.kanban-column-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-height: 60px;
+}
+
+.kanban-column.drag-over {
+  background: rgba(74, 158, 255, 0.06);
+  border-color: rgba(74, 158, 255, 0.15);
+}
+
 /* ─── Wallpaper ─── */
 
 .wallpaper-container {
@@ -126,8 +169,34 @@ body { font-family: var(--font-family); font-weight: var(--font-weight); color: 
 
 .draggable {
   position: relative;
-  z-index: 15;
+  z-index: 1;
   touch-action: none;
+}
+
+.drag-ghost {
+  width: 100%;
+  border-radius: var(--radius-lg);
+  background: rgba(74, 158, 255, 0.08);
+  border: 1px dashed rgba(74, 158, 255, 0.25);
+  transition: height 0.15s ease;
+}
+
+.drag-content {
+  position: relative;
+  z-index: 1;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}
+
+.drag-content.floating {
+  opacity: 0.92;
+  transform: rotate(1.5deg) scale(1.03);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(74, 158, 255, 0.2);
+  border-radius: var(--radius-lg);
+  cursor: grabbing;
+}
+
+.draggable.is-dragging {
+  z-index: 9999;
 }
 
 .drag-handle {
@@ -147,7 +216,7 @@ body { font-family: var(--font-family); font-weight: var(--font-weight); color: 
   color: rgba(255, 255, 255, 0.7);
   padding: 0;
   z-index: 5;
-  opacity: 0.01;
+  opacity: 0;
   transition: opacity 0.2s ease;
 }
 
@@ -157,8 +226,8 @@ body { font-family: var(--font-family); font-weight: var(--font-weight); color: 
   inset: -1em;
 }
 
-.drag-handle:hover,
-.draggable.dragging .drag-handle {
+.draggable:hover .drag-handle,
+.draggable.is-dragging .drag-handle {
   opacity: 1;
 }
 
@@ -191,7 +260,7 @@ body { font-family: var(--font-family); font-weight: var(--font-weight); color: 
   -webkit-backdrop-filter: blur(20px);
   border-radius: var(--radius-lg);
   padding: 1rem;
-  width: 240px;
+  width: 100%;
   text-align: center;
   font-family: var(--font-family);
   color: var(--text-primary);
@@ -325,7 +394,7 @@ body { font-family: var(--font-family); font-weight: var(--font-weight); color: 
   -webkit-backdrop-filter: blur(20px);
   border-radius: var(--radius-lg);
   padding: 1rem;
-  width: 240px;
+  width: 100%;
   font-family: var(--font-family);
   color: var(--text-primary);
 }
@@ -397,7 +466,7 @@ body { font-family: var(--font-family); font-weight: var(--font-weight); color: 
   -webkit-backdrop-filter: blur(20px);
   border-radius: var(--radius-lg);
   padding: 1rem;
-  width: 240px;
+  width: 100%;
   text-align: center;
   font-family: var(--font-family);
   color: var(--text-primary);
@@ -480,7 +549,7 @@ body { font-family: var(--font-family); font-weight: var(--font-weight); color: 
   -webkit-backdrop-filter: blur(20px);
   border-radius: var(--radius-lg);
   padding: 1rem;
-  width: 240px;
+  width: 100%;
   font-family: var(--font-family);
   color: var(--text-primary);
 }
@@ -572,7 +641,7 @@ body { font-family: var(--font-family); font-weight: var(--font-weight); color: 
   -webkit-backdrop-filter: blur(20px);
   border-radius: var(--radius-lg);
   padding: 1rem;
-  width: 240px;
+  width: 100%;
   text-align: center;
   font-family: var(--font-family);
   color: var(--text-primary);
@@ -875,6 +944,11 @@ body { font-family: var(--font-family); font-weight: var(--font-weight); color: 
 .refresh-btn svg, .settings-btn svg { width: 22px; height: 22px; }
 
 .bottom-buttons {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
   display: flex;
   gap: 0.75rem;
   pointer-events: auto;

@@ -42,6 +42,8 @@ function extractWallpaperColors(imgUrl) {
   img.src = imgUrl
 }
 
+const NUM_COLUMNS = 6
+
 function loadAllSettings() {
   try {
     const data = JSON.parse(localStorage.getItem('newtab_settings') || '{}')
@@ -93,6 +95,30 @@ function loadAllSettings() {
   }
 }
 
+const DEFAULT_LAYOUT = {
+  clock:       { col: 0, order: 0 },
+  calendar:    { col: 0, order: 1 },
+  greeting:    { col: 0, order: 2 },
+  pomodoro:    { col: 1, order: 0 },
+  'system-info': { col: 1, order: 1 },
+  'search-bar':  { col: 1, order: 2 },
+  weather:     { col: 2, order: 0 },
+}
+
+function loadLayout() {
+  try {
+    return JSON.parse(localStorage.getItem('newtab_layout') || 'null') || DEFAULT_LAYOUT
+  } catch {
+    return DEFAULT_LAYOUT
+  }
+}
+
+function saveLayout(layout) {
+  try {
+    localStorage.setItem('newtab_layout', JSON.stringify(layout))
+  } catch {}
+}
+
 function applyDarkMode(mode) {
   if (mode === 'light') {
     document.documentElement.classList.remove('dark')
@@ -113,6 +139,7 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [appSettings, setAppSettings] = useState(loadAllSettings)
+  const [layout, setLayout] = useState(loadLayout)
   const intervalRef = useRef(null)
 
   const loadWallpaper = useCallback(async (selectedSource) => {
@@ -132,6 +159,28 @@ export default function App() {
 
   const toggleSettings = useCallback(() => {
     setIsSettingsOpen((prev) => !prev)
+  }, [])
+
+  const handleDrop = useCallback((widgetId, targetCol, targetOrder) => {
+    setLayout(prev => {
+      const next = { ...prev }
+
+      const affectedInTarget = Object.entries(next)
+        .filter(([id, pos]) => id !== widgetId && pos.col === targetCol)
+        .sort((a, b) => a[1].order - b[1].order)
+
+      affectedInTarget.forEach(([id, pos], i) => {
+        if (i >= targetOrder) {
+          next[id] = { ...pos, order: i + 1 }
+        } else {
+          next[id] = pos
+        }
+      })
+
+      next[widgetId] = { col: targetCol, order: targetOrder }
+      saveLayout(next)
+      return next
+    })
   }, [])
 
   useEffect(() => {
@@ -207,74 +256,69 @@ export default function App() {
     return () => clearInterval(intervalRef.current)
   }, [loadWallpaper])
 
+  const visibleWidgets = []
+  if (appSettings.showClockWidget)       visibleWidgets.push({ id: 'clock', component: <Clock /> })
+  if (appSettings.showCalendarWidget)    visibleWidgets.push({ id: 'calendar', component: <Calendar /> })
+  if (appSettings.showPomodoroWidget)    visibleWidgets.push({ id: 'pomodoro', component: <Pomodoro /> })
+  if (appSettings.showSystemInfoWidget)  visibleWidgets.push({ id: 'system-info', component: <SystemInfo /> })
+  if (appSettings.showWeatherWidget)     visibleWidgets.push({ id: 'weather', component: <Weather /> })
+  visibleWidgets.push({ id: 'greeting', component: <Greeting /> })
+  if (appSettings.enableSearchBar)       visibleWidgets.push({ id: 'search-bar', component: <SearchBar /> })
+
+  const columns = Array.from({ length: NUM_COLUMNS }, () => [])
+  visibleWidgets.forEach(w => {
+    const pos = layout[w.id] || { col: 0, order: 0 }
+    const col = Math.min(pos.col, NUM_COLUMNS - 1)
+    columns[col].push({ ...w, order: pos.order })
+  })
+  columns.forEach(col => col.sort((a, b) => a.order - b.order))
+
   return (
     <div className="app">
       <Wallpaper wallpaper={wallpaper} isLoading={isLoading} />
 
-      {appSettings.showClockWidget && (
-        <Draggable id="clock" defaultPosition={{ x: 42, y: 8 }}>
-          <Clock />
-        </Draggable>
-      )}
+      <div className="kanban-board">
+        {columns.map((colWidgets, colIndex) => (
+          <div className="kanban-column" key={colIndex} data-col={colIndex}>
+            <div className="kanban-column-inner">
+              {colWidgets.map(w => (
+                <Draggable
+                  key={w.id}
+                  id={w.id}
+                  col={colIndex}
+                  onDrop={handleDrop}
+                  numColumns={NUM_COLUMNS}
+                >
+                  {w.component}
+                </Draggable>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
 
-      {appSettings.showCalendarWidget && (
-        <Draggable id="calendar" defaultPosition={{ x: 40, y: 25 }}>
-          <Calendar />
-        </Draggable>
-      )}
+      <div className="bottom-buttons visible">
+        <button
+          className="refresh-btn"
+          onClick={() => loadWallpaper()}
+          disabled={isLoading}
+          title="Refresh wallpaper"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+            <path d="M21 3v5h-5"/>
+            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+            <path d="M8 16H3v5"/>
+          </svg>
+        </button>
 
-      {appSettings.showPomodoroWidget && (
-        <Draggable id="pomodoro" defaultPosition={{ x: 5, y: 5 }}>
-          <Pomodoro />
-        </Draggable>
-      )}
-
-      {appSettings.showSystemInfoWidget && (
-        <Draggable id="system-info" defaultPosition={{ x: 75, y: 5 }}>
-          <SystemInfo />
-        </Draggable>
-      )}
-
-      {appSettings.showWeatherWidget && (
-        <Draggable id="weather" defaultPosition={{ x: 75, y: 40 }}>
-          <Weather />
-        </Draggable>
-      )}
-
-      <Draggable id="greeting" defaultPosition={{ x: 42, y: 20 }}>
-        <Greeting />
-      </Draggable>
-
-      {appSettings.enableSearchBar && (
-        <Draggable id="search-bar" defaultPosition={{ x: 35, y: 42 }}>
-          <SearchBar />
-        </Draggable>
-      )}
-
-      <Draggable id="bottom-buttons" defaultPosition={{ x: 45, y: 85 }}>
-        <div className={`bottom-buttons visible`}>
-          <button
-            className="refresh-btn"
-            onClick={() => loadWallpaper()}
-            disabled={isLoading}
-            title="Refresh wallpaper"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
-              <path d="M21 3v5h-5"/>
-              <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
-              <path d="M8 16H3v5"/>
-            </svg>
-          </button>
-
-          <button className="settings-btn" onClick={toggleSettings} title="Settings (Esc)">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-              <circle cx="12" cy="12" r="4"/>
-            </svg>
-          </button>
-        </div>
-      </Draggable>
+        <button className="settings-btn" onClick={toggleSettings} title="Settings (Esc)">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            <circle cx="12" cy="12" r="4"/>
+          </svg>
+        </button>
+      </div>
 
       <Settings isOpen={isSettingsOpen} onClose={toggleSettings} />
     </div>
