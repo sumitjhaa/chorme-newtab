@@ -1,6 +1,9 @@
 import { useState, useEffect, memo } from 'react'
+import { useTranslation } from '../hooks/useTranslation.js'
 
-const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+function getDays(t) {
+  return [t('sun'), t('mon'), t('tue'), t('wed'), t('thu'), t('fri'), t('sat')]
+}
 
 function loadLanguage() {
   try {
@@ -12,6 +15,7 @@ function loadLanguage() {
 }
 
 function Calendar() {
+  const { t } = useTranslation()
   const [today, setToday] = useState(new Date())
   const [viewMonth, setViewMonth] = useState(new Date())
   const [lang, setLang] = useState(loadLanguage)
@@ -61,7 +65,7 @@ function Calendar() {
         <button className="cal-nav" onClick={nextMonth}>&rsaquo;</button>
       </div>
       <div className="cal-grid">
-        {DAYS.map((d) => (
+        {getDays(t).map((d) => (
           <div key={d} className="cal-day-header">{d}</div>
         ))}
         {cells}

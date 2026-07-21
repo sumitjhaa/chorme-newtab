@@ -4,14 +4,15 @@ import Wallpaper from './components/Wallpaper.jsx'
 import Clock from './components/Clock.jsx'
 import Calendar from './components/Calendar.jsx'
 import Pomodoro from './components/Pomodoro.jsx'
-import SystemInfo from './components/SystemInfo.jsx'
 import Weather from './components/Weather.jsx'
 import Greeting from './components/Greeting.jsx'
+import StickyNote from './components/StickyNote.jsx'
 import Settings from './components/Settings.jsx'
 import Draggable from './components/Draggable.jsx'
 import { fetchRandomWallpaper } from './api/index.js'
 import { getCurrentWallpaper, setCurrentWallpaper, getWallpaperSource } from './utils/storage.js'
 import { API_SOURCES, DEFAULT_REFRESH_INTERVAL } from './constants.js'
+import { useTranslation } from './hooks/useTranslation.js'
 
 function extractWallpaperColors(imgUrl) {
   const img = new Image()
@@ -58,9 +59,10 @@ function loadAllSettings() {
       showClockWidget: data.showClockWidget !== undefined ? data.showClockWidget : true,
       showCalendarWidget: data.showCalendarWidget !== undefined ? data.showCalendarWidget : true,
       showPomodoroWidget: data.showPomodoroWidget !== undefined ? data.showPomodoroWidget : false,
-      showSystemInfoWidget: data.showSystemInfoWidget !== undefined ? data.showSystemInfoWidget : false,
       showWeatherWidget: data.showWeatherWidget !== undefined ? data.showWeatherWidget : false,
       enableSearchBar: data.enableSearchBar !== undefined ? data.enableSearchBar : true,
+      enableGreeting: data.enableGreeting !== undefined ? data.enableGreeting : true,
+      showStickyNote: data.showStickyNote !== undefined ? data.showStickyNote : false,
       fontFamily: data.fontFamily || 'Inter',
       fontWeight: data.fontWeight || 400,
       fontColor: data.fontColor || '#ffffff',
@@ -81,9 +83,10 @@ function loadAllSettings() {
       showClockWidget: true,
       showCalendarWidget: true,
       showPomodoroWidget: false,
-      showSystemInfoWidget: false,
       showWeatherWidget: false,
       enableSearchBar: true,
+      enableGreeting: true,
+      showStickyNote: false,
       fontFamily: 'Inter',
       fontWeight: 400,
       fontColor: '#ffffff',
@@ -100,9 +103,9 @@ const DEFAULT_LAYOUT = {
   calendar:    { col: 0, order: 1 },
   greeting:    { col: 0, order: 2 },
   pomodoro:    { col: 1, order: 0 },
-  'system-info': { col: 1, order: 1 },
-  'search-bar':  { col: 1, order: 2 },
+  'search-bar':  { col: 1, order: -1 },
   weather:     { col: 2, order: 0 },
+  'sticky-note': { col: 3, order: 0 },
 }
 
 function loadLayout() {
@@ -134,6 +137,7 @@ function applyDarkMode(mode) {
 }
 
 export default function App() {
+  const { t } = useTranslation()
   const [wallpaper, setWallpaper] = useState(null)
   const [source, setSource] = useState(API_SOURCES.WALLHAVEN)
   const [isLoading, setIsLoading] = useState(false)
@@ -214,7 +218,7 @@ export default function App() {
   }, [appSettings.darkMode])
 
   useEffect(() => {
-    document.title = appSettings.tabTitle || 'New Tab'
+    document.title = appSettings.tabTitle || t('newTab')
   }, [appSettings.tabTitle])
 
   useEffect(() => {
@@ -260,51 +264,108 @@ export default function App() {
   if (appSettings.showClockWidget)       visibleWidgets.push({ id: 'clock', component: <Clock /> })
   if (appSettings.showCalendarWidget)    visibleWidgets.push({ id: 'calendar', component: <Calendar /> })
   if (appSettings.showPomodoroWidget)    visibleWidgets.push({ id: 'pomodoro', component: <Pomodoro /> })
-  if (appSettings.showSystemInfoWidget)  visibleWidgets.push({ id: 'system-info', component: <SystemInfo /> })
   if (appSettings.showWeatherWidget)     visibleWidgets.push({ id: 'weather', component: <Weather /> })
-  visibleWidgets.push({ id: 'greeting', component: <Greeting /> })
+  if (appSettings.showStickyNote)        visibleWidgets.push({ id: 'sticky-note', component: <StickyNote /> })
+  if (appSettings.enableGreeting)          visibleWidgets.push({ id: 'greeting', component: <Greeting /> })
   if (appSettings.enableSearchBar)       visibleWidgets.push({ id: 'search-bar', component: <SearchBar /> })
 
   const columns = Array.from({ length: NUM_COLUMNS }, () => [])
+  const searchBarWidget = visibleWidgets.find(w => w.id === 'search-bar')
+  const sbLayout = layout['search-bar'] || { col: 1 }
+  const sbCol = Math.min(sbLayout.col ?? 1, NUM_COLUMNS - 2)
+
   visibleWidgets.forEach(w => {
+    if (w.id === 'search-bar') return
     const pos = layout[w.id] || { col: 0, order: 0 }
     const col = Math.min(pos.col, NUM_COLUMNS - 1)
     columns[col].push({ ...w, order: pos.order })
   })
   columns.forEach(col => col.sort((a, b) => a.order - b.order))
 
+  const [sbHeightPx, setSbHeightPx] = useState(0)
+  const [sbPos, setSbPos] = useState({ left: 0, width: 0, top: 0 })
+  const sbMeasureRef = useCallback((node) => {
+    if (node) setSbHeightPx(node.offsetHeight)
+  }, [])
+
+  useEffect(() => {
+    if (!appSettings.enableSearchBar || !searchBarWidget) return
+    const columns = document.querySelectorAll('.kanban-column')
+    if (columns.length < sbCol + 2) return
+    const board = document.querySelector('.kanban-board')
+    if (!board) return
+    const boardRect = board.getBoundingClientRect()
+    const firstCol = columns[sbCol].getBoundingClientRect()
+    const secondCol = columns[sbCol + 1].getBoundingClientRect()
+    setSbPos({
+      left: firstCol.left - boardRect.left,
+      width: secondCol.right - firstCol.left,
+      top: firstCol.top - boardRect.top,
+    })
+  }, [appSettings.enableSearchBar, sbCol, searchBarWidget])
+
+
   return (
     <div className="app">
       <Wallpaper wallpaper={wallpaper} isLoading={isLoading} />
 
       <div className="kanban-board">
-        {columns.map((colWidgets, colIndex) => (
-          <div className="kanban-column" key={colIndex} data-col={colIndex}>
-            <div className="kanban-column-inner">
-              {colWidgets.map(w => (
-                <Draggable
-                  key={w.id}
-                  id={w.id}
-                  col={colIndex}
-                  onDrop={handleDrop}
-                  numColumns={NUM_COLUMNS}
-                >
-                  {w.component}
-                </Draggable>
-              ))}
-            </div>
+        {searchBarWidget && appSettings.enableSearchBar && (
+          <div
+            className="search-bar-span"
+            style={{ left: sbPos.left, width: sbPos.width, top: sbPos.top }}
+            ref={sbMeasureRef}
+          >
+            <Draggable
+              id="search-bar"
+              col={sbCol}
+              onDrop={handleDrop}
+              numColumns={NUM_COLUMNS}
+              maxCol={NUM_COLUMNS - 2}
+              span={2}
+            >
+              {searchBarWidget.component}
+            </Draggable>
           </div>
-        ))}
+        )}
+
+        {columns.map((colWidgets, colIndex) => {
+          const covered = appSettings.enableSearchBar && colIndex >= sbCol && colIndex <= sbCol + 1
+          return (
+            <div
+              className="kanban-column"
+              key={colIndex}
+              data-col={colIndex}
+              style={{
+                gridColumn: colIndex + 1,
+              }}
+            >
+              <div className="kanban-column-inner" style={covered ? { paddingTop: sbHeightPx + 12 } : undefined}>
+                {colWidgets.map(w => (
+                  <Draggable
+                    key={w.id}
+                    id={w.id}
+                    col={colIndex}
+                    onDrop={handleDrop}
+                    numColumns={NUM_COLUMNS}
+                  >
+                    {w.component}
+                  </Draggable>
+                ))}
+              </div>
+            </div>
+          )
+        })}
       </div>
 
-      <div className="bottom-buttons visible">
+      <div className={`bottom-buttons visible${appSettings.hideSettingsIcons ? ' hidden-icons' : ''}`}>
         <button
           className="refresh-btn"
           onClick={() => loadWallpaper()}
           disabled={isLoading}
-          title="Refresh wallpaper"
+          title={t('refreshWallpaper')}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
             <path d="M21 3v5h-5"/>
             <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
@@ -312,10 +373,10 @@ export default function App() {
           </svg>
         </button>
 
-        <button className="settings-btn" onClick={toggleSettings} title="Settings (Esc)">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-            <circle cx="12" cy="12" r="4"/>
+        <button className="settings-btn" onClick={toggleSettings} title={t('settingsEsc')}>
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
           </svg>
         </button>
       </div>

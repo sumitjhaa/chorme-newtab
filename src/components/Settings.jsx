@@ -1,6 +1,31 @@
 import { useState, useEffect, memo } from 'react'
 import { API_SOURCES, BACKGROUND_TYPES, FREQUENCIES, TEXTURES, SEARCH_ENGINES } from '../constants.js'
 import ToggleSwitch from './ToggleSwitch.jsx'
+import { useTranslation } from '../hooks/useTranslation.js'
+
+const TEXTURE_KEYS = {
+  'Grain': 'grain',
+  'Vector grain': 'vectorGrain',
+  'Diagonal dots': 'diagonalDots',
+  'Vertical dots': 'verticalDots',
+  'Topographic': 'topographic',
+  'Aztec': 'aztec',
+  'Checkerboard': 'checkerboard',
+  'Isometric': 'isometric',
+  'Circuit board': 'circuitBoard',
+  'Tic-tac-toe': 'ticTacToe',
+  'Endless clouds': 'endlessClouds',
+  'Waves': 'waves',
+  'Honeycomb': 'honeycomb',
+  'Grid': 'grid',
+  'Vertical lines': 'verticalLines',
+  'Horizontal lines': 'horizontalLines',
+  'Diagonal lines': 'diagonalLines',
+  'Vertical stripes': 'verticalStripes',
+  'Horizontal stripes': 'horizontalStripes',
+  'Diagonal stripes': 'diagonalStripes',
+  'None': 'none',
+}
 
 const SOURCE_LABELS = {
   [API_SOURCES.UNSPLASH]: 'Unsplash',
@@ -90,14 +115,11 @@ function loadSettings() {
       openInNewTab: data.openInNewTab !== undefined ? data.openInNewTab : true,
       showSuggestions: data.showSuggestions !== undefined ? data.showSuggestions : true,
       searchPlaceholder: data.searchPlaceholder || 'Search with Google or type a URL',
-      searchWidth: data.searchWidth !== undefined ? data.searchWidth : 500,
-      searchBgOpacity: data.searchBgOpacity !== undefined ? data.searchBgOpacity : 0,
       searchBlur: data.searchBlur !== undefined ? data.searchBlur : 20,
       showClockWidget: data.showClockWidget !== undefined ? data.showClockWidget : true,
-      showCalendarWidget: data.showCalendarWidget !== undefined ? data.showCalendarWidget : true,
       showPomodoroWidget: data.showPomodoroWidget !== undefined ? data.showPomodoroWidget : false,
-      showSystemInfoWidget: data.showSystemInfoWidget !== undefined ? data.showSystemInfoWidget : false,
       showWeatherWidget: data.showWeatherWidget !== undefined ? data.showWeatherWidget : false,
+      showStickyNote: data.showStickyNote !== undefined ? data.showStickyNote : false,
       pomodoroWork: data.pomodoroWork ?? 25,
       pomodoroShort: data.pomodoroShort ?? 5,
       pomodoroLong: data.pomodoroLong ?? 15,
@@ -152,14 +174,13 @@ function loadSettings() {
       openInNewTab: true,
       showSuggestions: true,
       searchPlaceholder: 'Search with Google or type a URL',
-      searchWidth: 500,
       searchBgOpacity: 0,
       searchBlur: 20,
       showClockWidget: true,
       showCalendarWidget: true,
       showPomodoroWidget: false,
-      showSystemInfoWidget: false,
       showWeatherWidget: false,
+      showStickyNote: false,
       pomodoroWork: 25,
       pomodoroShort: 5,
       pomodoroLong: 15,
@@ -179,6 +200,70 @@ function saveSettings(partial) {
 function Settings({ isOpen, onClose }) {
   const [settings, setSettings] = useState(loadSettings)
   const [activeTab, setActiveTab] = useState('settings')
+  const [notes, setNotes] = useState(() => {
+    try {
+      const data = localStorage.getItem('newtab_sticky')
+      return data ? JSON.parse(data) : []
+    } catch { return [] }
+  })
+  const { t, lang, getLanguageName } = useTranslation()
+
+  useEffect(() => {
+    function readNotes() {
+      try {
+        const data = JSON.parse(localStorage.getItem('newtab_sticky') || '[]')
+        if (Array.isArray(data)) setNotes(data)
+      } catch {}
+    }
+    window.addEventListener('sticky-update', readNotes)
+    const interval = setInterval(readNotes, 500)
+    return () => {
+      window.removeEventListener('sticky-update', readNotes)
+      clearInterval(interval)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!isOpen) return
+    try {
+      const data = localStorage.getItem('newtab_sticky')
+      if (data) setNotes(JSON.parse(data))
+    } catch {}
+  }, [isOpen])
+
+  function persistNotes(next) {
+    setNotes(next)
+    localStorage.setItem('newtab_sticky', JSON.stringify(next))
+    window.dispatchEvent(new Event('sticky-update'))
+  }
+
+  function handleAddNote() {
+    if (notes.length >= 10) return
+    if (notes.some(n => !n.html.replace(/<[^>]+>/g, '').trim())) return
+    const updated = [...notes, { html: '', colorIdx: notes.length % 6 }]
+    persistNotes(updated)
+    if (!settings.showStickyNote) update('showStickyNote', true)
+  }
+
+  const hasEmptyNote = notes.some(n => !n.html.replace(/<[^>]+>/g, '').trim())
+
+  const bgTypes = [
+    { value: 'images', label: t('images') },
+    { value: 'videos', label: t('videos') },
+    { value: 'local', label: t('localFiles') },
+    { value: 'url', label: t('urls') },
+    { value: 'solid', label: t('solidColor') },
+  ]
+
+  const freqOptions = [
+    { value: 'every_tab', label: t('everyTab') },
+    { value: 'every_hour', label: t('everyHour') },
+    { value: 'every_day', label: t('everyDay') },
+    { value: 'daylight', label: t('daylight') },
+    { value: 'locked', label: t('locked') },
+  ]
+
+  const texOptions = TEXTURES.map(tex => ({ value: tex, label: t(TEXTURE_KEYS[tex]) }))
 
   useEffect(() => {
     async function load() {
@@ -194,8 +279,8 @@ function Settings({ isOpen, onClose }) {
           'fontFamily', 'fontWeight', 'fontColor', 'fontSize', 'fontShadow',
           'enableWeather', 'geolocation', 'manualLocation', 'tempUnit', 'forecast', 'tempDisplay', 'weatherShow',
           'enableGreeting', 'greetingName', 'greetingSize',
-          'enableSearchBar', 'openInNewTab', 'showSuggestions', 'searchPlaceholder', 'searchWidth', 'searchBgOpacity', 'searchBlur',
-          'showClockWidget', 'showCalendarWidget', 'showPomodoroWidget', 'showSystemInfoWidget', 'showWeatherWidget',
+          'enableSearchBar', 'openInNewTab', 'showSuggestions', 'searchPlaceholder', 'searchBgOpacity', 'searchBlur',
+          'showClockWidget', 'showCalendarWidget', 'showPomodoroWidget', 'showWeatherWidget', 'showStickyNote',
           'pomodoroWork', 'pomodoroShort', 'pomodoroLong', 'pomodoroCycles',
         ])
         setSettings((prev) => ({ ...prev, ...stored }))
@@ -220,24 +305,32 @@ function Settings({ isOpen, onClose }) {
           <button
             className={`sidebar-tab ${activeTab === 'settings' ? 'active' : ''}`}
             onClick={() => setActiveTab('settings')}
-          >Settings</button>
+          >{t('settingsTab')}</button>
           <button
             className={`sidebar-tab ${activeTab === 'background' ? 'active' : ''}`}
             onClick={() => setActiveTab('background')}
-          >Background</button>
+          >{t('backgroundTab')}</button>
           <button
             className={`sidebar-tab ${activeTab === 'widgets' ? 'active' : ''}`}
             onClick={() => setActiveTab('widgets')}
-          >Widgets</button>
+          >{t('widgetsTab')}</button>
         </div>
 
         <div className="settings-content">
           {activeTab === 'settings' && (<div className="settings-groups">
             <div className="settings-group">
-              <div className="settings-group-title">General</div>
+              <div className="settings-group-title">{t('general')}</div>
 
               <div className="setting-row">
-                <span className="setting-label">Language</span>
+                <span className="setting-label">{t('hideSettingsIcons')}</span>
+                <ToggleSwitch
+                  checked={settings.hideSettingsIcons}
+                  onChange={() => update('hideSettingsIcons', !settings.hideSettingsIcons)}
+                />
+              </div>
+
+              <div className="setting-row">
+                <span className="setting-label">{t('language')} {lang !== 'en' && `(${getLanguageName(lang)})`}</span>
                 <select
                   className="setting-select"
                   value={settings.language}
@@ -250,7 +343,7 @@ function Settings({ isOpen, onClose }) {
               </div>
 
               <div className="setting-row">
-                <span className="setting-label">Dark mode</span>
+                <span className="setting-label">{t('darkMode')}</span>
                 <div className="segmented-control">
                   {['light', 'dark', 'system'].map((mode) => (
                     <button
@@ -258,152 +351,27 @@ function Settings({ isOpen, onClose }) {
                       className={`segmented-option ${settings.darkMode === mode ? 'active' : ''}`}
                       onClick={() => update('darkMode', mode)}
                     >
-                      {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                      {t(mode)}
                     </button>
                   ))}
                 </div>
               </div>
 
               <div className="setting-row">
-                <span className="setting-label">Tab title</span>
+                <span className="setting-label">{t('tabTitle')}</span>
                 <input
                   type="text"
                   className="setting-input"
                   value={settings.tabTitle}
                   onChange={(e) => update('tabTitle', e.target.value)}
-                  placeholder="New Tab"
-                />
-              </div>
-
-              <div className="setting-row">
-                <span className="setting-label">Hide settings icons</span>
-                <ToggleSwitch
-                  checked={settings.hideSettingsIcons}
-                  onChange={() => update('hideSettingsIcons', !settings.hideSettingsIcons)}
+                  placeholder={t('newTab')}
                 />
               </div>
             </div>
 
             <div className="settings-group">
-              <div className="settings-group-title">Fonts</div>
-
-              <div className="setting-row">
-                <span className="setting-label">Font family</span>
-                <select
-                  className="setting-select"
-                  value={settings.fontFamily}
-                  onChange={(e) => update('fontFamily', e.target.value)}
-                >
-                  {POPULAR_FONTS.map((f) => (
-                    <option key={f} value={f}>{f}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="setting-row">
-                <span className="setting-label">Weight</span>
-                <select
-                  className="setting-select"
-                  value={settings.fontWeight}
-                  onChange={(e) => update('fontWeight', Number(e.target.value))}
-                >
-                  {FONT_WEIGHTS.map((w) => (
-                    <option key={w} value={w}>{w}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="setting-row">
-                <span className="setting-label">Color</span>
-                <input
-                  type="color"
-                  className="setting-input"
-                  style={{ padding: '2px', width: '180px', minWidth: '180px', maxWidth: '180px', height: '30px' }}
-                  value={settings.fontColor}
-                  onChange={(e) => update('fontColor', e.target.value)}
-                />
-              </div>
-
-              <div className="setting-row">
-                <span className="setting-label">Size</span>
-                <div className="range-control">
-                  <input
-                    type="range"
-                    min="50"
-                    max="200"
-                    step="5"
-                    value={settings.fontSize}
-                    onChange={(e) => update('fontSize', Number(e.target.value))}
-                    className="slider"
-                  />
-                  <span className="range-value">{settings.fontSize}%</span>
-                </div>
-              </div>
-
-              <div className="setting-row">
-                <span className="setting-label">Shadow</span>
-                <div className="range-control">
-                  <input
-                    type="range"
-                    min="0"
-                    max="10"
-                    step="0.5"
-                    value={settings.fontShadow}
-                    onChange={(e) => update('fontShadow', Number(e.target.value))}
-                    className="slider"
-                  />
-                  <span className="range-value">{settings.fontShadow}px</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="settings-group">
-              <div className="settings-group-title">Greeting</div>
-
-              <div className="setting-row">
-                <span className="setting-label">Enable greeting</span>
-                <ToggleSwitch
-                  checked={settings.enableGreeting}
-                  onChange={() => update('enableGreeting', !settings.enableGreeting)}
-                />
-              </div>
-
-              {settings.enableGreeting && (
-                <>
-                  <div className="setting-row">
-                    <span className="setting-label">Greeting name</span>
-                    <input
-                      type="text"
-                      className="setting-input"
-                      value={settings.greetingName}
-                      onChange={(e) => update('greetingName', e.target.value)}
-                      placeholder="Your name"
-                    />
-                  </div>
-
-                  <div className="setting-row">
-                    <span className="setting-label">Greeting size</span>
-                    <div className="range-control">
-                      <input
-                        type="range"
-                        min="16"
-                        max="72"
-                        value={settings.greetingSize}
-                        onChange={(e) => update('greetingSize', Number(e.target.value))}
-                        className="slider"
-                      />
-                      <span className="range-value">{settings.greetingSize}px</span>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-
-            <div className="settings-group">
-              <div className="settings-group-title">Search Bar</div>
-
-              <div className="setting-row">
-                <span className="setting-label">Enable search bar</span>
+              <div className="settings-group-title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span>{t('searchBar')}</span>
                 <ToggleSwitch
                   checked={settings.enableSearchBar}
                   onChange={() => update('enableSearchBar', !settings.enableSearchBar)}
@@ -413,7 +381,7 @@ function Settings({ isOpen, onClose }) {
               {settings.enableSearchBar && (
                 <>
                   <div className="setting-row">
-                    <span className="setting-label">Open in new tab</span>
+                    <span className="setting-label">{t('openInNewTab')}</span>
                     <ToggleSwitch
                       checked={settings.openInNewTab}
                       onChange={() => update('openInNewTab', !settings.openInNewTab)}
@@ -421,7 +389,7 @@ function Settings({ isOpen, onClose }) {
                   </div>
 
                   <div className="setting-row">
-                    <span className="setting-label">Suggestions</span>
+                    <span className="setting-label">{t('suggestions')}</span>
                     <ToggleSwitch
                       checked={settings.showSuggestions}
                       onChange={() => update('showSuggestions', !settings.showSuggestions)}
@@ -429,7 +397,18 @@ function Settings({ isOpen, onClose }) {
                   </div>
 
                   <div className="setting-row">
-                    <span className="setting-label">Search engine</span>
+                    <span className="setting-label">{t('placeholder')}</span>
+                    <input
+                      type="text"
+                      className="setting-input"
+                      value={settings.searchPlaceholder}
+                      onChange={(e) => update('searchPlaceholder', e.target.value)}
+                      placeholder={t('defaultPlaceholder')}
+                    />
+                  </div>
+
+                  <div className="setting-row" style={{ alignItems: 'flex-start' }}>
+                    <span className="setting-label">{t('searchEngine')}</span>
                     <div className="engine-icon-grid">
                       {Object.keys(SEARCH_ENGINES).map((key) => (
                         <button
@@ -446,62 +425,30 @@ function Settings({ isOpen, onClose }) {
                       ))}
                     </div>
                   </div>
+                </>
+              )}
+            </div>
 
+            <div className="settings-group">
+              <div className="settings-group-title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span>{t('greeting')}</span>
+                <ToggleSwitch
+                  checked={settings.enableGreeting}
+                  onChange={() => update('enableGreeting', !settings.enableGreeting)}
+                />
+              </div>
+
+              {settings.enableGreeting && (
+                <>
                   <div className="setting-row">
-                    <span className="setting-label">Placeholder</span>
+                    <span className="setting-label">{t('greetingName')}</span>
                     <input
                       type="text"
                       className="setting-input"
-                      value={settings.searchPlaceholder}
-                      onChange={(e) => update('searchPlaceholder', e.target.value)}
-                      placeholder="Search with Google or type a URL"
+                      value={settings.greetingName}
+                      onChange={(e) => update('greetingName', e.target.value)}
+                      placeholder={t('yourName')}
                     />
-                  </div>
-
-                  <div className="setting-row">
-                    <span className="setting-label">Width</span>
-                    <div className="range-control">
-                      <input
-                        type="range"
-                        min="200"
-                        max="800"
-                        step="10"
-                        value={settings.searchWidth}
-                        onChange={(e) => update('searchWidth', Number(e.target.value))}
-                        className="slider"
-                      />
-                      <span className="range-value">{settings.searchWidth}px</span>
-                    </div>
-                  </div>
-
-                  <div className="setting-row">
-                    <span className="setting-label">Background</span>
-                    <div className="range-control">
-                      <input
-                        type="range"
-                        min="0"
-                        max="100"
-                        value={settings.searchBgOpacity}
-                        onChange={(e) => update('searchBgOpacity', Number(e.target.value))}
-                        className="slider"
-                      />
-                      <span className="range-value">{settings.searchBgOpacity}%</span>
-                    </div>
-                  </div>
-
-                  <div className="setting-row">
-                    <span className="setting-label">Blur</span>
-                    <div className="range-control">
-                      <input
-                        type="range"
-                        min="0"
-                        max="50"
-                        value={settings.searchBlur}
-                        onChange={(e) => update('searchBlur', Number(e.target.value))}
-                        className="slider"
-                      />
-                      <span className="range-value">{settings.searchBlur}px</span>
-                    </div>
                   </div>
                 </>
               )}
@@ -510,23 +457,23 @@ function Settings({ isOpen, onClose }) {
 
           {activeTab === 'background' && (
             <div className="settings-group">
-              <div className="settings-group-title">General</div>
+              <div className="settings-group-title">{t('general')}</div>
 
               <div className="setting-row">
-                <span className="setting-label">Background type</span>
+                <span className="setting-label">{t('backgroundType')}</span>
                 <select
                   className="setting-select"
                   value={settings.bgType}
                   onChange={(e) => update('bgType', e.target.value)}
                 >
-                  {BACKGROUND_TYPES.map((t) => (
-                    <option key={t.value} value={t.value}>{t.label}</option>
+                  {bgTypes.map((item) => (
+                    <option key={item.value} value={item.value}>{item.label}</option>
                   ))}
                 </select>
               </div>
 
               <div className="setting-row">
-                <span className="setting-label">Provider</span>
+                <span className="setting-label">{t('provider')}</span>
                 <select
                   className="setting-select"
                   value={settings.bgProvider}
@@ -540,45 +487,45 @@ function Settings({ isOpen, onClose }) {
 
               {(settings.bgProvider === API_SOURCES.WALLHAVEN || settings.bgProvider === API_SOURCES.UNSPLASH) && (
                 <div className="setting-row">
-                  <span className="setting-label">Collection</span>
+                  <span className="setting-label">{t('collection')}</span>
                   <input
                     type="text"
                     className="setting-input"
                     value={settings.bgCollection}
                     onChange={(e) => update('bgCollection', e.target.value)}
-                    placeholder="Collection ID"
+                    placeholder={t('collectionId')}
                   />
                 </div>
               )}
 
               <div className="setting-row">
-                <span className="setting-label">Frequency</span>
+                <span className="setting-label">{t('frequency')}</span>
                 <select
                   className="setting-select"
                   value={settings.bgFrequency}
                   onChange={(e) => update('bgFrequency', e.target.value)}
                 >
-                  {FREQUENCIES.map((f) => (
+                  {freqOptions.map((f) => (
                     <option key={f.value} value={f.value}>{f.label}</option>
                   ))}
                 </select>
               </div>
 
               <div className="setting-row">
-                <span className="setting-label">Texture</span>
+                <span className="setting-label">{t('texture')}</span>
                 <select
                   className="setting-select"
                   value={settings.bgTexture}
                   onChange={(e) => update('bgTexture', e.target.value)}
                 >
-                  {TEXTURES.map((t) => (
-                    <option key={t} value={t}>{t}</option>
+                  {texOptions.map((tex) => (
+                    <option key={tex.value} value={tex.value}>{tex.label}</option>
                   ))}
                 </select>
               </div>
 
               <div className="setting-row">
-                <span className="setting-label">Blur</span>
+                <span className="setting-label">{t('blur')}</span>
                 <div className="range-control">
                   <input
                     type="range"
@@ -593,7 +540,7 @@ function Settings({ isOpen, onClose }) {
               </div>
 
               <div className="setting-row">
-                <span className="setting-label">Brightness</span>
+                <span className="setting-label">{t('brightness')}</span>
                 <div className="range-control">
                   <input
                     type="range"
@@ -608,7 +555,7 @@ function Settings({ isOpen, onClose }) {
               </div>
 
               <div className="setting-row">
-                <span className="setting-label">Fade in time</span>
+                <span className="setting-label">{t('fadeInTime')}</span>
                 <div className="range-control">
                   <input
                     type="range"
@@ -628,23 +575,28 @@ function Settings({ isOpen, onClose }) {
           {activeTab === 'widgets' && (
             <div className="settings-groups">
               <div className="settings-group-inline">
-                <span className="settings-group-inline-title">Calendar</span>
+                <span className="settings-group-inline-title">{t('calendar')}</span>
                 <ToggleSwitch
                   checked={settings.showCalendarWidget}
                   onChange={() => update('showCalendarWidget', !settings.showCalendarWidget)}
                 />
               </div>
               <div className="settings-group-inline">
-                <span className="settings-group-inline-title">System Info</span>
-                <ToggleSwitch
-                  checked={settings.showSystemInfoWidget}
-                  onChange={() => update('showSystemInfoWidget', !settings.showSystemInfoWidget)}
-                />
+                <span className="settings-group-inline-title">{t('stickyNote')}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <span className="setting-dashed-btn-count">{notes.length}/10</span>
+                  <button className="sticky-add-btn" onClick={handleAddNote} title="Add note" disabled={notes.length >= 10 || hasEmptyNote}>
+                    <span style={{ fontSize: '12px' }}>Add</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                  </button>
+                </div>
               </div>
               <div className="settings-group">
-                <div className="settings-group-title">Pomodoro</div>
+                <div className="settings-group-title">{t('pomodoro')}</div>
                 <div className="setting-row">
-                  <span className="setting-label">Show pomodoro</span>
+                  <span className="setting-label">{t('showPomodoro')}</span>
                   <ToggleSwitch
                     checked={settings.showPomodoroWidget}
                     onChange={() => update('showPomodoroWidget', !settings.showPomodoroWidget)}
@@ -652,7 +604,7 @@ function Settings({ isOpen, onClose }) {
                 </div>
                 {settings.showPomodoroWidget && (<>
                   <div className="setting-row">
-                    <span className="setting-label">Work (min)</span>
+                    <span className="setting-label">{t('workMin')}</span>
                     <input
                       type="number"
                       className="setting-input"
@@ -663,7 +615,7 @@ function Settings({ isOpen, onClose }) {
                     />
                   </div>
                   <div className="setting-row">
-                    <span className="setting-label">Short break (min)</span>
+                    <span className="setting-label">{t('shortBreakMin')}</span>
                     <input
                       type="number"
                       className="setting-input"
@@ -674,7 +626,7 @@ function Settings({ isOpen, onClose }) {
                     />
                   </div>
                   <div className="setting-row">
-                    <span className="setting-label">Long break (min)</span>
+                    <span className="setting-label">{t('longBreakMin')}</span>
                     <input
                       type="number"
                       className="setting-input"
@@ -685,7 +637,7 @@ function Settings({ isOpen, onClose }) {
                     />
                   </div>
                   <div className="setting-row">
-                    <span className="setting-label">Long break after</span>
+                    <span className="setting-label">{t('longBreakAfter')}</span>
                     <input
                       type="number"
                       className="setting-input"
@@ -698,9 +650,9 @@ function Settings({ isOpen, onClose }) {
                 </>)}
               </div>
               <div className="settings-group">
-                <div className="settings-group-title">Date</div>
+                <div className="settings-group-title">{t('date')}</div>
                 <div className="setting-row">
-                  <span className="setting-label">Show clock</span>
+                  <span className="setting-label">{t('showClock')}</span>
                   <ToggleSwitch
                     checked={settings.showClockWidget}
                     onChange={() => update('showClockWidget', !settings.showClockWidget)}
@@ -708,35 +660,35 @@ function Settings({ isOpen, onClose }) {
                 </div>
                 {settings.showClockWidget && (<>
                   <div className="setting-row">
-                    <span className="setting-label">12 hr format</span>
+                    <span className="setting-label">{t('twelveHrFormat')}</span>
                     <ToggleSwitch
                       checked={settings.clockFormat === '12h'}
                       onChange={() => update('clockFormat', settings.clockFormat === '12h' ? '24h' : '12h')}
                     />
                   </div>
                   <div className="setting-row">
-                    <span className="setting-label">Show AM/PM</span>
+                    <span className="setting-label">{t('showAmPm')}</span>
                     <ToggleSwitch
                       checked={settings.showAmPm}
                       onChange={() => update('showAmPm', !settings.showAmPm)}
                     />
                   </div>
                   <div className="setting-row">
-                    <span className="setting-label">Show seconds</span>
+                    <span className="setting-label">{t('showSeconds')}</span>
                     <ToggleSwitch
                       checked={settings.showSeconds}
                       onChange={() => update('showSeconds', !settings.showSeconds)}
                     />
                   </div>
                   <div className="setting-row">
-                    <span className="setting-label">Analog clock</span>
+                    <span className="setting-label">{t('analogClock')}</span>
                     <ToggleSwitch
                       checked={settings.analogClock}
                       onChange={() => update('analogClock', !settings.analogClock)}
                     />
                   </div>
                   <div className="setting-row">
-                    <span className="setting-label">World clocks</span>
+                    <span className="setting-label">{t('worldClocks')}</span>
                     <ToggleSwitch
                       checked={(settings.worldClockTimezones || []).length > 0}
                       onChange={() => {
@@ -788,12 +740,12 @@ function Settings({ isOpen, onClose }) {
                             else list.push(Intl.supportedValuesOf('timeZone')[0])
                             update('worldClockTimezones', list)
                           }}
-                        >+ Add World Clock</button>
+                        >{t('addWorldClock')}</button>
                       </div>
                     </>
                   )}
                   <div className="setting-row">
-                    <span className="setting-label">Clock size</span>
+                    <span className="setting-label">{t('clockSize')}</span>
                     <div className="range-control">
                       <input
                         type="range"
@@ -808,13 +760,13 @@ function Settings({ isOpen, onClose }) {
                     </div>
                   </div>
                   <div className="setting-row">
-                    <span className="setting-label">Time zone</span>
+                    <span className="setting-label">{t('timeZone')}</span>
                     <select
                       className="setting-select"
                       value={settings.timeZone}
                       onChange={(e) => update('timeZone', e.target.value)}
                     >
-                      <option value="local">Local</option>
+                      <option value="local">{t('local')}</option>
                       {Intl.supportedValuesOf('timeZone').map((tz) => {
                         const parts = tz.split('/')
                         const label = parts.length > 1 ? parts[parts.length - 1].replace(/_/g, ' ') : tz
@@ -823,35 +775,35 @@ function Settings({ isOpen, onClose }) {
                     </select>
                   </div>
                   <div className="setting-row">
-                    <span className="setting-label">Date format</span>
+                    <span className="setting-label">{t('dateFormat')}</span>
                     <select
                       className="setting-select"
                       value={settings.dateFormat}
                       onChange={(e) => update('dateFormat', e.target.value)}
                     >
-                      <option value="DD/MM/YYYY">Day / Month / Year</option>
-                      <option value="MM/DD/YYYY">Month / Day / Year</option>
-                      <option value="YYYY-MM-DD">Year - Month - Day</option>
+                      <option value="DD/MM/YYYY">{t('dayMonthYear')}</option>
+                      <option value="MM/DD/YYYY">{t('monthDayYear')}</option>
+                      <option value="YYYY-MM-DD">{t('yearMonthDay')}</option>
                     </select>
                   </div>
                   <div className="setting-row">
-                    <span className="setting-label">Show</span>
+                    <span className="setting-label">{t('show')}</span>
                     <select
                       className="setting-select"
                       value={settings.showClockDate}
                       onChange={(e) => update('showClockDate', e.target.value)}
                     >
-                      <option value="both">Clock & Date</option>
-                      <option value="clock">Clock only</option>
-                      <option value="date">Date only</option>
+                      <option value="both">{t('clockAndDate')}</option>
+                      <option value="clock">{t('clockOnly')}</option>
+                      <option value="date">{t('dateOnly')}</option>
                     </select>
                   </div>
                 </>)}
               </div>
               <div className="settings-group">
-                <div className="settings-group-title">Weather</div>
+                <div className="settings-group-title">{t('weather')}</div>
                 <div className="setting-row">
-                  <span className="setting-label">Show weather</span>
+                  <span className="setting-label">{t('showWeather')}</span>
                   <ToggleSwitch
                     checked={settings.showWeatherWidget}
                     onChange={() => update('showWeatherWidget', !settings.showWeatherWidget)}
@@ -861,80 +813,80 @@ function Settings({ isOpen, onClose }) {
                 {settings.showWeatherWidget && (
                   <>
                     <div className="setting-row">
-                      <span className="setting-label">Geolocation</span>
+                      <span className="setting-label">{t('geolocation')}</span>
                       <select
                         className="setting-select"
                         value={settings.geolocation}
                         onChange={(e) => update('geolocation', e.target.value)}
                       >
-                        <option value="approximate">Approximate</option>
-                        <option value="manual">Manual</option>
-                        <option value="precise">Precise</option>
+                        <option value="approximate">{t('approximate')}</option>
+                        <option value="manual">{t('manual')}</option>
+                        <option value="precise">{t('precise')}</option>
                       </select>
                     </div>
 
                     {settings.geolocation === 'manual' && (
                       <div className="setting-row">
-                        <span className="setting-label">Location</span>
+                        <span className="setting-label">{t('location')}</span>
                         <input
                           type="text"
                           className="setting-input"
                           value={settings.manualLocation}
                           onChange={(e) => update('manualLocation', e.target.value)}
-                          placeholder="City name or coordinates"
+                          placeholder={t('cityOrCoords')}
                         />
                       </div>
                     )}
 
                     <div className="setting-row">
-                      <span className="setting-label">Temperature unit</span>
+                      <span className="setting-label">{t('tempUnit')}</span>
                       <select
                         className="setting-select"
                         value={settings.tempUnit}
                         onChange={(e) => update('tempUnit', e.target.value)}
                       >
-                        <option value="celsius">Celsius</option>
-                        <option value="fahrenheit">Fahrenheit</option>
+                        <option value="celsius">{t('celsius')}</option>
+                        <option value="fahrenheit">{t('fahrenheit')}</option>
                       </select>
                     </div>
 
                     <div className="setting-row">
-                      <span className="setting-label">Forecast</span>
+                      <span className="setting-label">{t('forecast')}</span>
                       <select
                         className="setting-select"
                         value={settings.forecast}
                         onChange={(e) => update('forecast', e.target.value)}
                       >
-                        <option value="automatic">Automatic</option>
-                        <option value="always">Always</option>
-                        <option value="never">Never</option>
+                        <option value="automatic">{t('automatic')}</option>
+                        <option value="always">{t('always')}</option>
+                        <option value="never">{t('never')}</option>
                       </select>
                     </div>
 
                     <div className="setting-row">
-                      <span className="setting-label">Temperature</span>
+                      <span className="setting-label">{t('temperature')}</span>
                       <select
                         className="setting-select"
                         value={settings.tempDisplay}
                         onChange={(e) => update('tempDisplay', e.target.value)}
                       >
-                        <option value="actual">Actual</option>
-                        <option value="feels_like">Feels like</option>
-                        <option value="both">Both</option>
+                        <option value="actual">{t('actual')}</option>
+                        <option value="feels_like">{t('feelsLike')}</option>
+                        <option value="both">{t('both')}</option>
                       </select>
                     </div>
 
                     <div className="setting-row">
-                      <span className="setting-label">Show</span>
+                      <span className="setting-label">{t('show')}</span>
                       <select
                         className="setting-select"
                         value={settings.weatherShow}
                         onChange={(e) => update('weatherShow', e.target.value)}
                       >
-                        <option value="description_icon">Description & icon</option>
-                        <option value="description">Description</option>
-                        <option value="icon">Icon</option>
-                        <option value="nothing">Nothing</option>
+                        <option value="description_icon">{t('descAndIcon')}</option>
+                        <option value="description">{t('description')}</option>
+                        <option value="icon">{t('icon')}</option>
+                        <option value="nothing">{t('nothing')}</option>
                       </select>
                     </div>
                   </>

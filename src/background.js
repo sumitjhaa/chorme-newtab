@@ -129,4 +129,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
     return true
   }
+
+  if (message.type === 'FETCH_SUGGESTIONS') {
+    fetch(`https://suggestqueries.google.com/complete/search?client=chrome&q=${encodeURIComponent(message.query)}`)
+      .then(res => res.json())
+      .then(data => sendResponse({ suggestions: data[1] || [] }))
+      .catch(() => sendResponse({ suggestions: [] }))
+    return true
+  }
 })

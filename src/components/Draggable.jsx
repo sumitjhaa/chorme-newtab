@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 
-export default function Draggable({ id, col, onDrop, numColumns, children }) {
+export default function Draggable({ id, col, onDrop, numColumns, maxCol, span = 1, children }) {
   const [dragging, setDragging] = useState(false)
   const [dragPos, setDragPos] = useState({ x: 0, y: 0 })
   const [ghostHeight, setGhostHeight] = useState(0)
@@ -8,6 +8,82 @@ export default function Draggable({ id, col, onDrop, numColumns, children }) {
   const offset = useRef({ x: 0, y: 0 })
   const onDropRef = useRef(onDrop)
   onDropRef.current = onDrop
+  const indicatorRef = useRef(null)
+
+  const removeIndicator = useCallback(() => {
+    if (indicatorRef.current) {
+      indicatorRef.current.remove()
+      indicatorRef.current = null
+    }
+  }, [])
+
+  const updateIndicator = useCallback((clientX, clientY) => {
+    const columns = document.querySelectorAll('.kanban-column')
+    removeIndicator()
+
+    let targetColEl = null
+    let targetColIndex = -1
+    let insertBefore = null
+
+    columns.forEach((colEl, i) => {
+      const rect = colEl.getBoundingClientRect()
+      if (clientX >= rect.left && clientX <= rect.right) {
+        targetColEl = colEl
+        targetColIndex = i
+        const inner = colEl.querySelector('.kanban-column-inner')
+        if (!inner) return
+        const kids = Array.from(inner.children).filter(
+          c => !c.classList.contains('is-dragging') && !c.classList.contains('drop-indicator')
+        )
+        insertBefore = null
+        for (let j = 0; j < kids.length; j++) {
+          const childRect = kids[j].getBoundingClientRect()
+          const midY = childRect.top + childRect.height / 2
+          if (clientY < midY) {
+            insertBefore = kids[j]
+            break
+          }
+        }
+      }
+    })
+
+    if (targetColEl) {
+      if (span > 1 && targetColIndex >= 0) {
+        const startCol = Math.min(targetColIndex, numColumns - span)
+        const board = document.querySelector('.kanban-board')
+        const firstCol = columns[startCol]
+        const lastCol = columns[Math.min(startCol + span - 1, numColumns - 1)]
+        if (firstCol && lastCol && board) {
+          const boardRect = board.getBoundingClientRect()
+          const firstRect = firstCol.getBoundingClientRect()
+          const lastRect = lastCol.getBoundingClientRect()
+          const indicator = document.createElement('div')
+          indicator.className = 'drop-indicator'
+          indicator.style.height = ghostHeight + 'px'
+          indicator.style.position = 'fixed'
+          indicator.style.left = firstRect.left + 'px'
+          indicator.style.top = firstRect.top + 'px'
+          indicator.style.width = (lastRect.right - firstRect.left) + 'px'
+          indicator.style.zIndex = '9998'
+          board.appendChild(indicator)
+          indicatorRef.current = indicator
+        }
+      } else {
+        const inner = targetColEl.querySelector('.kanban-column-inner')
+        if (inner) {
+          const indicator = document.createElement('div')
+          indicator.className = 'drop-indicator'
+          indicator.style.height = ghostHeight + 'px'
+          if (insertBefore) {
+            inner.insertBefore(indicator, insertBefore)
+          } else {
+            inner.appendChild(indicator)
+          }
+          indicatorRef.current = indicator
+        }
+      }
+    }
+  }, [ghostHeight, removeIndicator, span, numColumns])
 
   const handleGrabStart = useCallback((clientX, clientY) => {
     const rect = elRef.current.getBoundingClientRect()
@@ -38,11 +114,13 @@ export default function Draggable({ id, col, onDrop, numColumns, children }) {
       const clientY = e.clientY ?? e.touches?.[0]?.clientY
       if (clientX == null || clientY == null) return
       setDragPos({ x: clientX - offset.current.x, y: clientY - offset.current.y })
+      updateIndicator(clientX, clientY)
     }
 
     const handleUp = (e) => {
       const clientX = e.clientX ?? e.changedTouches?.[0]?.clientX
       const clientY = e.clientY ?? e.changedTouches?.[0]?.clientY
+      removeIndicator()
       if (clientX == null || clientY == null) {
         setDragging(false)
         return
@@ -55,11 +133,12 @@ export default function Draggable({ id, col, onDrop, numColumns, children }) {
       columns.forEach((colEl, i) => {
         const rect = colEl.getBoundingClientRect()
         if (clientX >= rect.left && clientX <= rect.right) {
+          targetCol = span > 1 ? Math.min(i, numColumns - span) : i
           targetCol = i
           const inner = colEl.querySelector('.kanban-column-inner')
           if (!inner) return
           const kids = Array.from(inner.children).filter(
-            c => !c.classList.contains('is-dragging')
+            c => !c.classList.contains('is-dragging') && !c.classList.contains('drop-indicator')
           )
           targetOrder = kids.length
           for (let j = 0; j < kids.length; j++) {
@@ -73,7 +152,7 @@ export default function Draggable({ id, col, onDrop, numColumns, children }) {
         }
       })
 
-      onDropRef.current(id, targetCol, targetOrder)
+      onDropRef.current(id, Math.min(targetCol, maxCol ?? numColumns - 1), targetOrder)
       setDragging(false)
     }
 
@@ -87,8 +166,9 @@ export default function Draggable({ id, col, onDrop, numColumns, children }) {
       document.removeEventListener('mouseup', handleUp)
       document.removeEventListener('touchmove', handleMove)
       document.removeEventListener('touchend', handleUp)
+      removeIndicator()
     }
-  }, [dragging, id, col])
+  }, [dragging, id, col, updateIndicator, removeIndicator])
 
   return (
     <div

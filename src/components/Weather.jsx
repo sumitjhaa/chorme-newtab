@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, memo } from 'react'
+import { useTranslation } from '../hooks/useTranslation.js'
 
 function loadSettings() {
   try {
@@ -56,28 +57,30 @@ async function fetchWeather(lat, lon, unit) {
   return res.json()
 }
 
-const WEATHER_CODES = {
-  0: { label: 'Clear', icon: '☀️' },
-  1: { label: 'Mainly clear', icon: '🌤️' },
-  2: { label: 'Partly cloudy', icon: '⛅' },
-  3: { label: 'Overcast', icon: '☁️' },
-  45: { label: 'Foggy', icon: '🌫️' },
-  48: { label: 'Depositing rime fog', icon: '🌫️' },
-  51: { label: 'Light drizzle', icon: '🌦️' },
-  53: { label: 'Moderate drizzle', icon: '🌦️' },
-  55: { label: 'Dense drizzle', icon: '🌧️' },
-  61: { label: 'Slight rain', icon: '🌦️' },
-  63: { label: 'Moderate rain', icon: '🌧️' },
-  65: { label: 'Heavy rain', icon: '🌧️' },
-  71: { label: 'Slight snow', icon: '🌨️' },
-  73: { label: 'Moderate snow', icon: '🌨️' },
-  75: { label: 'Heavy snow', icon: '❄️' },
-  80: { label: 'Rain showers', icon: '🌦️' },
-  81: { label: 'Moderate showers', icon: '🌧️' },
-  82: { label: 'Heavy showers', icon: '🌧️' },
-  95: { label: 'Thunderstorm', icon: '⛈️' },
-  96: { label: 'Thunderstorm & hail', icon: '⛈️' },
-  99: { label: 'Heavy thunderstorm', icon: '⛈️' },
+function getWeatherCodes(t) {
+  return {
+    0: { label: t('clear'), icon: '☀️' },
+    1: { label: t('mainlyClear'), icon: '🌤️' },
+    2: { label: t('partlyCloudy'), icon: '⛅' },
+    3: { label: t('overcast'), icon: '☁️' },
+    45: { label: t('foggy'), icon: '🌫️' },
+    48: { label: t('depositingRimeFog'), icon: '🌫️' },
+    51: { label: t('lightDrizzle'), icon: '🌦️' },
+    53: { label: t('moderateDrizzle'), icon: '🌦️' },
+    55: { label: t('denseDrizzle'), icon: '🌧️' },
+    61: { label: t('slightRain'), icon: '🌦️' },
+    63: { label: t('moderateRain'), icon: '🌧️' },
+    65: { label: t('heavyRain'), icon: '🌧️' },
+    71: { label: t('slightSnow'), icon: '🌨️' },
+    73: { label: t('moderateSnow'), icon: '🌨️' },
+    75: { label: t('heavySnow'), icon: '❄️' },
+    80: { label: t('rainShowers'), icon: '🌦️' },
+    81: { label: t('moderateShowers'), icon: '🌧️' },
+    82: { label: t('heavyShowers'), icon: '🌧️' },
+    95: { label: t('thunderstorm'), icon: '⛈️' },
+    96: { label: t('thunderstormHail'), icon: '⛈️' },
+    99: { label: t('heavyThunderstorm'), icon: '⛈️' },
+  }
 }
 
 function toF(c) { return Math.round(c * 9 / 5 + 32) }
@@ -85,6 +88,7 @@ function convertTemp(c, unit) { return unit === 'fahrenheit' ? toF(c) : Math.rou
 function unitLabel(unit) { return unit === 'fahrenheit' ? '°F' : '°C' }
 
 function Weather() {
+  const { t } = useTranslation()
   const [settings, setSettings] = useState(loadSettings)
   const [weather, setWeather] = useState(null)
   const [location, setLocation] = useState('')
@@ -94,15 +98,15 @@ function Weather() {
     setError(null)
     try {
       const coords = await fetchCoords(settings.geolocation, settings.manualLocation)
-      if (!coords) { setError('Location unavailable'); return }
+      if (!coords) { setError(t('locationUnavailable')); return }
       const data = await fetchWeather(coords.lat, coords.lon, settings.tempUnit)
-      if (!data.current) { setError('Weather unavailable'); return }
+      if (!data.current) { setError(t('weatherUnavailable')); return }
       setWeather(data)
       if (coords.name) setLocation(`${coords.name}${coords.country ? ', ' + coords.country : ''}`)
     } catch {
-      setError('Failed to load weather')
+      setError(t('failedToLoad'))
     }
-  }, [settings.geolocation, settings.manualLocation, settings.tempUnit])
+  }, [settings.geolocation, settings.manualLocation, settings.tempUnit, t])
 
   useEffect(() => { load() }, [load])
 
@@ -123,11 +127,12 @@ function Weather() {
   }
 
   if (!weather) {
-    return <div className="weather-widget"><div className="weather-loading">Loading...</div></div>
+    return <div className="weather-widget"><div className="weather-loading">{t('loading')}</div></div>
   }
 
+  const weatherCodes = getWeatherCodes(t)
   const code = weather.current.weather_code
-  const info = WEATHER_CODES[code] || { label: 'Unknown', icon: '❓' }
+  const info = weatherCodes[code] || { label: t('unknown'), icon: '❓' }
   const u = settings.tempUnit
   const temp = convertTemp(weather.current.temperature_2m, u)
   const feels = convertTemp(weather.current.apparent_temperature, u)
@@ -138,11 +143,11 @@ function Weather() {
   let tempStr = ''
   if (settings.tempDisplay === 'actual') tempStr = `${temp}${label}`
   else if (settings.tempDisplay === 'feels_like') tempStr = `${feels}${label}`
-  else tempStr = `${temp}${label} / Feels ${feels}${label}`
+  else tempStr = `${temp}${label} / ${t('feels')} ${feels}${label}`
 
   return (
     <div className="weather-widget">
-      <div className="weather-title">Weather</div>
+      <div className="weather-title">{t('weather')}</div>
       {location && <div className="weather-location">{location}</div>}
       <div className="weather-main">
         {settings.weatherShow !== 'description' && <span className="weather-icon">{info.icon}</span>}

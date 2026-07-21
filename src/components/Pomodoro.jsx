@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef, memo } from 'react'
+import { useTranslation } from '../hooks/useTranslation.js'
 
 function loadSettings() {
   try {
@@ -35,6 +36,7 @@ function formatTime(seconds) {
 }
 
 function Pomodoro() {
+  const { t } = useTranslation()
   const [settings, setSettings] = useState(loadSettings)
   const durations = {
     work: settings.pomodoroWork * 60,
@@ -109,21 +111,21 @@ function Pomodoro() {
   }, [])
 
   const tabs = [
-    { id: 'work', label: 'Work' },
-    { id: 'short_break', label: 'Short' },
-    { id: 'long_break', label: 'Long' },
+    { id: 'work', label: t('work') },
+    { id: 'short_break', label: t('short') },
+    { id: 'long_break', label: t('long') },
   ]
 
   return (
     <div className="pomodoro-widget">
       <div className="pomo-tabs">
-        {tabs.map((t) => (
+        {tabs.map((tab) => (
           <button
-            key={t.id}
-            className={`pomo-tab${phase === t.id ? ' active' : ''}`}
-            onClick={() => switchTo(t.id)}
+            key={tab.id}
+            className={`pomo-tab${phase === tab.id ? ' active' : ''}`}
+            onClick={() => switchTo(tab.id)}
           >
-            {t.label}
+            {tab.label}
           </button>
         ))}
       </div>
@@ -134,8 +136,8 @@ function Pomodoro() {
         ))}
       </div>
       <div className="pomo-actions">
-        <button className="pomo-btn" onClick={toggle}>{running ? 'PAUSE' : 'START'}</button>
-        <button className="pomo-btn" onClick={reset}>RESET</button>
+        <button className="pomo-btn" onClick={toggle}>{running ? t('pause') : t('start')}</button>
+        <button className="pomo-btn" onClick={reset}>{t('reset')}</button>
       </div>
     </div>
   )

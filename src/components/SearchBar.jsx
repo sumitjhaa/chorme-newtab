@@ -20,16 +20,14 @@ function loadSearchSettings() {
     return {
       searchEngine: data.searchEngine || 'GOOGLE',
       searchPlaceholder: data.searchPlaceholder || 'Search the web...',
-      searchWidth: data.searchWidth !== undefined ? data.searchWidth : 500,
-      searchBgOpacity: data.searchBgOpacity !== undefined ? data.searchBgOpacity : 0,
       searchBlur: data.searchBlur !== undefined ? data.searchBlur : 20,
       openInNewTab: data.openInNewTab !== undefined ? data.openInNewTab : true,
       showSuggestions: data.showSuggestions !== undefined ? data.showSuggestions : true,
     }
   } catch {
     return {
-      searchEngine: 'GOOGLE', searchPlaceholder: 'Search the web...', searchWidth: 500,
-      searchBgOpacity: 0, searchBlur: 20, openInNewTab: true, showSuggestions: true,
+      searchEngine: 'GOOGLE', searchPlaceholder: 'Search the web...',
+      searchBlur: 20, openInNewTab: true, showSuggestions: true,
     }
   }
 }
@@ -39,18 +37,48 @@ export default function SearchBar() {
   const [settings, setSettings] = useState(loadSearchSettings)
   const [isOpen, setIsOpen] = useState(false)
   const [suggestions, setSuggestions] = useState([])
+  const [suggestionPos, setSuggestionPos] = useState({ top: 0, left: 0, width: 0 })
+  const [enginePos, setEnginePos] = useState({ top: 0, left: 0 })
   const dropdownRef = useRef(null)
+  const engineGridRef = useRef(null)
   const inputRef = useRef(null)
+  const formRef = useRef(null)
+
+  function updateSuggestionPos() {
+    if (formRef.current) {
+      const rect = formRef.current.getBoundingClientRect()
+      setSuggestionPos({ top: rect.bottom + 4, left: rect.left, width: rect.width })
+    }
+  }
+
+  function updateEnginePos() {
+    const btn = formRef.current?.querySelector('.search-engine-icon')
+    if (btn) {
+      const rect = btn.getBoundingClientRect()
+      setEnginePos({ top: rect.top - 4, left: rect.right - 260, width: 260 })
+    }
+  }
 
   useEffect(() => {
     function handleClickOutside(e) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setIsOpen(false)
-      }
+      const inDropdown = dropdownRef.current?.contains(e.target)
+      const inEngine = engineGridRef.current?.contains(e.target)
+      if (!inDropdown && !inEngine) setIsOpen(false)
     }
+    function handleReposition() { if (suggestions.length) updateSuggestionPos() }
+    let raf
+    function trackPosition() { if (suggestions.length) { updateSuggestionPos(); raf = requestAnimationFrame(trackPosition) } }
+    if (suggestions.length) raf = requestAnimationFrame(trackPosition)
     document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
+    window.addEventListener('resize', handleReposition)
+    window.addEventListener('scroll', handleReposition)
+    return () => {
+      cancelAnimationFrame(raf)
+      document.removeEventListener('mousedown', handleClickOutside)
+      window.removeEventListener('resize', handleReposition)
+      window.removeEventListener('scroll', handleReposition)
+    }
+  }, [suggestions.length])
 
   useEffect(() => {
     function handleStorage() { setSettings(loadSearchSettings()) }
@@ -61,11 +89,11 @@ export default function SearchBar() {
 
   useEffect(() => {
     if (!settings.showSuggestions || !query.trim()) { setSuggestions([]); return }
+    updateSuggestionPos()
     const timer = setTimeout(async () => {
       try {
-        const res = await fetch(`https://suggestqueries.google.com/complete/search?client=chrome&q=${encodeURIComponent(query.trim())}`)
-        const data = await res.json()
-        setSuggestions(data[1] || [])
+        const data = await chrome.runtime.sendMessage({ type: 'FETCH_SUGGESTIONS', query: query.trim() })
+        setSuggestions(data?.suggestions || [])
       } catch { setSuggestions([]) }
     }, 200)
     return () => clearTimeout(timer)
@@ -106,15 +134,11 @@ export default function SearchBar() {
   }, [])
 
   const iconSrc = ENGINE_ICONS[settings.searchEngine]
-  const bgOpacity = settings.searchBgOpacity / 100
-  const bgAlpha = bgOpacity * 0.45
-
   return (
-    <form className="search-bar" onSubmit={handleSubmit} style={{ width: `${settings.searchWidth}px`, maxWidth: '100%' }}>
+    <form ref={formRef} className="search-bar" onSubmit={handleSubmit} style={{ width: '100%' }}>
       <div className="search-input-wrapper" style={{
         backdropFilter: `blur(${settings.searchBlur}px)`,
         WebkitBackdropFilter: `blur(${settings.searchBlur}px)`,
-        background: `rgba(255,255,255,${bgAlpha})`,
       }}>
         <input
           ref={inputRef}
@@ -129,14 +153,18 @@ export default function SearchBar() {
         <button
           type="button"
           className="search-engine-icon"
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={() => { setIsOpen(!isOpen); if (!isOpen) updateEnginePos() }}
         >
           <img src={iconSrc} alt="" />
         </button>
       </div>
 
       {suggestions.length > 0 && (
-        <div className="suggestions-dropdown" ref={dropdownRef}>
+        <div className="suggestions-dropdown" ref={dropdownRef} style={{
+          top: suggestionPos.top,
+          left: suggestionPos.left,
+          width: suggestionPos.width,
+        }}>
           {suggestions.map((s, i) => (
             <button
               key={i}
@@ -151,7 +179,12 @@ export default function SearchBar() {
       )}
 
       {isOpen && (
-        <div className="engine-grid" ref={dropdownRef}>
+        <div className="engine-grid" ref={engineGridRef} style={{
+          position: 'fixed',
+          top: enginePos.top,
+          left: enginePos.left,
+          width: enginePos.width,
+        }}>
           {Object.keys(SEARCH_ENGINES).map((name) => (
             <button
               key={name}
