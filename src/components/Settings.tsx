@@ -10,8 +10,13 @@ import PomodoroSettings from './settings/PomodoroSettings'
 import ClockSettings from './settings/ClockSettings'
 import WeatherSettings from './settings/WeatherSettings'
 
-function Settings({ isOpen, onClose }) {
-  const [activeTab, setActiveTab] = useState('settings')
+interface SettingsProps {
+  isOpen: boolean
+  onClose: () => void
+}
+
+function Settings({ isOpen, onClose }: SettingsProps) {
+  const [activeTab, setActiveTab] = useState<'settings' | 'background' | 'widgets'>('settings')
   const { t } = useTranslation()
 
   return (
