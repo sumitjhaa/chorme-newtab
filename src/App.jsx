@@ -16,6 +16,7 @@ import { getCurrentWallpaper, setCurrentWallpaper, getWallpaperSource } from './
 import { API_SOURCES, DEFAULT_REFRESH_INTERVAL } from './constants.js'
 import { useSettings } from './hooks/useSettings.js'
 import { useTranslation } from './hooks/useTranslation.js'
+import { LAYOUT_DEFAULTS } from './utils/defaults.js'
 
 function extractWallpaperColors(imgUrl) {
   const img = new Image()
@@ -47,10 +48,6 @@ function extractWallpaperColors(imgUrl) {
 }
 
 const NUM_COLUMNS = 6
-
-const NUM_COLUMNS = 6
-
-import { LAYOUT_DEFAULTS } from './utils/defaults.js'
 
 function loadLayout() {
   try {
