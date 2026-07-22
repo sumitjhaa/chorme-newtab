@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, type ReactNode } from 'react'
 import SearchBar from './components/SearchBar'
 import Wallpaper from './components/Wallpaper'
 import Clock from './components/Clock'
@@ -18,8 +18,15 @@ import { API_SOURCES, DEFAULT_REFRESH_INTERVAL } from './constants'
 import { useSettings } from './hooks/useSettings'
 import { useTranslation } from './hooks/useTranslation'
 import { LAYOUT_DEFAULTS } from './utils/defaults'
+import type { WallpaperImage } from './types/wallpaper'
+import type { WidgetId, LayoutMap } from './types'
 
-function extractWallpaperColors(imgUrl) {
+interface VisibleWidget {
+  id: WidgetId
+  component: ReactNode
+}
+
+function extractWallpaperColors(imgUrl: string) {
   const img = new Image()
   img.crossOrigin = 'anonymous'
   img.onload = () => {
@@ -50,7 +57,7 @@ function extractWallpaperColors(imgUrl) {
 
 const NUM_COLUMNS = 6
 
-function loadLayout() {
+function loadLayout(): LayoutMap {
   try {
     return JSON.parse(localStorage.getItem('newtab_layout') || 'null') || LAYOUT_DEFAULTS
   } catch {
@@ -58,13 +65,13 @@ function loadLayout() {
   }
 }
 
-function saveLayout(layout) {
+function saveLayout(layout: LayoutMap) {
   try {
     localStorage.setItem('newtab_layout', JSON.stringify(layout))
   } catch {}
 }
 
-function applyDarkMode(mode) {
+function applyDarkMode(mode: string) {
   if (mode === 'light') {
     document.documentElement.classList.remove('dark')
     document.documentElement.classList.add('light')
@@ -81,14 +88,14 @@ function applyDarkMode(mode) {
 export default function App() {
   const { t } = useTranslation()
   const { settings } = useSettings()
-  const [wallpaper, setWallpaper] = useState(null)
+  const [wallpaper, setWallpaper] = useState<WallpaperImage | null>(null)
   const [source, setSource] = useState(API_SOURCES.WALLHAVEN)
   const [isLoading, setIsLoading] = useState(false)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [layout, setLayout] = useState(loadLayout)
-  const intervalRef = useRef(null)
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  const loadWallpaper = useCallback(async (selectedSource) => {
+  const loadWallpaper = useCallback(async (selectedSource?: string) => {
     setIsLoading(true)
 
     try {
@@ -107,7 +114,7 @@ export default function App() {
     setIsSettingsOpen((prev) => !prev)
   }, [])
 
-  const handleDrop = useCallback((widgetId, targetCol, targetOrder) => {
+  const handleDrop = useCallback((widgetId: string, targetCol: number, targetOrder: number) => {
     setLayout(prev => {
       const next = { ...prev }
 
@@ -130,11 +137,11 @@ export default function App() {
   }, [])
 
   useEffect(() => {
-    function handleKeyDown(e) {
+    function handleKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape') {
         setIsSettingsOpen((prev) => !prev)
       }
-      if (e.key === 'r' && !e.ctrlKey && !e.metaKey && !e.target.closest('input, textarea, select')) {
+      if (e.key === 'r' && !e.ctrlKey && !e.metaKey && !(e.target as HTMLElement)?.closest('input, textarea, select')) {
         loadWallpaper()
       }
     }
@@ -153,7 +160,7 @@ export default function App() {
 
   useEffect(() => {
     document.documentElement.style.setProperty('--font-family', `'${settings.fontFamily}', sans-serif`)
-    document.documentElement.style.setProperty('--font-weight', settings.fontWeight)
+    document.documentElement.style.setProperty('--font-weight', String(settings.fontWeight))
     document.documentElement.style.setProperty('--font-color', settings.fontColor)
     document.documentElement.style.setProperty('--font-size', `${Math.round(settings.fontSize)}%`)
     document.documentElement.style.setProperty('--font-shadow', settings.fontShadow > 0 ? `0 0 ${settings.fontShadow}px rgba(0,0,0,0.8)` : 'none')
@@ -187,10 +194,12 @@ export default function App() {
       loadWallpaper()
     }, DEFAULT_REFRESH_INTERVAL)
 
-    return () => clearInterval(intervalRef.current)
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+    }
   }, [loadWallpaper])
 
-  const visibleWidgets = []
+  const visibleWidgets: VisibleWidget[] = []
   if (settings.showClockWidget)       visibleWidgets.push({ id: 'clock', component: <Clock /> })
   if (settings.showCalendarWidget)    visibleWidgets.push({ id: 'calendar', component: <Calendar /> })
   if (settings.showPomodoroWidget)    visibleWidgets.push({ id: 'pomodoro', component: <Pomodoro /> })
@@ -207,7 +216,7 @@ export default function App() {
   if (settings.enableGreeting)          visibleWidgets.push({ id: 'greeting', component: <Greeting /> })
   if (settings.enableSearchBar)       visibleWidgets.push({ id: 'search-bar', component: <SearchBar /> })
 
-  const columns = Array.from({ length: NUM_COLUMNS }, () => [])
+  const columns: VisibleWidget[][] = Array.from({ length: NUM_COLUMNS }, () => [])
   const searchBarWidget = visibleWidgets.find(w => w.id === 'search-bar')
   const sbLayout = layout['search-bar'] || { col: 1 }
   const sbCol = Math.min(sbLayout.col ?? 1, NUM_COLUMNS - 2)
@@ -222,7 +231,7 @@ export default function App() {
 
   const [sbHeightPx, setSbHeightPx] = useState(0)
   const [sbPos, setSbPos] = useState({ left: 0, width: 0, top: 0 })
-  const sbMeasureRef = useCallback((node) => {
+  const sbMeasureRef = useCallback((node: HTMLDivElement | null) => {
     if (node) setSbHeightPx(node.offsetHeight)
   }, [])
 
