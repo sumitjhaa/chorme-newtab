@@ -2,19 +2,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { SEARCH_ENGINES } from '../constants'
 import { useSettings } from '../hooks/useSettings'
-
-const ENGINE_ICONS = {
-  GOOGLE: 'icons/engines/google.png',
-  DUCKDUCKGO: 'icons/engines/duckduckgo.png',
-  BING: 'icons/engines/bing.png',
-  YAHOO: 'icons/engines/yahoo.png',
-  BRAVE: 'icons/engines/brave.png',
-  STARTPAGE: 'icons/engines/startpage.png',
-  QWANT: 'icons/engines/qwant.png',
-  ECOSIA: 'icons/engines/ecosia.png',
-  SWISSCOWS: 'icons/engines/swisscows.png',
-  MOJEEK: 'icons/engines/mojeek.png',
-}
+import { EngineGrid, ENGINE_ICONS, SuggestionsDropdown } from './search'
 
 export default function SearchBar() {
   const { settings, update } = useSettings()
@@ -22,11 +10,11 @@ export default function SearchBar() {
   const [isOpen, setIsOpen] = useState(false)
   const [suggestions, setSuggestions] = useState([])
   const [suggestionPos, setSuggestionPos] = useState({ top: 0, left: 0, width: 0 })
-  const [enginePos, setEnginePos] = useState({ top: 0, left: 0 })
-  const dropdownRef = useRef(null)
-  const engineGridRef = useRef(null)
-  const inputRef = useRef(null)
-  const formRef = useRef(null)
+  const [enginePos, setEnginePos] = useState({ top: 0, left: 0, width: 0 })
+  const dropdownRef = useRef<HTMLDivElement>(null)
+  const engineGridRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const formRef = useRef<HTMLFormElement>(null)
 
   function updateSuggestionPos() {
     if (formRef.current) {
@@ -44,13 +32,13 @@ export default function SearchBar() {
   }
 
   useEffect(() => {
-    function handleClickOutside(e) {
-      const inDropdown = dropdownRef.current?.contains(e.target)
-      const inEngine = engineGridRef.current?.contains(e.target)
+    function handleClickOutside(e: MouseEvent) {
+      const inDropdown = dropdownRef.current?.contains(e.target as Node)
+      const inEngine = engineGridRef.current?.contains(e.target as Node)
       if (!inDropdown && !inEngine) setIsOpen(false)
     }
     function handleReposition() { if (suggestions.length) updateSuggestionPos() }
-    let raf
+    let raf: number
     function trackPosition() { if (suggestions.length) { updateSuggestionPos(); raf = requestAnimationFrame(trackPosition) } }
     if (suggestions.length) raf = requestAnimationFrame(trackPosition)
     document.addEventListener('mousedown', handleClickOutside)
@@ -76,7 +64,7 @@ export default function SearchBar() {
     return () => clearTimeout(timer)
   }, [query, settings.showSuggestions])
 
-  const handleSubmit = useCallback((e) => {
+  const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault()
     if (!query.trim()) return
     const selectedEngine = SEARCH_ENGINES[settings.searchEngine]
@@ -88,7 +76,7 @@ export default function SearchBar() {
     }
   }, [query, settings])
 
-  const handleSuggestionClick = useCallback((s) => {
+  const handleSuggestionClick = useCallback((s: string) => {
     setQuery(s)
     setSuggestions([])
     const selectedEngine = SEARCH_ENGINES[settings.searchEngine]
@@ -100,7 +88,7 @@ export default function SearchBar() {
     }
   }, [settings])
 
-  const handleEngineSelect = useCallback((name) => {
+  const handleEngineSelect = useCallback((name: string) => {
     update('searchEngine', name)
     setIsOpen(false)
   }, [update])
@@ -132,43 +120,21 @@ export default function SearchBar() {
       </div>
 
       {suggestions.length > 0 && (
-        <div className="suggestions-dropdown" ref={dropdownRef} style={{
-          top: suggestionPos.top,
-          left: suggestionPos.left,
-          width: suggestionPos.width,
-        }}>
-          {suggestions.map((s, i) => (
-            <button
-              key={i}
-              type="button"
-              className="suggestion-item"
-              onClick={() => handleSuggestionClick(s)}
-            >
-              {s}
-            </button>
-          ))}
-        </div>
+        <SuggestionsDropdown
+          ref={dropdownRef}
+          suggestions={suggestions}
+          position={suggestionPos}
+          onSelect={handleSuggestionClick}
+        />
       )}
 
       {isOpen && (
-        <div className="engine-grid" ref={engineGridRef} style={{
-          position: 'fixed',
-          top: enginePos.top,
-          left: enginePos.left,
-          width: enginePos.width,
-        }}>
-          {Object.keys(SEARCH_ENGINES).map((name) => (
-            <button
-              key={name}
-              type="button"
-              className={`engine-grid-item ${settings.searchEngine === name ? 'active' : ''}`}
-              onClick={() => handleEngineSelect(name)}
-              title={SEARCH_ENGINES[name].name}
-            >
-              <img src={ENGINE_ICONS[name]} alt="" />
-            </button>
-          ))}
-        </div>
+        <EngineGrid
+          ref={engineGridRef}
+          activeEngine={settings.searchEngine}
+          onSelect={handleEngineSelect}
+          position={enginePos}
+        />
       )}
     </form>
   )
