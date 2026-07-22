@@ -14,6 +14,7 @@ import Draggable from './components/Draggable.jsx'
 import { fetchRandomWallpaper } from './api/index.js'
 import { getCurrentWallpaper, setCurrentWallpaper, getWallpaperSource } from './utils/storage.js'
 import { API_SOURCES, DEFAULT_REFRESH_INTERVAL } from './constants.js'
+import { useSettings } from './hooks/useSettings.js'
 import { useTranslation } from './hooks/useTranslation.js'
 
 function extractWallpaperColors(imgUrl) {
@@ -47,80 +48,15 @@ function extractWallpaperColors(imgUrl) {
 
 const NUM_COLUMNS = 6
 
-function loadAllSettings() {
-  try {
-    const data = JSON.parse(localStorage.getItem('newtab_settings') || '{}')
-    return {
-      clockPosition: data.clockPosition || 'center',
-      uiOpacity: data.uiOpacity !== undefined ? data.uiOpacity : 80,
-      hideSettingsIcons: data.hideSettingsIcons !== undefined ? data.hideSettingsIcons : false,
-      showAllSettings: data.showAllSettings !== undefined ? data.showAllSettings : true,
-      tabTitle: data.tabTitle || 'New Tab',
-      darkMode: data.darkMode || 'system',
-      language: data.language || 'en',
-      showClockWidget: data.showClockWidget !== undefined ? data.showClockWidget : true,
-      showCalendarWidget: data.showCalendarWidget !== undefined ? data.showCalendarWidget : true,
-      showPomodoroWidget: data.showPomodoroWidget !== undefined ? data.showPomodoroWidget : false,
-      showWeatherWidget: data.showWeatherWidget !== undefined ? data.showWeatherWidget : false,
-      enableSearchBar: data.enableSearchBar !== undefined ? data.enableSearchBar : true,
-      enableGreeting: data.enableGreeting !== undefined ? data.enableGreeting : true,
-      showStickyNote: data.showStickyNote !== undefined ? data.showStickyNote : false,
-      showWhiteboard: data.showWhiteboard !== undefined ? data.showWhiteboard : false,
-      showList: data.showList !== undefined ? data.showList : false,
-      fontFamily: data.fontFamily || 'Inter',
-      fontWeight: data.fontWeight || 400,
-      fontColor: data.fontColor || '#ffffff',
-      fontSize: data.fontSize !== undefined ? data.fontSize : 16,
-      fontShadow: data.fontShadow !== undefined ? data.fontShadow : 0,
-      bgBlur: data.bgBlur !== undefined ? data.bgBlur : 0,
-      bgBrightness: data.bgBrightness !== undefined ? data.bgBrightness : 100,
-    }
-  } catch {
-    return {
-      clockPosition: 'center',
-      uiOpacity: 80,
-      hideSettingsIcons: false,
-      showAllSettings: true,
-      tabTitle: 'New Tab',
-      darkMode: 'system',
-      language: 'en',
-      showClockWidget: true,
-      showCalendarWidget: true,
-      showPomodoroWidget: false,
-      showWeatherWidget: false,
-      enableSearchBar: true,
-      enableGreeting: true,
-      showStickyNote: false,
-      showWhiteboard: false,
-      showList: false,
-      fontFamily: 'Inter',
-      fontWeight: 400,
-      fontColor: '#ffffff',
-      fontSize: 16,
-      fontShadow: 0,
-      bgBlur: 0,
-      bgBrightness: 100,
-    }
-  }
-}
+const NUM_COLUMNS = 6
 
-const DEFAULT_LAYOUT = {
-  clock:       { col: 0, order: 0 },
-  calendar:    { col: 0, order: 1 },
-  greeting:    { col: 0, order: 2 },
-  pomodoro:    { col: 1, order: 0 },
-  'search-bar':  { col: 1, order: -1 },
-  weather:     { col: 2, order: 0 },
-  'sticky-note': { col: 3, order: 0 },
-  whiteboard:  { col: 4, order: 0 },
-  list:        { col: 5, order: 0 },
-}
+import { LAYOUT_DEFAULTS } from './utils/defaults.js'
 
 function loadLayout() {
   try {
-    return JSON.parse(localStorage.getItem('newtab_layout') || 'null') || DEFAULT_LAYOUT
+    return JSON.parse(localStorage.getItem('newtab_layout') || 'null') || LAYOUT_DEFAULTS
   } catch {
-    return DEFAULT_LAYOUT
+    return LAYOUT_DEFAULTS
   }
 }
 
@@ -146,11 +82,11 @@ function applyDarkMode(mode) {
 
 export default function App() {
   const { t } = useTranslation()
+  const { settings } = useSettings()
   const [wallpaper, setWallpaper] = useState(null)
   const [source, setSource] = useState(API_SOURCES.WALLHAVEN)
   const [isLoading, setIsLoading] = useState(false)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
-  const [appSettings, setAppSettings] = useState(loadAllSettings)
   const [layout, setLayout] = useState(loadLayout)
   const intervalRef = useRef(null)
 
@@ -210,38 +146,26 @@ export default function App() {
   }, [loadWallpaper])
 
   useEffect(() => {
-    function handleStorage() {
-      setAppSettings(loadAllSettings())
-    }
-    window.addEventListener('storage', handleStorage)
-    const interval = setInterval(handleStorage, 300)
-    return () => {
-      window.removeEventListener('storage', handleStorage)
-      clearInterval(interval)
-    }
-  }, [])
+    applyDarkMode(settings.darkMode)
+  }, [settings.darkMode])
 
   useEffect(() => {
-    applyDarkMode(appSettings.darkMode)
-  }, [appSettings.darkMode])
+    document.title = settings.tabTitle || t('newTab')
+  }, [settings.tabTitle])
 
   useEffect(() => {
-    document.title = appSettings.tabTitle || t('newTab')
-  }, [appSettings.tabTitle])
-
-  useEffect(() => {
-    document.documentElement.style.setProperty('--font-family', `'${appSettings.fontFamily}', sans-serif`)
-    document.documentElement.style.setProperty('--font-weight', appSettings.fontWeight)
-    document.documentElement.style.setProperty('--font-color', appSettings.fontColor)
-    document.documentElement.style.setProperty('--font-size', `${Math.round(appSettings.fontSize)}%`)
-    document.documentElement.style.setProperty('--font-shadow', appSettings.fontShadow > 0 ? `0 0 ${appSettings.fontShadow}px rgba(0,0,0,0.8)` : 'none')
-  }, [appSettings.fontFamily, appSettings.fontWeight, appSettings.fontColor, appSettings.fontSize, appSettings.fontShadow])
+    document.documentElement.style.setProperty('--font-family', `'${settings.fontFamily}', sans-serif`)
+    document.documentElement.style.setProperty('--font-weight', settings.fontWeight)
+    document.documentElement.style.setProperty('--font-color', settings.fontColor)
+    document.documentElement.style.setProperty('--font-size', `${Math.round(settings.fontSize)}%`)
+    document.documentElement.style.setProperty('--font-shadow', settings.fontShadow > 0 ? `0 0 ${settings.fontShadow}px rgba(0,0,0,0.8)` : 'none')
+  }, [settings.fontFamily, settings.fontWeight, settings.fontColor, settings.fontSize, settings.fontShadow])
 
   useEffect(() => {
     const root = document.documentElement
-    root.style.setProperty('--bg-blur', `${appSettings.bgBlur}px`)
-    root.style.setProperty('--bg-brightness', `${appSettings.bgBrightness}%`)
-  }, [appSettings.bgBlur, appSettings.bgBrightness])
+    root.style.setProperty('--bg-blur', `${settings.bgBlur}px`)
+    root.style.setProperty('--bg-brightness', `${settings.bgBrightness}%`)
+  }, [settings.bgBlur, settings.bgBrightness])
 
   useEffect(() => {
     async function init() {
@@ -269,21 +193,21 @@ export default function App() {
   }, [loadWallpaper])
 
   const visibleWidgets = []
-  if (appSettings.showClockWidget)       visibleWidgets.push({ id: 'clock', component: <Clock /> })
-  if (appSettings.showCalendarWidget)    visibleWidgets.push({ id: 'calendar', component: <Calendar /> })
-  if (appSettings.showPomodoroWidget)    visibleWidgets.push({ id: 'pomodoro', component: <Pomodoro /> })
-  if (appSettings.showWeatherWidget)     visibleWidgets.push({ id: 'weather', component: <Weather /> })
-  if (appSettings.showStickyNote)        visibleWidgets.push({ id: 'sticky-note', component: <StickyNote /> })
-  if (appSettings.showWhiteboard)        visibleWidgets.push({ id: 'whiteboard', component: <Whiteboard onDelete={() => {
+  if (settings.showClockWidget)       visibleWidgets.push({ id: 'clock', component: <Clock /> })
+  if (settings.showCalendarWidget)    visibleWidgets.push({ id: 'calendar', component: <Calendar /> })
+  if (settings.showPomodoroWidget)    visibleWidgets.push({ id: 'pomodoro', component: <Pomodoro /> })
+  if (settings.showWeatherWidget)     visibleWidgets.push({ id: 'weather', component: <Weather /> })
+  if (settings.showStickyNote)        visibleWidgets.push({ id: 'sticky-note', component: <StickyNote /> })
+  if (settings.showWhiteboard)        visibleWidgets.push({ id: 'whiteboard', component: <Whiteboard onDelete={() => {
     const data = JSON.parse(localStorage.getItem('newtab_settings') || '{}')
     data.showWhiteboard = false
     localStorage.setItem('newtab_settings', JSON.stringify(data))
     try { chrome.storage.local.set({ showWhiteboard: false }) } catch {}
     window.dispatchEvent(new Event('storage'))
   }} /> })
-  if (appSettings.showList)              visibleWidgets.push({ id: 'list', component: <Lists /> })
-  if (appSettings.enableGreeting)          visibleWidgets.push({ id: 'greeting', component: <Greeting /> })
-  if (appSettings.enableSearchBar)       visibleWidgets.push({ id: 'search-bar', component: <SearchBar /> })
+  if (settings.showList)              visibleWidgets.push({ id: 'list', component: <Lists /> })
+  if (settings.enableGreeting)          visibleWidgets.push({ id: 'greeting', component: <Greeting /> })
+  if (settings.enableSearchBar)       visibleWidgets.push({ id: 'search-bar', component: <SearchBar /> })
 
   const columns = Array.from({ length: NUM_COLUMNS }, () => [])
   const searchBarWidget = visibleWidgets.find(w => w.id === 'search-bar')
@@ -305,7 +229,7 @@ export default function App() {
   }, [])
 
   useEffect(() => {
-    if (!appSettings.enableSearchBar || !searchBarWidget) return
+    if (!settings.enableSearchBar || !searchBarWidget) return
     const columns = document.querySelectorAll('.kanban-column')
     if (columns.length < sbCol + 2) return
     const board = document.querySelector('.kanban-board')
@@ -318,7 +242,7 @@ export default function App() {
       width: secondCol.right - firstCol.left,
       top: firstCol.top - boardRect.top,
     })
-  }, [appSettings.enableSearchBar, sbCol, searchBarWidget])
+  }, [settings.enableSearchBar, sbCol, searchBarWidget])
 
 
   return (
@@ -326,7 +250,7 @@ export default function App() {
       <Wallpaper wallpaper={wallpaper} isLoading={isLoading} />
 
       <div className="kanban-board">
-        {searchBarWidget && appSettings.enableSearchBar && (
+        {searchBarWidget && settings.enableSearchBar && (
           <div
             className="search-bar-span"
             style={{ left: sbPos.left, width: sbPos.width, top: sbPos.top }}
@@ -346,7 +270,7 @@ export default function App() {
         )}
 
         {columns.map((colWidgets, colIndex) => {
-          const covered = appSettings.enableSearchBar && colIndex >= sbCol && colIndex <= sbCol + 1
+          const covered = settings.enableSearchBar && colIndex >= sbCol && colIndex <= sbCol + 1
           return (
             <div
               className="kanban-column"
@@ -374,7 +298,7 @@ export default function App() {
         })}
       </div>
 
-      <div className={`bottom-buttons visible${appSettings.hideSettingsIcons ? ' hidden-icons' : ''}`}>
+      <div className={`bottom-buttons visible${settings.hideSettingsIcons ? ' hidden-icons' : ''}`}>
         <button
           className="refresh-btn"
           onClick={() => loadWallpaper()}
