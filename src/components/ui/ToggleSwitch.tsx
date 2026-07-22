@@ -3,8 +3,6 @@
  * Rectangular design with I/O text indicators and a sliding square thumb.
  */
 
-import React from 'react'
-
 /**
  * Props for the ToggleSwitch component.
  */
@@ -12,7 +10,7 @@ export interface ToggleSwitchProps {
     /** Whether the toggle is on. */
     checked: boolean
     /** Callback fired when the toggle state changes. */
-    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+    onChange: (...args: any[]) => void
     /** Optional label displayed beside the toggle. */
     label?: string
     /** Unique id linking the label to the input. */
@@ -29,8 +27,7 @@ export interface ToggleSwitchProps {
  *
  * @example <ToggleSwitch checked={on} onChange={fn} label="Dark mode" />
  */
-export { ToggleSwitch }
-export default function ToggleSwitch({
+export function ToggleSwitch({
     label,
     id,
     checked,
@@ -69,3 +66,5 @@ export default function ToggleSwitch({
         </div>
     )
 }
+
+export default ToggleSwitch
