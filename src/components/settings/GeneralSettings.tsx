@@ -14,6 +14,16 @@ const LANGUAGES = [
   { code: 'zh', label: '中文' },
   { code: 'hi', label: 'हिन्दी' },
   { code: 'ar', label: 'العربية' },
+  { code: 'ru', label: 'Русский' },
+  { code: 'it', label: 'Italiano' },
+  { code: 'nl', label: 'Nederlands' },
+  { code: 'pl', label: 'Polski' },
+  { code: 'tr', label: 'Türkçe' },
+  { code: 'vi', label: 'Tiếng Việt' },
+  { code: 'th', label: 'ไทย' },
+  { code: 'id', label: 'Bahasa Indonesia' },
+  { code: 'uk', label: 'Українська' },
+  { code: 'sv', label: 'Svenska' },
 ]
 
 export default function GeneralSettings() {
