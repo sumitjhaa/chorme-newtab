@@ -1,7 +1,8 @@
 // @ts-nocheck
+import type { Settings } from '../types'
 import { API_SOURCES } from '../constants'
 
-export const SETTINGS_DEFAULTS = {
+export const SETTINGS_DEFAULTS: Settings = {
   clockPosition: 'center',
   uiOpacity: 80,
   hideSettingsIcons: false,
@@ -79,4 +80,4 @@ export const LAYOUT_DEFAULTS = {
   'sticky-note': { col: 3, order: 0 },
   whiteboard:    { col: 4, order: 0 },
   list:          { col: 5, order: 0 },
-}
+} satisfies Record<string, { col: number; order: number }>

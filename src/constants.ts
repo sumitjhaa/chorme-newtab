@@ -1,18 +1,20 @@
 // @ts-nocheck
+import type { WallpaperSource, SearchEngineKey, BgType, BgFrequency } from '../types'
+
 export const API_SOURCES = {
-  WALLHAVEN: 'wallhaven',
-  UNSPLASH: 'unsplash',
-  PIXABAY: 'pixabay',
-  PICSUM: 'picsum',
-  CATBOX: 'catbox',
-}
+  WALLHAVEN: 'wallhaven' as const,
+  UNSPLASH: 'unsplash' as const,
+  PIXABAY: 'pixabay' as const,
+  PICSUM: 'picsum' as const,
+  CATBOX: 'catbox' as const,
+} satisfies Record<string, WallpaperSource>
 
 export const STORAGE_KEYS = {
   CURRENT_WALLPAPER: 'currentWallpaper',
   WALLPAPER_SOURCE: 'wallpaperSource',
   SEARCH_ENGINE: 'searchEngine',
   WALLPAPER_CACHE: 'wallpaperCache',
-}
+} as const
 
 export const SEARCH_ENGINES = {
   GOOGLE: { name: 'Google', url: 'https://www.google.com/search?q=' },
@@ -25,25 +27,25 @@ export const SEARCH_ENGINES = {
   ECOSIA: { name: 'Ecosia', url: 'https://www.ecosia.org/search?q=' },
   SWISSCOWS: { name: 'Swisscows', url: 'https://swisscows.com/web?query=' },
   MOJEEK: { name: 'Mojeek', url: 'https://www.mojeek.com/search?q=' },
-}
+} satisfies Record<SearchEngineKey, { name: string; url: string }>
 
 export const DEFAULT_REFRESH_INTERVAL = 30 * 60 * 1000
 
 export const BACKGROUND_TYPES = [
-  { value: 'images', label: 'Images' },
-  { value: 'videos', label: 'Videos' },
-  { value: 'local', label: 'Local Files' },
-  { value: 'url', label: 'URLs' },
-  { value: 'solid', label: 'Solid Color' },
-]
+  { value: 'images' as const, label: 'Images' },
+  { value: 'videos' as const, label: 'Videos' },
+  { value: 'local' as const, label: 'Local Files' },
+  { value: 'url' as const, label: 'URLs' },
+  { value: 'solid' as const, label: 'Solid Color' },
+] satisfies { value: BgType; label: string }[]
 
 export const FREQUENCIES = [
-  { value: 'every_tab', label: 'Every Tab' },
-  { value: 'every_hour', label: 'Every Hour' },
-  { value: 'every_day', label: 'Every Day' },
-  { value: 'daylight', label: 'Daylight' },
-  { value: 'locked', label: 'Locked' },
-]
+  { value: 'every_tab' as const, label: 'Every Tab' },
+  { value: 'every_hour' as const, label: 'Every Hour' },
+  { value: 'every_day' as const, label: 'Every Day' },
+  { value: 'daylight' as const, label: 'Daylight' },
+  { value: 'locked' as const, label: 'Locked' },
+] satisfies { value: BgFrequency; label: string }[]
 
 export const TEXTURES = [
   'Grain', 'Vector grain', 'Diagonal dots', 'Vertical dots',
@@ -52,4 +54,4 @@ export const TEXTURES = [
   'Honeycomb', 'Grid', 'Vertical lines', 'Horizontal lines',
   'Diagonal lines', 'Vertical stripes', 'Horizontal stripes',
   'Diagonal stripes', 'None',
-]
+] as const
