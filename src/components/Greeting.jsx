@@ -1,22 +1,6 @@
-import { useState, useEffect, memo } from 'react'
+import { memo } from 'react'
 import { useTranslation } from '../hooks/useTranslation.js'
-
-function loadSettings() {
-  try {
-    const data = JSON.parse(localStorage.getItem('newtab_settings') || '{}')
-    return {
-      enableGreeting: data.enableGreeting !== undefined ? data.enableGreeting : true,
-      greetingName: data.greetingName || '',
-      greetingSize: data.greetingSize !== undefined ? data.greetingSize : 32,
-      fontFamily: data.fontFamily || 'Inter',
-      fontWeight: data.fontWeight || 400,
-      fontColor: data.fontColor || '#ffffff',
-      fontShadow: data.fontShadow !== undefined ? data.fontShadow : 0,
-    }
-  } catch {
-    return { enableGreeting: true, greetingName: '', greetingSize: 32, fontFamily: 'Inter', fontWeight: 400, fontColor: '#ffffff', fontShadow: 0 }
-  }
-}
+import { useSettings } from '../hooks/useSettings.js'
 
 function MorningIcon() {
   return (
@@ -75,14 +59,7 @@ function getGreetingData(t) {
 
 function Greeting() {
   const { t } = useTranslation()
-  const [settings, setSettings] = useState(loadSettings)
-
-  useEffect(() => {
-    const handler = () => setSettings(loadSettings())
-    window.addEventListener('storage', handler)
-    const id = setInterval(handler, 500)
-    return () => { window.removeEventListener('storage', handler); clearInterval(id) }
-  }, [])
+  const { settings } = useSettings()
 
   const { text, Icon } = getGreetingData(t)
   const name = settings.greetingName

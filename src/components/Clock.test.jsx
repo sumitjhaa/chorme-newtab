@@ -1,6 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, act } from '@testing-library/react'
+import { SettingsProvider } from '../context/SettingsContext.jsx'
 import Clock from './Clock.jsx'
+
+function renderWithProvider(ui, options) {
+  return render(<SettingsProvider>{ui}</SettingsProvider>, options)
+}
 
 beforeEach(() => {
   vi.useFakeTimers()
@@ -14,7 +19,7 @@ describe('Clock', () => {
   it('renders time and date', () => {
     vi.setSystemTime(new Date(2025, 0, 15, 14, 30))
 
-    render(<Clock />)
+    renderWithProvider(<Clock />)
 
     expect(screen.getByText(/02:30/)).toBeInTheDocument()
     expect(screen.getByText(/15\/01\/2025/)).toBeInTheDocument()
@@ -23,7 +28,7 @@ describe('Clock', () => {
   it('updates time every second', () => {
     vi.setSystemTime(new Date(2025, 0, 15, 14, 30, 0))
 
-    render(<Clock />)
+    renderWithProvider(<Clock />)
 
     expect(screen.getByText(/02:30/)).toBeInTheDocument()
 
@@ -36,7 +41,7 @@ describe('Clock', () => {
   })
 
   it('renders clock container with correct class', () => {
-    render(<Clock />)
+    renderWithProvider(<Clock />)
     const clock = document.querySelector('.clock')
     expect(clock).toBeInTheDocument()
   })
@@ -45,7 +50,7 @@ describe('Clock', () => {
     vi.setSystemTime(new Date(2025, 0, 15, 14, 30))
     localStorage.setItem('newtab_settings', JSON.stringify({ clockFormat: '12h', showAmPm: true }))
 
-    render(<Clock />)
+    renderWithProvider(<Clock />)
 
     expect(screen.getByText(/PM/)).toBeInTheDocument()
   })
@@ -54,7 +59,7 @@ describe('Clock', () => {
     vi.setSystemTime(new Date(2025, 0, 15, 14, 30))
     localStorage.setItem('newtab_settings', JSON.stringify({ clockFormat: '24h', showAmPm: false }))
 
-    render(<Clock />)
+    renderWithProvider(<Clock />)
 
     expect(screen.queryByText(/PM/)).not.toBeInTheDocument()
   })

@@ -1,6 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
+import { SettingsProvider } from '../context/SettingsContext.jsx'
 import SearchBar from './SearchBar.jsx'
+
+function renderWithProvider(ui, options) {
+  return render(<SettingsProvider>{ui}</SettingsProvider>, options)
+}
 
 beforeEach(() => {
   localStorage.clear()
@@ -13,20 +18,20 @@ const openDropdown = (container) => {
 
 describe('SearchBar', () => {
   it('renders search input with placeholder', () => {
-    const { container } = render(<SearchBar />)
-    expect(screen.getByPlaceholderText('Search the web...')).toBeInTheDocument()
+    const { container } = renderWithProvider(<SearchBar />)
+    expect(screen.getByPlaceholderText('Search with Google or type a URL')).toBeInTheDocument()
     expect(container.querySelector('.search-engine-icon')).toBeInTheDocument()
   })
 
   it('updates input value on typing', () => {
-    render(<SearchBar />)
-    const input = screen.getByPlaceholderText('Search the web...')
+    renderWithProvider(<SearchBar />)
+    const input = screen.getByPlaceholderText('Search with Google or type a URL')
     fireEvent.change(input, { target: { value: 'hello world' } })
     expect(input).toHaveValue('hello world')
   })
 
   it('opens engine grid dropdown when icon button is clicked', () => {
-    const { container } = render(<SearchBar />)
+    const { container } = renderWithProvider(<SearchBar />)
     openDropdown(container)
     expect(screen.getByTitle('Google')).toBeInTheDocument()
     expect(screen.getByTitle('DuckDuckGo')).toBeInTheDocument()
@@ -41,7 +46,7 @@ describe('SearchBar', () => {
   })
 
   it('closes dropdown when an engine is selected', () => {
-    const { container } = render(<SearchBar />)
+    const { container } = renderWithProvider(<SearchBar />)
     openDropdown(container)
     expect(screen.getByTitle('DuckDuckGo')).toBeInTheDocument()
 
@@ -50,7 +55,7 @@ describe('SearchBar', () => {
   })
 
   it('saves selected engine to localStorage', () => {
-    const { container } = render(<SearchBar />)
+    const { container } = renderWithProvider(<SearchBar />)
     openDropdown(container)
     fireEvent.click(screen.getByTitle('Brave'))
 
@@ -60,20 +65,20 @@ describe('SearchBar', () => {
 
   it('loads saved engine from localStorage', () => {
     localStorage.setItem('newtab_settings', JSON.stringify({ searchEngine: 'BRAVE' }))
-    const { container } = render(<SearchBar />)
+    const { container } = renderWithProvider(<SearchBar />)
 
     const btn = container.querySelector('.search-engine-icon')
     expect(btn.querySelector('img')).toBeInTheDocument()
   })
 
   it('defaults to GOOGLE when no saved preference', () => {
-    const { container } = render(<SearchBar />)
+    const { container } = renderWithProvider(<SearchBar />)
     expect(container.querySelector('.search-engine-icon img')).toBeInTheDocument()
   })
 
   it('navigates on form submit with query', () => {
-    const { container } = render(<SearchBar />)
-    const input = screen.getByPlaceholderText('Search the web...')
+    const { container } = renderWithProvider(<SearchBar />)
+    const input = screen.getByPlaceholderText('Search with Google or type a URL')
     fireEvent.change(input, { target: { value: 'test query' } })
 
     const form = container.querySelector('form')
@@ -87,7 +92,7 @@ describe('SearchBar', () => {
   })
 
   it('does not navigate on empty query', () => {
-    const { container } = render(<SearchBar />)
+    const { container } = renderWithProvider(<SearchBar />)
     const form = container.querySelector('form')
     const submitEvent = new Event('submit', { bubbles: true, cancelable: true })
     const preventDefault = vi.fn()
@@ -97,7 +102,7 @@ describe('SearchBar', () => {
   })
 
   it('closes dropdown when clicking outside', () => {
-    render(
+    renderWithProvider(
       <div>
         <SearchBar />
         <div data-testid="outside">Outside</div>
@@ -113,12 +118,12 @@ describe('SearchBar', () => {
   })
 
   it('navigates with selected engine URL', () => {
-    const { container } = render(<SearchBar />)
+    const { container } = renderWithProvider(<SearchBar />)
 
     openDropdown(container)
     fireEvent.click(screen.getByTitle('Bing'))
 
-    const input = screen.getByPlaceholderText('Search the web...')
+    const input = screen.getByPlaceholderText('Search with Google or type a URL')
     fireEvent.change(input, { target: { value: 'search' } })
 
     const form = container.querySelector('form')
@@ -130,8 +135,8 @@ describe('SearchBar', () => {
   })
 
   it('trims whitespace from query before searching', () => {
-    const { container } = render(<SearchBar />)
-    const input = screen.getByPlaceholderText('Search the web...')
+    const { container } = renderWithProvider(<SearchBar />)
+    const input = screen.getByPlaceholderText('Search with Google or type a URL')
     fireEvent.change(input, { target: { value: '  hello  ' } })
 
     expect(input).toHaveValue('  hello  ')

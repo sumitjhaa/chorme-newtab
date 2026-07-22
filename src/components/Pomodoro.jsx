@@ -1,19 +1,6 @@
 import { useState, useEffect, useCallback, useRef, memo } from 'react'
 import { useTranslation } from '../hooks/useTranslation.js'
-
-function loadSettings() {
-  try {
-    const data = JSON.parse(localStorage.getItem('newtab_settings') || '{}')
-    return {
-      pomodoroWork: data.pomodoroWork ?? 25,
-      pomodoroShort: data.pomodoroShort ?? 5,
-      pomodoroLong: data.pomodoroLong ?? 15,
-      pomodoroCycles: data.pomodoroCycles ?? 4,
-    }
-  } catch {
-    return { pomodoroWork: 25, pomodoroShort: 5, pomodoroLong: 15, pomodoroCycles: 4 }
-  }
-}
+import { useSettings } from '../hooks/useSettings.js'
 
 function loadState() {
   try {
@@ -37,7 +24,7 @@ function formatTime(seconds) {
 
 function Pomodoro() {
   const { t } = useTranslation()
-  const [settings, setSettings] = useState(loadSettings)
+  const { settings } = useSettings()
   const durations = {
     work: settings.pomodoroWork * 60,
     short_break: settings.pomodoroShort * 60,
@@ -56,18 +43,6 @@ function Pomodoro() {
   phaseRef.current = phase
   cyclesRef.current = cycles
   durationsRef.current = durations
-
-  useEffect(() => {
-    function handleStorage() {
-      setSettings(loadSettings())
-    }
-    window.addEventListener('storage', handleStorage)
-    const interval = setInterval(handleStorage, 1000)
-    return () => {
-      window.removeEventListener('storage', handleStorage)
-      clearInterval(interval)
-    }
-  }, [])
 
   useEffect(() => {
     saveState({ phase, timeLeft, cycles })

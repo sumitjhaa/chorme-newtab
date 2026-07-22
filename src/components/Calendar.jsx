@@ -5,31 +5,14 @@ function getDays(t) {
   return [t('sun'), t('mon'), t('tue'), t('wed'), t('thu'), t('fri'), t('sat')]
 }
 
-function loadLanguage() {
-  try {
-    const data = JSON.parse(localStorage.getItem('newtab_settings') || '{}')
-    return data.language || 'en'
-  } catch {
-    return 'en'
-  }
-}
-
 function Calendar() {
-  const { t } = useTranslation()
+  const { t, lang } = useTranslation()
   const [today, setToday] = useState(new Date())
   const [viewMonth, setViewMonth] = useState(new Date())
-  const [lang, setLang] = useState(loadLanguage)
 
   useEffect(() => {
     const interval = setInterval(() => setToday(new Date()), 60000)
     return () => clearInterval(interval)
-  }, [])
-
-  useEffect(() => {
-    function handleStorage() { setLang(loadLanguage()) }
-    window.addEventListener('storage', handleStorage)
-    const id = setInterval(handleStorage, 500)
-    return () => { window.removeEventListener('storage', handleStorage); clearInterval(id) }
   }, [])
 
   const year = viewMonth.getFullYear()

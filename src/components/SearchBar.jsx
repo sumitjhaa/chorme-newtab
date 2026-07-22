@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { SEARCH_ENGINES } from '../constants.js'
+import { useSettings } from '../hooks/useSettings.js'
 
 const ENGINE_ICONS = {
   GOOGLE: 'icons/engines/google.png',
@@ -14,27 +15,9 @@ const ENGINE_ICONS = {
   MOJEEK: 'icons/engines/mojeek.png',
 }
 
-function loadSearchSettings() {
-  try {
-    const data = JSON.parse(localStorage.getItem('newtab_settings') || '{}')
-    return {
-      searchEngine: data.searchEngine || 'GOOGLE',
-      searchPlaceholder: data.searchPlaceholder || 'Search the web...',
-      searchBlur: data.searchBlur !== undefined ? data.searchBlur : 20,
-      openInNewTab: data.openInNewTab !== undefined ? data.openInNewTab : true,
-      showSuggestions: data.showSuggestions !== undefined ? data.showSuggestions : true,
-    }
-  } catch {
-    return {
-      searchEngine: 'GOOGLE', searchPlaceholder: 'Search the web...',
-      searchBlur: 20, openInNewTab: true, showSuggestions: true,
-    }
-  }
-}
-
 export default function SearchBar() {
+  const { settings, update } = useSettings()
   const [query, setQuery] = useState('')
-  const [settings, setSettings] = useState(loadSearchSettings)
   const [isOpen, setIsOpen] = useState(false)
   const [suggestions, setSuggestions] = useState([])
   const [suggestionPos, setSuggestionPos] = useState({ top: 0, left: 0, width: 0 })
@@ -81,13 +64,6 @@ export default function SearchBar() {
   }, [suggestions.length])
 
   useEffect(() => {
-    function handleStorage() { setSettings(loadSearchSettings()) }
-    window.addEventListener('storage', handleStorage)
-    const id = setInterval(handleStorage, 500)
-    return () => { window.removeEventListener('storage', handleStorage); clearInterval(id) }
-  }, [])
-
-  useEffect(() => {
     if (!settings.showSuggestions || !query.trim()) { setSuggestions([]); return }
     updateSuggestionPos()
     const timer = setTimeout(async () => {
@@ -124,14 +100,9 @@ export default function SearchBar() {
   }, [settings])
 
   const handleEngineSelect = useCallback((name) => {
-    try {
-      const data = JSON.parse(localStorage.getItem('newtab_settings') || '{}')
-      data.searchEngine = name
-      localStorage.setItem('newtab_settings', JSON.stringify(data))
-      setSettings((p) => ({ ...p, searchEngine: name }))
-    } catch {}
+    update('searchEngine', name)
     setIsOpen(false)
-  }, [])
+  }, [update])
 
   const iconSrc = ENGINE_ICONS[settings.searchEngine]
   return (

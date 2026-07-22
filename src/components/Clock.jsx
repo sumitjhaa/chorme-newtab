@@ -1,28 +1,5 @@
 import { useState, useEffect, memo } from 'react'
-
-function loadSettings() {
-  try {
-    const data = JSON.parse(localStorage.getItem('newtab_settings') || '{}')
-    return {
-      clockFormat: data.clockFormat || '12h',
-      showAmPm: data.showAmPm !== undefined ? data.showAmPm : true,
-      showSeconds: data.showSeconds !== undefined ? data.showSeconds : false,
-      analogClock: data.analogClock !== undefined ? data.analogClock : false,
-      worldClockTimezones: data.worldClockTimezones || [],
-      clockSize: data.clockSize !== undefined ? data.clockSize : 100,
-      timeZone: data.timeZone || 'local',
-      dateFormat: data.dateFormat || 'DD/MM/YYYY',
-      showClockDate: data.showClockDate || 'both',
-      uiOpacity: data.uiOpacity !== undefined ? data.uiOpacity : 80,
-    }
-  } catch {
-    return {
-      clockFormat: '12h', showAmPm: true, showSeconds: false, analogClock: false,
-      worldClockTimezones: [], clockSize: 100, timeZone: 'local',
-      dateFormat: 'DD/MM/YYYY', showClockDate: 'both', uiOpacity: 80,
-    }
-  }
-}
+import { useSettings } from '../hooks/useSettings.js'
 
 function formatTime(date, s) {
   const is24h = s.clockFormat === '24h'
@@ -99,18 +76,11 @@ function AnalogClock({ date, timeZone }) {
 
 function Clock() {
   const [time, setTime] = useState(new Date())
-  const [settings, setSettings] = useState(loadSettings)
+  const { settings } = useSettings()
 
   useEffect(() => {
     const interval = setInterval(() => setTime(new Date()), 1000)
     return () => clearInterval(interval)
-  }, [])
-
-  useEffect(() => {
-    function handleStorage() { setSettings(loadSettings()) }
-    window.addEventListener('storage', handleStorage)
-    const id = setInterval(handleStorage, 500)
-    return () => { window.removeEventListener('storage', handleStorage); clearInterval(id) }
   }, [])
 
   const showClock = settings.showClockDate !== 'date'

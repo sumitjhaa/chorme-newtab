@@ -1,28 +1,6 @@
 import { useState, useEffect, useCallback, memo } from 'react'
 import { useTranslation } from '../hooks/useTranslation.js'
-
-function loadSettings() {
-  try {
-    const data = JSON.parse(localStorage.getItem('newtab_settings') || '{}')
-    return {
-      geolocation: data.geolocation || 'approximate',
-      manualLocation: data.manualLocation || '',
-      tempUnit: data.tempUnit || 'celsius',
-      forecast: data.forecast || 'automatic',
-      tempDisplay: data.tempDisplay || 'actual',
-      weatherShow: data.weatherShow || 'description_icon',
-    }
-  } catch {
-    return {
-      geolocation: 'approximate',
-      manualLocation: '',
-      tempUnit: 'celsius',
-      forecast: 'automatic',
-      tempDisplay: 'actual',
-      weatherShow: 'description_icon',
-    }
-  }
-}
+import { useSettings } from '../hooks/useSettings.js'
 
 async function fetchCoords(geolocation, manualLocation) {
   if (geolocation === 'manual' && manualLocation) {
@@ -89,7 +67,7 @@ function unitLabel(unit) { return unit === 'fahrenheit' ? '°F' : '°C' }
 
 function Weather() {
   const { t } = useTranslation()
-  const [settings, setSettings] = useState(loadSettings)
+  const { settings } = useSettings()
   const [weather, setWeather] = useState(null)
   const [location, setLocation] = useState('')
   const [error, setError] = useState(null)
@@ -109,18 +87,6 @@ function Weather() {
   }, [settings.geolocation, settings.manualLocation, settings.tempUnit, t])
 
   useEffect(() => { load() }, [load])
-
-  useEffect(() => {
-    function handleStorage() {
-      setSettings(loadSettings())
-    }
-    window.addEventListener('storage', handleStorage)
-    const interval = setInterval(handleStorage, 1000)
-    return () => {
-      window.removeEventListener('storage', handleStorage)
-      clearInterval(interval)
-    }
-  }, [])
 
   if (error) {
     return <div className="weather-widget"><div className="weather-error">{error}</div></div>
