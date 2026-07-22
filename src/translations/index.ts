@@ -1,6 +1,6 @@
 /**
- * @fileoverview Internationalization utilities for translating UI strings.
- */
+  * @fileoverview Internationalization utilities for translating UI strings.
+  */
 
 import en from './en'
 import es from './es'
@@ -24,35 +24,35 @@ import uk from './uk'
 import sv from './sv'
 
 const translations: Record<string, Record<string, string>> = {
-  en, es, fr, de, pt, ja, ko, zh, hi, ar,
-  ru, it, nl, pl, tr, vi, th, id, uk, sv,
+    en, es, fr, de, pt, ja, ko, zh, hi, ar,
+    ru, it, nl, pl, tr, vi, th, id, uk, sv,
 }
 
 /**
- * Translate a key to the specified language.
- * Falls back to English if the key is not found.
- * @param key - Translation key
- * @param lang - Language code (default: 'en')
- * @returns Translated string or the key itself
- */
+  * Translate a key to the specified language.
+  * Falls back to English if the key is not found.
+  * @param key - Translation key
+  * @param lang - Language code (default: 'en')
+  * @returns Translated string or the key itself
+  */
 export function t(key: string, lang = 'en'): string {
-  return translations[lang]?.[key] || translations.en[key] || key
+    return translations[lang]?.[key] || translations.en[key] || key
 }
 
 /**
- * Get the display name for a language code.
- * @param code - ISO 639-1 language code
- * @returns Language display name
- */
+  * Get the display name for a language code.
+  * @param code - ISO 639-1 language code
+  * @returns Language display name
+  */
 export function getLanguageName(code: string): string {
-  const names: Record<string, string> = {
-    en: 'English', es: 'Español', fr: 'Français', de: 'Deutsch',
-    pt: 'Português', ja: '日本語', ko: '한국어', zh: '中文',
-    hi: 'हिन्दी', ar: 'العربية', ru: 'Русский', it: 'Italiano',
-    nl: 'Nederlands', pl: 'Polski', tr: 'Türkçe', vi: 'Tiếng Việt',
-    th: 'ไทย', id: 'Bahasa Indonesia', uk: 'Українська', sv: 'Svenska',
-  }
-  return names[code] || code
+    const names: Record<string, string> = {
+        en: 'English', es: 'Español', fr: 'Français', de: 'Deutsch',
+        pt: 'Português', ja: '日本語', ko: '한국어', zh: '中文',
+        hi: 'हिन्दी', ar: 'العربية', ru: 'Русский', it: 'Italiano',
+        nl: 'Nederlands', pl: 'Polski', tr: 'Türkçe', vi: 'Tiếng Việt',
+        th: 'ไทย', id: 'Bahasa Indonesia', uk: 'Українська', sv: 'Svenska',
+    }
+    return names[code] || code
 }
 
 export default translations

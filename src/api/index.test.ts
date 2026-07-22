@@ -3,63 +3,63 @@ import { fetchRandomWallpaper, getAvailableSources } from './index'
 import { API_SOURCES } from '../constants'
 
 beforeEach(() => {
-  vi.clearAllMocks()
-  chrome.runtime.lastError = null
+    vi.clearAllMocks()
+    chrome.runtime.lastError = null
 })
 
 describe('getAvailableSources', () => {
-  it('returns all 4 sources', () => {
-    const sources = getAvailableSources()
-    expect(sources).toHaveLength(4)
-    expect(sources).toContain(API_SOURCES.WALLHAVEN)
-    expect(sources).toContain(API_SOURCES.PIXABAY)
-    expect(sources).toContain(API_SOURCES.PICSUM)
-    expect(sources).toContain(API_SOURCES.CATBOX)
-  })
+    it('returns all 4 sources', () => {
+        const sources = getAvailableSources()
+        expect(sources).toHaveLength(4)
+        expect(sources).toContain(API_SOURCES.WALLHAVEN)
+        expect(sources).toContain(API_SOURCES.PIXABAY)
+        expect(sources).toContain(API_SOURCES.PICSUM)
+        expect(sources).toContain(API_SOURCES.CATBOX)
+    })
 })
 
 describe('fetchRandomWallpaper', () => {
-  it('sends message to background and resolves with wallpaper', async () => {
-    const mockWallpaper = { url: 'https://example.com/wall.jpg', thumbnail: '', source: 'wallhaven' }
+    it('sends message to background and resolves with wallpaper', async () => {
+        const mockWallpaper = { url: 'https://example.com/wall.jpg', thumbnail: '', source: 'wallhaven' }
 
-    ;(chrome.runtime.sendMessage as ReturnType<typeof vi.fn>).mockImplementation((_msg: unknown, cb: (response: unknown) => void) => {
-      cb({ wallpaper: mockWallpaper })
+        ;(chrome.runtime.sendMessage as ReturnType<typeof vi.fn>).mockImplementation((_msg: unknown, cb: (response: unknown) => void) => {
+            cb({ wallpaper: mockWallpaper })
+        })
+
+        const result = await fetchRandomWallpaper('wallhaven')
+        expect(result).toEqual(mockWallpaper)
+        expect(chrome.runtime.sendMessage).toHaveBeenCalledWith(
+            { type: 'FETCH_WALLPAPER', source: 'wallhaven' },
+            expect.any(Function)
+        )
     })
 
-    const result = await fetchRandomWallpaper('wallhaven')
-    expect(result).toEqual(mockWallpaper)
-    expect(chrome.runtime.sendMessage).toHaveBeenCalledWith(
-      { type: 'FETCH_WALLPAPER', source: 'wallhaven' },
-      expect.any(Function)
-    )
-  })
+    it('rejects when response has error', async () => {
+        ;(chrome.runtime.sendMessage as ReturnType<typeof vi.fn>).mockImplementation((_msg: unknown, cb: (response: unknown) => void) => {
+            cb({ error: 'API limit reached' })
+        })
 
-  it('rejects when response has error', async () => {
-    ;(chrome.runtime.sendMessage as ReturnType<typeof vi.fn>).mockImplementation((_msg: unknown, cb: (response: unknown) => void) => {
-      cb({ error: 'API limit reached' })
+        await expect(fetchRandomWallpaper('wallhaven')).rejects.toThrow('API limit reached')
     })
 
-    await expect(fetchRandomWallpaper('wallhaven')).rejects.toThrow('API limit reached')
-  })
+    it('rejects when chrome.runtime.lastError is set', async () => {
+        ;(chrome.runtime.sendMessage as ReturnType<typeof vi.fn>).mockImplementation((_msg: unknown, cb: (response: unknown) => void) => {
+            chrome.runtime.lastError = { message: 'Service worker unavailable' }
+            cb(null)
+        })
 
-  it('rejects when chrome.runtime.lastError is set', async () => {
-    ;(chrome.runtime.sendMessage as ReturnType<typeof vi.fn>).mockImplementation((_msg: unknown, cb: (response: unknown) => void) => {
-      chrome.runtime.lastError = { message: 'Service worker unavailable' }
-      cb(null)
+        await expect(fetchRandomWallpaper('wallhaven')).rejects.toThrow('Service worker unavailable')
     })
 
-    await expect(fetchRandomWallpaper('wallhaven')).rejects.toThrow('Service worker unavailable')
-  })
+    it('defaults to WALLHAVEN source when none specified', async () => {
+        ;(chrome.runtime.sendMessage as ReturnType<typeof vi.fn>).mockImplementation((_msg: unknown, cb: (response: unknown) => void) => {
+            cb({ wallpaper: { url: 'test.jpg', thumbnail: '', source: 'wallhaven' } })
+        })
 
-  it('defaults to WALLHAVEN source when none specified', async () => {
-    ;(chrome.runtime.sendMessage as ReturnType<typeof vi.fn>).mockImplementation((_msg: unknown, cb: (response: unknown) => void) => {
-      cb({ wallpaper: { url: 'test.jpg', thumbnail: '', source: 'wallhaven' } })
+        await fetchRandomWallpaper()
+        expect(chrome.runtime.sendMessage).toHaveBeenCalledWith(
+            { type: 'FETCH_WALLPAPER', source: 'wallhaven' },
+            expect.any(Function)
+        )
     })
-
-    await fetchRandomWallpaper()
-    expect(chrome.runtime.sendMessage).toHaveBeenCalledWith(
-      { type: 'FETCH_WALLPAPER', source: 'wallhaven' },
-      expect.any(Function)
-    )
-  })
 })

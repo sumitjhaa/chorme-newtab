@@ -3,9 +3,9 @@
  */
 
 import { useRef, useCallback, useEffect } from 'react'
-import { getPointerPos, drawSegment, drawDot, clearCanvas, saveCanvasImage, loadCanvasImage } from '../canvas'
-import { isShapeTool } from '../tools'
-import type { ToolDef } from '../tools'
+import { getPointerPos, drawSegment, drawDot, clearCanvas, saveCanvasImage, loadCanvasImage } from '../components/whiteboard/canvas'
+import { isShapeTool } from '../components/whiteboard/tools'
+import type { ToolDef } from '../components/whiteboard/tools'
 
 /** 2D point coordinates */
 interface Point {

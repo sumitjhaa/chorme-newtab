@@ -6,139 +6,139 @@ import type { ReactElement } from 'react'
 import type { RenderOptions } from '@testing-library/react'
 
 function renderWithProvider(ui: ReactElement, options?: Omit<RenderOptions, 'wrapper'>) {
-  return render(<SettingsProvider>{ui}</SettingsProvider>, options)
+    return render(<SettingsProvider>{ui}</SettingsProvider>, options)
 }
 
 beforeEach(() => {
-  localStorage.clear()
-  vi.restoreAllMocks()
+    localStorage.clear()
+    vi.restoreAllMocks()
 })
 
 const openDropdown = (container: HTMLElement) => {
-  fireEvent.click(container.querySelector('.search-engine-icon')!)
+    fireEvent.click(container.querySelector('.search-engine-icon')!)
 }
 
 describe('SearchBar', () => {
-  it('renders search input with placeholder', () => {
-    const { container } = renderWithProvider(<SearchBar />)
-    expect(screen.getByPlaceholderText('Search with Google or type a URL')).toBeInTheDocument()
-    expect(container.querySelector('.search-engine-icon')).toBeInTheDocument()
-  })
+    it('renders search input with placeholder', () => {
+        const { container } = renderWithProvider(<SearchBar />)
+        expect(screen.getByPlaceholderText('Search with Google or type a URL')).toBeInTheDocument()
+        expect(container.querySelector('.search-engine-icon')).toBeInTheDocument()
+    })
 
-  it('updates input value on typing', () => {
-    renderWithProvider(<SearchBar />)
-    const input = screen.getByPlaceholderText('Search with Google or type a URL')
-    fireEvent.change(input, { target: { value: 'hello world' } })
-    expect(input).toHaveValue('hello world')
-  })
+    it('updates input value on typing', () => {
+        renderWithProvider(<SearchBar />)
+        const input = screen.getByPlaceholderText('Search with Google or type a URL')
+        fireEvent.change(input, { target: { value: 'hello world' } })
+        expect(input).toHaveValue('hello world')
+    })
 
-  it('opens engine grid dropdown when icon button is clicked', () => {
-    const { container } = renderWithProvider(<SearchBar />)
-    openDropdown(container)
-    expect(screen.getByTitle('Google')).toBeInTheDocument()
-    expect(screen.getByTitle('DuckDuckGo')).toBeInTheDocument()
-    expect(screen.getByTitle('Bing')).toBeInTheDocument()
-    expect(screen.getByTitle('Yahoo')).toBeInTheDocument()
-    expect(screen.getByTitle('Brave')).toBeInTheDocument()
-    expect(screen.getByTitle('Startpage')).toBeInTheDocument()
-    expect(screen.getByTitle('Qwant')).toBeInTheDocument()
-    expect(screen.getByTitle('Ecosia')).toBeInTheDocument()
-    expect(screen.getByTitle('Swisscows')).toBeInTheDocument()
-    expect(screen.getByTitle('Mojeek')).toBeInTheDocument()
-  })
+    it('opens engine grid dropdown when icon button is clicked', () => {
+        const { container } = renderWithProvider(<SearchBar />)
+        openDropdown(container)
+        expect(screen.getByTitle('Google')).toBeInTheDocument()
+        expect(screen.getByTitle('DuckDuckGo')).toBeInTheDocument()
+        expect(screen.getByTitle('Bing')).toBeInTheDocument()
+        expect(screen.getByTitle('Yahoo')).toBeInTheDocument()
+        expect(screen.getByTitle('Brave')).toBeInTheDocument()
+        expect(screen.getByTitle('Startpage')).toBeInTheDocument()
+        expect(screen.getByTitle('Qwant')).toBeInTheDocument()
+        expect(screen.getByTitle('Ecosia')).toBeInTheDocument()
+        expect(screen.getByTitle('Swisscows')).toBeInTheDocument()
+        expect(screen.getByTitle('Mojeek')).toBeInTheDocument()
+    })
 
-  it('closes dropdown when an engine is selected', () => {
-    const { container } = renderWithProvider(<SearchBar />)
-    openDropdown(container)
-    expect(screen.getByTitle('DuckDuckGo')).toBeInTheDocument()
+    it('closes dropdown when an engine is selected', () => {
+        const { container } = renderWithProvider(<SearchBar />)
+        openDropdown(container)
+        expect(screen.getByTitle('DuckDuckGo')).toBeInTheDocument()
 
-    fireEvent.click(screen.getByTitle('DuckDuckGo'))
-    expect(screen.queryByTitle('DuckDuckGo')).not.toBeInTheDocument()
-  })
+        fireEvent.click(screen.getByTitle('DuckDuckGo'))
+        expect(screen.queryByTitle('DuckDuckGo')).not.toBeInTheDocument()
+    })
 
-  it('saves selected engine to localStorage', () => {
-    const { container } = renderWithProvider(<SearchBar />)
-    openDropdown(container)
-    fireEvent.click(screen.getByTitle('Brave'))
+    it('saves selected engine to localStorage', () => {
+        const { container } = renderWithProvider(<SearchBar />)
+        openDropdown(container)
+        fireEvent.click(screen.getByTitle('Brave'))
 
-    const saved = JSON.parse(localStorage.getItem('newtab_settings') || '{}')
-    expect(saved.searchEngine).toBe('BRAVE')
-  })
+        const saved = JSON.parse(localStorage.getItem('newtab_settings') || '{}')
+        expect(saved.searchEngine).toBe('BRAVE')
+    })
 
-  it('loads saved engine from localStorage', () => {
-    localStorage.setItem('newtab_settings', JSON.stringify({ searchEngine: 'BRAVE' }))
-    const { container } = renderWithProvider(<SearchBar />)
+    it('loads saved engine from localStorage', () => {
+        localStorage.setItem('newtab_settings', JSON.stringify({ searchEngine: 'BRAVE' }))
+        const { container } = renderWithProvider(<SearchBar />)
 
-    const btn = container.querySelector('.search-engine-icon')
-    expect(btn?.querySelector('img')).toBeInTheDocument()
-  })
+        const btn = container.querySelector('.search-engine-icon')
+        expect(btn?.querySelector('img')).toBeInTheDocument()
+    })
 
-  it('defaults to GOOGLE when no saved preference', () => {
-    const { container } = renderWithProvider(<SearchBar />)
-    expect(container.querySelector('.search-engine-icon img')).toBeInTheDocument()
-  })
+    it('defaults to GOOGLE when no saved preference', () => {
+        const { container } = renderWithProvider(<SearchBar />)
+        expect(container.querySelector('.search-engine-icon img')).toBeInTheDocument()
+    })
 
-  it('navigates on form submit with query', () => {
-    const { container } = renderWithProvider(<SearchBar />)
-    const input = screen.getByPlaceholderText('Search with Google or type a URL')
-    fireEvent.change(input, { target: { value: 'test query' } })
+    it('navigates on form submit with query', () => {
+        const { container } = renderWithProvider(<SearchBar />)
+        const input = screen.getByPlaceholderText('Search with Google or type a URL')
+        fireEvent.change(input, { target: { value: 'test query' } })
 
-    const form = container.querySelector('form')!
-    const submitEvent = new Event('submit', { bubbles: true, cancelable: true })
-    Object.defineProperty(submitEvent, 'preventDefault', { value: vi.fn() })
-    form.dispatchEvent(submitEvent)
+        const form = container.querySelector('form')!
+        const submitEvent = new Event('submit', { bubbles: true, cancelable: true })
+        Object.defineProperty(submitEvent, 'preventDefault', { value: vi.fn() })
+        form.dispatchEvent(submitEvent)
 
-    expect(input).toHaveValue('test query')
-  })
+        expect(input).toHaveValue('test query')
+    })
 
-  it('does not navigate on empty query', () => {
-    const { container } = renderWithProvider(<SearchBar />)
-    const form = container.querySelector('form')!
-    const submitEvent = new Event('submit', { bubbles: true, cancelable: true })
-    const preventDefault = vi.fn()
-    Object.defineProperty(submitEvent, 'preventDefault', { value: preventDefault })
-    form.dispatchEvent(submitEvent)
-    expect(preventDefault).toHaveBeenCalled()
-  })
+    it('does not navigate on empty query', () => {
+        const { container } = renderWithProvider(<SearchBar />)
+        const form = container.querySelector('form')!
+        const submitEvent = new Event('submit', { bubbles: true, cancelable: true })
+        const preventDefault = vi.fn()
+        Object.defineProperty(submitEvent, 'preventDefault', { value: preventDefault })
+        form.dispatchEvent(submitEvent)
+        expect(preventDefault).toHaveBeenCalled()
+    })
 
-  it('closes dropdown when clicking outside', () => {
-    renderWithProvider(
-      <div>
-        <SearchBar />
-        <div data-testid="outside">Outside</div>
-      </div>
-    )
+    it('closes dropdown when clicking outside', () => {
+        renderWithProvider(
+            <div>
+                <SearchBar />
+                <div data-testid="outside">Outside</div>
+            </div>
+        )
 
-    const btn = document.querySelector('.search-engine-icon')!
-    fireEvent.click(btn)
-    expect(screen.getByTitle('DuckDuckGo')).toBeInTheDocument()
+        const btn = document.querySelector('.search-engine-icon')!
+        fireEvent.click(btn)
+        expect(screen.getByTitle('DuckDuckGo')).toBeInTheDocument()
 
-    fireEvent.mouseDown(screen.getByTestId('outside'))
-    expect(screen.queryByTitle('DuckDuckGo')).not.toBeInTheDocument()
-  })
+        fireEvent.mouseDown(screen.getByTestId('outside'))
+        expect(screen.queryByTitle('DuckDuckGo')).not.toBeInTheDocument()
+    })
 
-  it('navigates with selected engine URL', () => {
-    const { container } = renderWithProvider(<SearchBar />)
+    it('navigates with selected engine URL', () => {
+        const { container } = renderWithProvider(<SearchBar />)
 
-    openDropdown(container)
-    fireEvent.click(screen.getByTitle('Bing'))
+        openDropdown(container)
+        fireEvent.click(screen.getByTitle('Bing'))
 
-    const input = screen.getByPlaceholderText('Search with Google or type a URL')
-    fireEvent.change(input, { target: { value: 'search' } })
+        const input = screen.getByPlaceholderText('Search with Google or type a URL')
+        fireEvent.change(input, { target: { value: 'search' } })
 
-    const form = container.querySelector('form')!
-    const submitEvent = new Event('submit', { bubbles: true, cancelable: true })
-    Object.defineProperty(submitEvent, 'preventDefault', { value: vi.fn() })
-    form.dispatchEvent(submitEvent)
+        const form = container.querySelector('form')!
+        const submitEvent = new Event('submit', { bubbles: true, cancelable: true })
+        Object.defineProperty(submitEvent, 'preventDefault', { value: vi.fn() })
+        form.dispatchEvent(submitEvent)
 
-    expect(input).toHaveValue('search')
-  })
+        expect(input).toHaveValue('search')
+    })
 
-  it('trims whitespace from query before searching', () => {
-    const { container } = renderWithProvider(<SearchBar />)
-    const input = screen.getByPlaceholderText('Search with Google or type a URL')
-    fireEvent.change(input, { target: { value: '  hello  ' } })
+    it('trims whitespace from query before searching', () => {
+        const { container } = renderWithProvider(<SearchBar />)
+        const input = screen.getByPlaceholderText('Search with Google or type a URL')
+        fireEvent.change(input, { target: { value: '  hello  ' } })
 
-    expect(input).toHaveValue('  hello  ')
-  })
+        expect(input).toHaveValue('  hello  ')
+    })
 })

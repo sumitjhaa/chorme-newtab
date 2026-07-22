@@ -1,6 +1,6 @@
 /**
- * @fileoverview Barrel export for reusable UI primitives.
- */
+  * @fileoverview Barrel export for reusable UI primitives.
+  */
 
 export { Box, type BoxProps } from './Box'
 export { Stack, type StackProps } from './Stack'

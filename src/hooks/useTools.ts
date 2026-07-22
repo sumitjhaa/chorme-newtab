@@ -3,7 +3,7 @@
  */
 
 import { useState, useCallback } from 'react'
-import { TOOL_TYPES, PRESET_COLORS, getToolById, type ToolDef } from '../tools'
+import { TOOL_TYPES, PRESET_COLORS, getToolById, type ToolDef } from '../components/whiteboard/tools'
 
 /** localStorage key for tool state */
 const STORAGE_KEY = 'newtab_whiteboard'

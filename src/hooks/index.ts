@@ -1,6 +1,6 @@
 /**
- * @fileoverview Barrel export for custom React hooks.
- */
+  * @fileoverview Barrel export for custom React hooks.
+  */
 
 export { useSettings } from './useSettings'
 export { useTranslation } from './useTranslation'
@@ -14,3 +14,6 @@ export { useMediaQuery } from './useMediaQuery'
 export { useFontCSSVariables, useBackgroundCSSVariables } from './useCSSVariables'
 export { useWallpaperRefresh } from './useWallpaperRefresh'
 export { useDebouncedUpdate, useThrottledUpdate } from './useDebouncedUpdate'
+export { useLists } from './useLists'
+export { useCanvas } from './useCanvas'
+export { useTools } from './useTools'

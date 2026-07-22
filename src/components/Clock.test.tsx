@@ -6,63 +6,63 @@ import type { ReactElement } from 'react'
 import type { RenderOptions } from '@testing-library/react'
 
 function renderWithProvider(ui: ReactElement, options?: Omit<RenderOptions, 'wrapper'>) {
-  return render(<SettingsProvider>{ui}</SettingsProvider>, options)
+    return render(<SettingsProvider>{ui}</SettingsProvider>, options)
 }
 
 beforeEach(() => {
-  vi.useFakeTimers()
+    vi.useFakeTimers()
 })
 
 afterEach(() => {
-  vi.useRealTimers()
+    vi.useRealTimers()
 })
 
 describe('Clock', () => {
-  it('renders time and date', () => {
-    vi.setSystemTime(new Date(2025, 0, 15, 14, 30))
+    it('renders time and date', () => {
+        vi.setSystemTime(new Date(2025, 0, 15, 14, 30))
 
-    renderWithProvider(<Clock />)
+        renderWithProvider(<Clock />)
 
-    expect(screen.getByText(/02:30/)).toBeInTheDocument()
-    expect(screen.getByText(/15\/01\/2025/)).toBeInTheDocument()
-  })
-
-  it('updates time every second', () => {
-    vi.setSystemTime(new Date(2025, 0, 15, 14, 30, 0))
-
-    renderWithProvider(<Clock />)
-
-    expect(screen.getByText(/02:30/)).toBeInTheDocument()
-
-    act(() => {
-      vi.setSystemTime(new Date(2025, 0, 15, 14, 30, 30))
-      vi.advanceTimersByTime(1000)
+        expect(screen.getByText(/02:30/)).toBeInTheDocument()
+        expect(screen.getByText(/15\/01\/2025/)).toBeInTheDocument()
     })
 
-    expect(screen.getByText(/02:30/)).toBeInTheDocument()
-  })
+    it('updates time every second', () => {
+        vi.setSystemTime(new Date(2025, 0, 15, 14, 30, 0))
 
-  it('renders clock container with correct class', () => {
-    renderWithProvider(<Clock />)
-    const clock = document.querySelector('.clock')
-    expect(clock).toBeInTheDocument()
-  })
+        renderWithProvider(<Clock />)
 
-  it('shows AM/PM in 12h format', () => {
-    vi.setSystemTime(new Date(2025, 0, 15, 14, 30))
-    localStorage.setItem('newtab_settings', JSON.stringify({ clockFormat: '12h', showAmPm: true }))
+        expect(screen.getByText(/02:30/)).toBeInTheDocument()
 
-    renderWithProvider(<Clock />)
+        act(() => {
+            vi.setSystemTime(new Date(2025, 0, 15, 14, 30, 30))
+            vi.advanceTimersByTime(1000)
+        })
 
-    expect(screen.getByText(/PM/)).toBeInTheDocument()
-  })
+        expect(screen.getByText(/02:30/)).toBeInTheDocument()
+    })
 
-  it('hides AM/PM in 24h format', () => {
-    vi.setSystemTime(new Date(2025, 0, 15, 14, 30))
-    localStorage.setItem('newtab_settings', JSON.stringify({ clockFormat: '24h', showAmPm: false }))
+    it('renders clock container with correct class', () => {
+        renderWithProvider(<Clock />)
+        const clock = document.querySelector('.clock')
+        expect(clock).toBeInTheDocument()
+    })
 
-    renderWithProvider(<Clock />)
+    it('shows AM/PM in 12h format', () => {
+        vi.setSystemTime(new Date(2025, 0, 15, 14, 30))
+        localStorage.setItem('newtab_settings', JSON.stringify({ clockFormat: '12h', showAmPm: true }))
 
-    expect(screen.queryByText(/PM/)).not.toBeInTheDocument()
-  })
+        renderWithProvider(<Clock />)
+
+        expect(screen.getByText(/PM/)).toBeInTheDocument()
+    })
+
+    it('hides AM/PM in 24h format', () => {
+        vi.setSystemTime(new Date(2025, 0, 15, 14, 30))
+        localStorage.setItem('newtab_settings', JSON.stringify({ clockFormat: '24h', showAmPm: false }))
+
+        renderWithProvider(<Clock />)
+
+        expect(screen.queryByText(/PM/)).not.toBeInTheDocument()
+    })
 })

@@ -1,6 +1,6 @@
 /**
- * @fileoverview Weather widget settings panel.
- */
+  * @fileoverview Weather widget settings panel.
+  */
 
 import { useCallback, memo } from 'react'
 import { useSettings } from '../../hooks/useSettings'
@@ -12,128 +12,128 @@ import { SegmentedControl } from '../ui/SegmentedControl'
 import { ToggleSwitch } from '../ui/ToggleSwitch'
 
 /**
- * Weather widget settings with geolocation and display options.
- * 
- * @example <WeatherSettings />
- */
+  * Weather widget settings with geolocation and display options.
+  * 
+  * @example <WeatherSettings />
+  */
 function WeatherSettings() {
-  const { settings, update } = useSettings()
-  const { t } = useTranslation()
+    const { settings, update } = useSettings()
+    const { t } = useTranslation()
 
-  const toggleShowWeatherWidget = useCallback(() => {
-    update('showWeatherWidget', !settings.showWeatherWidget)
-  }, [settings.showWeatherWidget, update])
+    const toggleShowWeatherWidget = useCallback(() => {
+        update('showWeatherWidget', !settings.showWeatherWidget)
+    }, [settings.showWeatherWidget, update])
 
-  const handleGeolocationChange = useCallback((val: string) => {
-    update('geolocation', val)
-  }, [update])
+    const handleGeolocationChange = useCallback((val: string) => {
+        update('geolocation', val)
+    }, [update])
 
-  const handleManualLocationChange = useCallback((val: string) => {
-    update('manualLocation', val)
-  }, [update])
+    const handleManualLocationChange = useCallback((val: string) => {
+        update('manualLocation', val)
+    }, [update])
 
-  const handleTempUnitChange = useCallback((val: string) => {
-    update('tempUnit', val)
-  }, [update])
+    const handleTempUnitChange = useCallback((val: string) => {
+        update('tempUnit', val)
+    }, [update])
 
-  const handleForecastChange = useCallback((val: string) => {
-    update('forecast', val)
-  }, [update])
+    const handleForecastChange = useCallback((val: string) => {
+        update('forecast', val)
+    }, [update])
 
-  const handleTempDisplayChange = useCallback((val: string) => {
-    update('tempDisplay', val)
-  }, [update])
+    const handleTempDisplayChange = useCallback((val: string) => {
+        update('tempDisplay', val)
+    }, [update])
 
-  const handleWeatherShowChange = useCallback((val: string) => {
-    update('weatherShow', val)
-  }, [update])
+    const handleWeatherShowChange = useCallback((val: string) => {
+        update('weatherShow', val)
+    }, [update])
 
-  return (
-    <div className="settings-group">
-      <div className="settings-group-title">{t('weather')}</div>
-      <SettingRow label={t('showWeather')}>
-        <ToggleSwitch
-          checked={settings.showWeatherWidget}
-          onChange={toggleShowWeatherWidget}
-        />
-      </SettingRow>
-
-      {settings.showWeatherWidget && (
-        <>
-          <SettingRow label={t('geolocation')}>
-            <SettingSelect
-              value={settings.geolocation}
-              onChange={handleGeolocationChange}
-              options={[
-                { value: 'approximate', label: t('approximate') },
-                { value: 'manual', label: t('manual') },
-                { value: 'precise', label: t('precise') },
-              ]}
-            />
-          </SettingRow>
-
-          {settings.geolocation === 'manual' && (
-            <SettingRow label={t('location')}>
-              <SettingInput
-                type="text"
-                value={settings.manualLocation}
-                onChange={handleManualLocationChange}
-                placeholder={t('cityOrCoords')}
-              />
+    return (
+        <div className="settings-group">
+            <div className="settings-group-title">{t('weather')}</div>
+            <SettingRow label={t('showWeather')}>
+                <ToggleSwitch
+                    checked={settings.showWeatherWidget}
+                    onChange={toggleShowWeatherWidget}
+                />
             </SettingRow>
-          )}
 
-          <SettingRow label={t('tempUnit')}>
-            <SegmentedControl
-              options={[
-                { value: 'celsius', label: '°C' },
-                { value: 'fahrenheit', label: '°F' },
-              ]}
-              value={settings.tempUnit}
-              onChange={handleTempUnitChange}
-            />
-          </SettingRow>
+            {settings.showWeatherWidget && (
+                <>
+                    <SettingRow label={t('geolocation')}>
+                        <SettingSelect
+                            value={settings.geolocation}
+                            onChange={handleGeolocationChange}
+                            options={[
+                                { value: 'approximate', label: t('approximate') },
+                                { value: 'manual', label: t('manual') },
+                                { value: 'precise', label: t('precise') },
+                            ]}
+                        />
+                    </SettingRow>
 
-          <SettingRow label={t('forecast')}>
-            <SettingSelect
-              value={settings.forecast}
-              onChange={handleForecastChange}
-              options={[
-                { value: 'automatic', label: t('automatic') },
-                { value: 'always', label: t('always') },
-                { value: 'never', label: t('never') },
-              ]}
-            />
-          </SettingRow>
+                    {settings.geolocation === 'manual' && (
+                        <SettingRow label={t('location')}>
+                            <SettingInput
+                                type="text"
+                                value={settings.manualLocation}
+                                onChange={handleManualLocationChange}
+                                placeholder={t('cityOrCoords')}
+                            />
+                        </SettingRow>
+                    )}
 
-          <SettingRow label={t('temperature')}>
-            <SettingSelect
-              value={settings.tempDisplay}
-              onChange={handleTempDisplayChange}
-              options={[
-                { value: 'actual', label: t('actual') },
-                { value: 'feels_like', label: t('feelsLike') },
-                { value: 'both', label: t('both') },
-              ]}
-            />
-          </SettingRow>
+                    <SettingRow label={t('tempUnit')}>
+                        <SegmentedControl
+                            options={[
+                                { value: 'celsius', label: '°C' },
+                                { value: 'fahrenheit', label: '°F' },
+                            ]}
+                            value={settings.tempUnit}
+                            onChange={handleTempUnitChange}
+                        />
+                    </SettingRow>
 
-          <SettingRow label={t('show')}>
-            <SettingSelect
-              value={settings.weatherShow}
-              onChange={handleWeatherShowChange}
-              options={[
-                { value: 'description_icon', label: t('descAndIcon') },
-                { value: 'description', label: t('description') },
-                { value: 'icon', label: t('icon') },
-                { value: 'nothing', label: t('nothing') },
-              ]}
-            />
-          </SettingRow>
-        </>
-      )}
-    </div>
-  )
+                    <SettingRow label={t('forecast')}>
+                        <SettingSelect
+                            value={settings.forecast}
+                            onChange={handleForecastChange}
+                            options={[
+                                { value: 'automatic', label: t('automatic') },
+                                { value: 'always', label: t('always') },
+                                { value: 'never', label: t('never') },
+                            ]}
+                        />
+                    </SettingRow>
+
+                    <SettingRow label={t('temperature')}>
+                        <SettingSelect
+                            value={settings.tempDisplay}
+                            onChange={handleTempDisplayChange}
+                            options={[
+                                { value: 'actual', label: t('actual') },
+                                { value: 'feels_like', label: t('feelsLike') },
+                                { value: 'both', label: t('both') },
+                            ]}
+                        />
+                    </SettingRow>
+
+                    <SettingRow label={t('show')}>
+                        <SettingSelect
+                            value={settings.weatherShow}
+                            onChange={handleWeatherShowChange}
+                            options={[
+                                { value: 'description_icon', label: t('descAndIcon') },
+                                { value: 'description', label: t('description') },
+                                { value: 'icon', label: t('icon') },
+                                { value: 'nothing', label: t('nothing') },
+                            ]}
+                        />
+                    </SettingRow>
+                </>
+            )}
+        </div>
+    )
 }
 
 export default memo(WeatherSettings)

@@ -1,72 +1,72 @@
 /**
- * @fileoverview Hook for synchronizing state with localStorage.
- */
+  * @fileoverview Hook for synchronizing state with localStorage.
+  */
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 
 /**
- * Synchronizes state with localStorage, polling for changes.
- * Replaces the duplicated addEventListener + setInterval pattern.
- * 
- * @param key - localStorage key to sync
- * @param eventName - custom event name to listen for (e.g., 'sticky-update')
- * @param parser - optional custom parser (defaults to JSON.parse)
- * @param intervalMs - polling interval (default 300ms)
- */
+  * Synchronizes state with localStorage, polling for changes.
+  * Replaces the duplicated addEventListener + setInterval pattern.
+  * 
+  * @param key - localStorage key to sync
+  * @param eventName - custom event name to listen for (e.g., 'sticky-update')
+  * @param parser - optional custom parser (defaults to JSON.parse)
+  * @param intervalMs - polling interval (default 300ms)
+  */
 export function useStorageSync<T>(
-  key: string,
-  eventName?: string,
-  parser?: (raw: string) => T,
-  intervalMs = 300
+    key: string,
+    eventName?: string,
+    parser?: (raw: string) => T,
+    intervalMs = 300
 ): {
-  data: T
-  setData: (value: T | ((prev: T) => T)) => void
-  reload: () => void
+    data: T
+    setData: (value: T | ((prev: T) => T)) => void
+    reload: () => void
 } {
-  const [data, setDataState] = useState<T>(() => {
-    const raw = localStorage.getItem(key)
-    if (raw === null) return undefined as T
-    return parser ? parser(raw) : JSON.parse(raw)
-  })
+    const [data, setDataState] = useState<T>(() => {
+        const raw = localStorage.getItem(key)
+        if (raw === null) return undefined as T
+        return parser ? parser(raw) : JSON.parse(raw)
+    })
 
-  const parserRef = useRef(parser)
-  parserRef.current = parser
+    const parserRef = useRef(parser)
+    parserRef.current = parser
 
-  const reload = useCallback(() => {
-    const raw = localStorage.getItem(key)
-    if (raw === null) {
-      setDataState(undefined as T)
-    } else {
-      setDataState(parserRef.current ? parserRef.current(raw) : JSON.parse(raw))
-    }
-  }, [key])
-
-  useEffect(() => {
-    const interval = setInterval(reload, intervalMs)
-    return () => clearInterval(interval)
-  }, [reload, intervalMs])
-
-  useEffect(() => {
-    if (!eventName) return
-
-    const handler = () => reload()
-    window.addEventListener(eventName, handler)
-    return () => window.removeEventListener(eventName, handler)
-  }, [eventName, reload])
-
-  const setData = useCallback(
-    (value: T | ((prev: T) => T)) => {
-      setDataState((prev) => {
-        const next = typeof value === 'function' ? (value as (prev: T) => T)(prev) : value
-        localStorage.setItem(key, JSON.stringify(next))
-        if (eventName) {
-          window.dispatchEvent(new CustomEvent(eventName))
+    const reload = useCallback(() => {
+        const raw = localStorage.getItem(key)
+        if (raw === null) {
+            setDataState(undefined as T)
+        } else {
+            setDataState(parserRef.current ? parserRef.current(raw) : JSON.parse(raw))
         }
-        return next
-      })
-    },
-    [key, eventName]
-  )
+    }, [key])
 
-  return { data, setData, reload }
+    useEffect(() => {
+        const interval = setInterval(reload, intervalMs)
+        return () => clearInterval(interval)
+    }, [reload, intervalMs])
+
+    useEffect(() => {
+        if (!eventName) return
+
+        const handler = () => reload()
+        window.addEventListener(eventName, handler)
+        return () => window.removeEventListener(eventName, handler)
+    }, [eventName, reload])
+
+    const setData = useCallback(
+        (value: T | ((prev: T) => T)) => {
+            setDataState((prev) => {
+                const next = typeof value === 'function' ? (value as (prev: T) => T)(prev) : value
+                localStorage.setItem(key, JSON.stringify(next))
+                if (eventName) {
+                    window.dispatchEvent(new CustomEvent(eventName))
+                }
+                return next
+            })
+        },
+        [key, eventName]
+    )
+
+    return { data, setData, reload }
 }

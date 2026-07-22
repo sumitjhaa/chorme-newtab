@@ -1,6 +1,6 @@
 /**
- * @fileoverview Barrel export for helper utilities.
- */
+  * @fileoverview Barrel export for helper utilities.
+  */
 
 export * from './wallpaper'
 export * from './darkMode'

@@ -1,6 +1,6 @@
 /**
- * @fileoverview Barrel export for library utilities.
- */
+  * @fileoverview Barrel export for library utilities.
+  */
 
 export { debounce, throttle } from './debounce'
 export { generateId } from './id'
