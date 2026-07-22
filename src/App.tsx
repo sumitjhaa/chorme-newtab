@@ -238,7 +238,7 @@ export default function App() {
                                     data-col={colIndex}
                                     style={{ gridColumn: colIndex + 1, gridRow: '2 / -1' }}
                                 >
-                                    <div className="kanban-column-inner" style={covered ? { paddingTop: sbHeightPx + 8 } : undefined}>
+                                    <div className="kanban-column-inner" style={covered ? { paddingTop: `${sbHeightPx + 12}px` } : undefined}>
                                         {colWidgets.map(w => (
                                             <WidgetErrorBoundary key={w.id} widgetName={WIDGET_NAME_MAP[w.id]}>
                                                 <Draggable
