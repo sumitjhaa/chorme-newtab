@@ -1,12 +1,12 @@
 // @ts-nocheck
 import { createContext, useState, useEffect, useCallback, useMemo } from 'react'
 import { SETTINGS_DEFAULTS } from '../utils/defaults'
-import { loadSettings, saveSettings } from '../utils/persistence'
+import { loadSettingsSync, saveSettingsSync } from '../utils/storage'
 
 export const SettingsContext = createContext(null)
 
 function readAllSettings() {
-  const stored = loadSettings()
+  const stored = loadSettingsSync()
   return { ...SETTINGS_DEFAULTS, ...stored }
 }
 
@@ -16,7 +16,7 @@ export function SettingsProvider({ children }) {
   const update = useCallback((key, value) => {
     setSettings(prev => {
       const next = { ...prev, [key]: value }
-      saveSettings({ [key]: value })
+      saveSettingsSync({ [key]: value })
       try { chrome?.storage?.local?.set({ [key]: value }) } catch {}
       return next
     })
