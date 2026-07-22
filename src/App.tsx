@@ -2,7 +2,7 @@
   * @fileoverview Main application component that orchestrates the new tab page.
   */
 
-import { useState, useEffect, useCallback, useMemo, lazy, Suspense } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef, lazy, Suspense } from 'react'
 import Wallpaper from './components/Wallpaper'
 import Draggable from './components/Draggable'
 
@@ -187,28 +187,19 @@ export default function App() {
     const sbLayout = layout['search-bar'] || { col: 1 }
     const sbCol = Math.min(sbLayout.col ?? 1, NUM_COLUMNS - 2)
 
-    // Search bar measurement — useEffect required for DOM measurement / layout calculation
     const [sbHeightPx, setSbHeightPx] = useState(0)
-    const [sbPos, setSbPos] = useState({ left: 0, width: 0, top: 0 })
-    const sbMeasureRef = useCallback((node: HTMLDivElement | null) => {
-        if (node) setSbHeightPx(node.offsetHeight)
-    }, [])
+    const sbContainerRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
         if (!settings.enableSearchBar || !searchBarWidget) return
-        const columns = document.querySelectorAll('.kanban-column')
-        if (columns.length < sbCol + 2) return
-        const board = document.querySelector('.kanban-board')
-        if (!board) return
-        const boardRect = board.getBoundingClientRect()
-        const firstCol = columns[sbCol].getBoundingClientRect()
-        const secondCol = columns[sbCol + 1].getBoundingClientRect()
-        setSbPos({
-            left: firstCol.left - boardRect.left,
-            width: secondCol.right - firstCol.left,
-            top: firstCol.top - boardRect.top,
+        const el = sbContainerRef.current
+        if (!el) return
+        const ro = new ResizeObserver(([entry]) => {
+            setSbHeightPx(entry.contentRect.height)
         })
-    }, [settings.enableSearchBar, sbCol, searchBarWidget])
+        ro.observe(el)
+        return () => ro.disconnect()
+    }, [settings.enableSearchBar, searchBarWidget])
 
     return (
         <AppErrorBoundary>
@@ -220,8 +211,8 @@ export default function App() {
                         {searchBarWidget && settings.enableSearchBar && (
                             <div
                                 className="search-bar-span"
-                                style={{ left: sbPos.left, width: sbPos.width, top: sbPos.top }}
-                                ref={sbMeasureRef}
+                                style={{ gridColumn: `${sbCol + 1} / span 2`, gridRow: 1 }}
+                                ref={sbContainerRef}
                             >
                                 <WidgetErrorBoundary widgetName="Search Bar">
                                     <Draggable
@@ -245,9 +236,9 @@ export default function App() {
                                     className="kanban-column"
                                     key={colIndex}
                                     data-col={colIndex}
-                                    style={{ gridColumn: colIndex + 1 }}
+                                    style={{ gridColumn: colIndex + 1, gridRow: '2 / -1' }}
                                 >
-                                    <div className="kanban-column-inner" style={covered ? { paddingTop: sbHeightPx + 12 } : undefined}>
+                                    <div className="kanban-column-inner" style={covered ? { paddingTop: sbHeightPx + 8 } : undefined}>
                                         {colWidgets.map(w => (
                                             <WidgetErrorBoundary key={w.id} widgetName={WIDGET_NAME_MAP[w.id]}>
                                                 <Draggable

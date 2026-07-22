@@ -19,7 +19,6 @@
 }
 
 .search-bar-span {
-  position: absolute;
   z-index: 10;
 }
 
@@ -34,7 +33,6 @@
   transition: background 0.2s ease;
   justify-content: flex-start;
   min-height: 60px;
-  contain: style paint;
 }
 
 .kanban-column::-webkit-scrollbar { display: none; }
