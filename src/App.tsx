@@ -2,7 +2,7 @@
   * @fileoverview Main application component that orchestrates the new tab page.
   */
 
-import { useState, useEffect, useCallback, useMemo, useRef, lazy, Suspense } from 'react'
+import { useState, useEffect, useCallback, useMemo, lazy, Suspense } from 'react'
 import Wallpaper from './components/Wallpaper'
 import Draggable from './components/Draggable'
 
@@ -187,20 +187,6 @@ export default function App() {
     const sbLayout = layout['search-bar'] || { col: 1 }
     const sbCol = Math.min(sbLayout.col ?? 1, NUM_COLUMNS - 2)
 
-    const [sbHeightPx, setSbHeightPx] = useState(0)
-    const sbContainerRef = useRef<HTMLDivElement>(null)
-
-    useEffect(() => {
-        if (!settings.enableSearchBar || !searchBarWidget) return
-        const el = sbContainerRef.current
-        if (!el) return
-        const ro = new ResizeObserver(([entry]) => {
-            setSbHeightPx(entry.contentRect.height)
-        })
-        ro.observe(el)
-        return () => ro.disconnect()
-    }, [settings.enableSearchBar, searchBarWidget])
-
     return (
         <AppErrorBoundary>
             <div className="app">
@@ -212,7 +198,6 @@ export default function App() {
                             <div
                                 className="search-bar-span"
                                 style={{ gridColumn: `${sbCol + 1} / span 2`, gridRow: 1 }}
-                                ref={sbContainerRef}
                             >
                                 <WidgetErrorBoundary widgetName="Search Bar">
                                     <Draggable
@@ -236,9 +221,10 @@ export default function App() {
                                     className="kanban-column"
                                     key={colIndex}
                                     data-col={colIndex}
+                                    data-covered={covered || undefined}
                                     style={{ gridColumn: colIndex + 1, gridRow: '2 / -1' }}
                                 >
-                                    <div className="kanban-column-inner" style={covered ? { paddingTop: `${sbHeightPx + 12}px` } : undefined}>
+                                    <div className="kanban-column-inner">
                                         {colWidgets.map(w => (
                                             <WidgetErrorBoundary key={w.id} widgetName={WIDGET_NAME_MAP[w.id]}>
                                                 <Draggable
