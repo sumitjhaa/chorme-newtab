@@ -21,7 +21,6 @@
 .search-bar-span {
   z-index: 10;
   align-self: start;
-  padding-bottom: 1.5rem;
 }
 
 .kanban-column {
@@ -44,10 +43,6 @@
   flex-direction: column;
   gap: 0.75rem;
   min-height: 60px;
-}
-
-.kanban-column[data-covered="true"] .kanban-column-inner {
-  padding-top: 3.5rem;
 }
 
 .kanban-column.drag-over {

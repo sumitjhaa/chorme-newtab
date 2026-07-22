@@ -221,7 +221,6 @@ export default function App() {
                                     className="kanban-column"
                                     key={colIndex}
                                     data-col={colIndex}
-                                    data-covered={covered || undefined}
                                     style={{ gridColumn: colIndex + 1, gridRow: '2 / -1' }}
                                 >
                                     <div className="kanban-column-inner">
