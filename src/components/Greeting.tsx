@@ -51,7 +51,7 @@ function EveningIcon() {
   )
 }
 
-function getGreetingData(t) {
+function getGreetingData(t: (key: string) => string) {
   const h = new Date().getHours()
   if (h < 12) return { text: t('goodMorning'), Icon: MorningIcon }
   if (h < 17) return { text: t('goodAfternoon'), Icon: AfternoonIcon }
@@ -83,4 +83,3 @@ function Greeting() {
 }
 
 export default memo(Greeting)
-

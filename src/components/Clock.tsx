@@ -1,10 +1,11 @@
 // @ts-nocheck
 import { useState, useEffect, memo } from 'react'
 import { useSettings } from '../hooks/useSettings'
+import type { Settings } from '../types'
 
-function formatTime(date, s) {
+function formatTime(date: Date, s: Settings): string {
   const is24h = s.clockFormat === '24h'
-  const opts = { hour: '2-digit', minute: '2-digit', hour12: !is24h }
+  const opts: Intl.DateTimeFormatOptions = { hour: '2-digit', minute: '2-digit', hour12: !is24h }
   if (s.showSeconds) opts.second = '2-digit'
   if (s.timeZone !== 'local') opts.timeZone = s.timeZone
   const str = date.toLocaleTimeString('en-US', opts)
@@ -12,23 +13,23 @@ function formatTime(date, s) {
   return str.replace(/\s?(AM|PM|am|pm)$/i, '').trim()
 }
 
-function getAmPm(date, s) {
+function getAmPm(date: Date, s: Settings): string {
   if (s.clockFormat === '24h' || !s.showAmPm) return ''
-  const opts = { hour: 'numeric', hour12: true }
+  const opts: Intl.DateTimeFormatOptions = { hour: 'numeric', hour12: true }
   if (s.timeZone !== 'local') opts.timeZone = s.timeZone
   const parts = new Intl.DateTimeFormat('en-US', opts).formatToParts(date)
   const daypart = parts.find((p) => p.type === 'dayPeriod')
   return daypart ? daypart.value.toUpperCase() : ''
 }
 
-function getSeconds(date, s) {
+function getSeconds(date: Date, s: Settings): string {
   if (!s.showSeconds) return ''
-  const opts = { second: '2-digit' }
+  const opts: Intl.DateTimeFormatOptions = { second: '2-digit' }
   if (s.timeZone !== 'local') opts.timeZone = s.timeZone
   return date.toLocaleTimeString('en-US', opts)
 }
 
-function formatDate(date, s) {
+function formatDate(date: Date, s: Settings): string {
   const tz = s.timeZone !== 'local' ? { timeZone: s.timeZone } : {}
   const day = String(new Intl.DateTimeFormat('en-US', { day: '2-digit', ...tz }).format(date)).padStart(2, '0')
   const month = String(new Intl.DateTimeFormat('en-US', { month: '2-digit', ...tz }).format(date)).padStart(2, '0')
@@ -38,19 +39,24 @@ function formatDate(date, s) {
   return `${day}/${month}/${year}`
 }
 
-function tzLabel(tz) {
+function tzLabel(tz: string): string {
   const parts = tz.split('/')
   return parts.length > 1 ? parts[parts.length - 1].replace(/_/g, ' ') : tz
 }
 
-function AnalogClock({ date, timeZone }) {
+interface AnalogClockProps {
+  date: Date
+  timeZone: string
+}
+
+function AnalogClock({ date, timeZone }: AnalogClockProps) {
   const tz = timeZone !== 'local' ? { timeZone } : {}
   const parts = new Intl.DateTimeFormat('en-US', {
     hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: false, ...tz,
   }).formatToParts(date)
-  const h = Number(parts.find((p) => p.type === 'hour').value) % 12
-  const m = Number(parts.find((p) => p.type === 'minute').value)
-  const s = Number(parts.find((p) => p.type === 'second').value)
+  const h = Number(parts.find((p) => p.type === 'hour')?.value ?? 0) % 12
+  const m = Number(parts.find((p) => p.type === 'minute')?.value ?? 0)
+  const s = Number(parts.find((p) => p.type === 'second')?.value ?? 0)
 
   const hourDeg = h * 30 + m * 0.5
   const minDeg = m * 6

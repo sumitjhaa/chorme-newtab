@@ -2,7 +2,7 @@
 import { useState, useEffect, memo } from 'react'
 import { useTranslation } from '../hooks/useTranslation'
 
-function getDays(t) {
+function getDays(t: (key: string) => string): string[] {
   return [t('sun'), t('mon'), t('tue'), t('wed'), t('thu'), t('fri'), t('sat')]
 }
 
