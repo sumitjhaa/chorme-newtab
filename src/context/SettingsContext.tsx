@@ -2,10 +2,16 @@
 import { createContext, useState, useEffect, useCallback, useMemo } from 'react'
 import { SETTINGS_DEFAULTS } from '../utils/defaults'
 import { loadSettingsSync, saveSettingsSync } from '../utils/storage'
+import type { Settings, SettingsKey } from '../types'
 
-export const SettingsContext = createContext(null)
+interface SettingsContextValue {
+  settings: Settings
+  update: (key: SettingsKey, value: any) => void
+}
 
-function readAllSettings() {
+export const SettingsContext = createContext<SettingsContextValue | null>(null)
+
+function readAllSettings(): Settings {
   const stored = loadSettingsSync()
   return { ...SETTINGS_DEFAULTS, ...stored }
 }
@@ -13,7 +19,7 @@ function readAllSettings() {
 export function SettingsProvider({ children }) {
   const [settings, setSettings] = useState(readAllSettings)
 
-  const update = useCallback((key, value) => {
+  const update = useCallback((key: SettingsKey, value: any) => {
     setSettings(prev => {
       const next = { ...prev, [key]: value }
       saveSettingsSync({ [key]: value })
