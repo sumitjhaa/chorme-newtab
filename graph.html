@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chrome New Tab - Knowledge Graph</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0d1117; color: #c9d1d9; padding: 20px; }
+        h1 { color: #58a6ff; margin-bottom: 10px; }
+        h2 { color: #79c0ff; margin: 20px 0 10px; border-bottom: 1px solid #21262d; padding-bottom: 5px; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .mermaid { background: #161b22; border-radius: 8px; padding: 20px; margin: 10px 0; overflow-x: auto; }
+        .mermaid svg { max-width: 100%; }
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0; }
+        .stat-card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 15px; }
+        .stat-card h3 { color: #58a6ff; font-size: 24px; margin-bottom: 5px; }
+        .stat-card p { color: #8b949e; font-size: 14px; }
+        table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #21262d; }
+        th { background: #161b22; color: #58a6ff; }
+        tr:hover { background: #161b22; }
+        .node-type { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-right: 5px; }
+        .entry { background: #1f6feb33; color: #58a6ff; }
+        .widget { background: #23863633; color: #3fb950; }
+        .hook { background: #da363333; color: #f85149; }
+        .api { background: #d2992233; color: #d29922; }
+        .storage { background: #8b949e33; color: #8b949e; }
+        .tabs { display: flex; gap: 10px; margin: 20px 0; }
+        .tab { padding: 10px 20px; background: #161b22; border: 1px solid #30363d; border-radius: 6px; cursor: pointer; color: #c9d1d9; }
+        .tab:hover { background: #21262d; }
+        .tab.active { background: #1f6feb; border-color: #1f6feb; }
+        .content { display: none; }
+        .content.active { display: block; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Chrome New Tab Extension - Knowledge Graph</h1>
+        <p style="color: #8b949e; margin-bottom: 20px;">Interactive architecture visualization of the codebase</p>
+
+        <div class="stats">
+            <div class="stat-card">
+                <h3>9</h3>
+                <p>Widgets</p>
+            </div>
+            <div class="stat-card">
+                <h3>15+</h3>
+                <p>Custom Hooks</p>
+            </div>
+            <div class="stat-card">
+                <h3>5</h3>
+                <p>API Services</p>
+            </div>
+            <div class="stat-card">
+                <h3>4</h3>
+                <p>Storage Layers</p>
+            </div>
+            <div class="stat-card">
+                <h3>118</h3>
+                <p>Source Files</p>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" onclick="showTab('architecture')">Architecture</div>
+            <div class="tab" onclick="showTab('dataflow')">Data Flow</div>
+            <div class="tab" onclick="showTab('components')">Components</div>
+            <div class="tab" onclick="showTab('nodes')">Node List</div>
+        </div>
+
+        <div id="architecture" class="content active">
+            <h2>System Architecture</h2>
+            <div class="mermaid">
+graph TB
+    subgraph Entry["Entry Points"]
+        HTML[index.html] --> Main[main.tsx]
+        Main --> SP[SettingsProvider]
+        SP --> App[App.tsx]
+    end
+
+    subgraph State["State Management"]
+        SC[SettingsContext] --> RS[React State]
+        SC --> BC[BroadcastChannel]
+        SC --> CS[chrome.storage]
+        SC --> LS[localStorage]
+    end
+
+    subgraph Widgets["Widget System"]
+        CW[Clock]
+        CAL[Calendar]
+        POM[Pomodoro]
+        WEATHER[Weather]
+        GREET[Greeting]
+        STICKY[StickyNote]
+        WB[Whiteboard]
+        LIST[Lists]
+        SB[SearchBar]
+    end
+
+    subgraph API["API Layer"]
+        BG[background.ts]
+        WH[Wallhaven]
+        PIX[Pixabay]
+        PICSUM[Picsum]
+        CAT[Catbox]
+        GOOGLE[Google Suggestions]
+    end
+
+    App --> SC
+    App --> CW
+    App --> CAL
+    App --> POM
+    App --> WEATHER
+    App --> GREET
+    App --> STICKY
+    App --> WB
+    App --> LIST
+    App --> SB
+    App --> BG
+
+    BG --> WH
+    BG --> PIX
+    BG --> PICSUM
+    BG --> CAT
+    SB --> GOOGLE
+
+    classDef entry fill:#1f6feb,stroke:#58a6ff,color:#fff
+    classDef state fill:#8957e5,stroke:#bc8cff,color:#fff
+    classDef widget fill:#238636,stroke:#3fb950,color:#fff
+    classDef api fill:#d29922,stroke:#e3b341,color:#fff
+
+    class HTML,Main,SP,App entry
+    class SC,RS,BC,CS,LS state
+    class CW,CAL,POM,WEATHER,GREET,STICKY,WB,LIST,SB widget
+    class BG,WH,PIX,PICSUM,CAT,GOOGLE api
+            </div>
+        </div>
+
+        <div id="dataflow" class="content">
+            <h2>Data Flow</h2>
+            <div class="mermaid">
+sequenceDiagram
+    actor User
+    participant App
+    participant SC as SettingsContext
+    participant LS as LocalStorage
+    participant CS as ChromeStorage
+    participant BC as BroadcastChannel
+    participant BG as Background
+    participant API as External APIs
+
+    rect rgb(31, 111, 235, 0.2)
+    Note over User,API: Settings Update
+    User->>App: Change Setting
+    App->>SC: update(key, value)
+    SC->>LS: saveSettingsSync()
+    SC->>CS: chrome.storage.local.set()
+    SC->>BC: postMessage()
+    end
+
+    rect rgb(35, 134, 54, 0.2)
+    Note over User,API: Wallpaper Fetch
+    User->>App: Click Refresh
+    App->>BG: sendMessage(FETCH_WALLPAPER)
+    BG->>API: fetch(wallhaven/pixabay)
+    API-->>BG: WallpaperImage
+    BG-->>App: Return wallpaper
+    end
+
+    rect rgb(210, 153, 34, 0.2)
+    Note over User,API: Search Suggestions
+    User->>App: Type query
+    App->>BG: sendMessage(FETCH_SUGGESTIONS)
+    BG->>API: fetch(google suggestions)
+    API-->>BG: suggestions[]
+    BG-->>App: Return suggestions
+    end
+            </div>
+        </div>
+
+        <div id="components" class="content">
+            <h2>Component Dependencies</h2>
+            <div class="mermaid">
+graph LR
+    subgraph Core
+        A[App.tsx]
+        B[SettingsContext]
+    end
+
+    subgraph Widgets
+        C[Clock]
+        D[Calendar]
+        E[Pomodoro]
+        F[Weather]
+        G[Greeting]
+        H[StickyNote]
+        I[Whiteboard]
+        J[Lists]
+        K[SearchBar]
+    end
+
+    subgraph Hooks
+        L[useSettings]
+        M[useTranslation]
+        N[useCSSVariables]
+        O[useWallpaperRefresh]
+        P[useKeyboardShortcuts]
+    end
+
+    A --> C & D & E & F & G & H & I & J & K
+    C & D & E & F & G & H & I & J & K --> L
+    L --> B
+    A --> M & N & O & P
+
+    classDef core fill:#8957e5,stroke:#bc8cff,color:#fff
+    classDef widget fill:#238636,stroke:#3fb950,color:#fff
+    classDef hook fill:#da3633,stroke:#f85149,color:#fff
+
+    class A,B core
+    class C,D,E,F,G,H,I,J,K widget
+    class L,M,N,O,P hook
+            </div>
+        </div>
+
+        <div id="nodes" class="content">
+            <h2>Complete Node List</h2>
+            <table>
+                <thead>
+                    <tr><th>Node</th><th>Type</th><th>File</th><th>Description</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>index.html</td><td><span class="node-type entry">Entry</span></td><td>index.html</td><td>HTML entry point</td></tr>
+                    <tr><td>main.tsx</td><td><span class="node-type entry">Entry</span></td><td>src/main.tsx</td><td>React root render</td></tr>
+                    <tr><td>App.tsx</td><td><span class="node-type entry">Entry</span></td><td>src/App.tsx</td><td>Main orchestrator</td></tr>
+                    <tr><td>SettingsContext</td><td><span class="node-type storage">Storage</span></td><td>src/context/SettingsContext.tsx</td><td>Global settings state</td></tr>
+                    <tr><td>Clock</td><td><span class="node-type widget">Widget</span></td><td>src/components/Clock.tsx</td><td>Time display</td></tr>
+                    <tr><td>Calendar</td><td><span class="node-type widget">Widget</span></td><td>src/components/Calendar.tsx</td><td>Date display</td></tr>
+                    <tr><td>Pomodoro</td><td><span class="node-type widget">Widget</span></td><td>src/components/Pomodoro.tsx</td><td>Focus timer</td></tr>
+                    <tr><td>Weather</td><td><span class="node-type widget">Widget</span></td><td>src/components/Weather.tsx</td><td>Weather info</td></tr>
+                    <tr><td>Greeting</td><td><span class="node-type widget">Widget</span></td><td>src/components/Greeting.tsx</td><td>Personalized greeting</td></tr>
+                    <tr><td>StickyNote</td><td><span class="node-type widget">Widget</span></td><td>src/components/StickyNote.tsx</td><td>Notes widget</td></tr>
+                    <tr><td>Whiteboard</td><td><span class="node-type widget">Widget</span></td><td>src/components/whiteboard/Whiteboard.tsx</td><td>Drawing canvas</td></tr>
+                    <tr><td>Lists</td><td><span class="node-type widget">Widget</span></td><td>src/components/list/Lists.tsx</td><td>Todo list</td></tr>
+                    <tr><td>SearchBar</td><td><span class="node-type widget">Widget</span></td><td>src/components/SearchBar.tsx</td><td>Search input</td></tr>
+                    <tr><td>useSettings</td><td><span class="node-type hook">Hook</span></td><td>src/hooks/useSettings.ts</td><td>Settings access</td></tr>
+                    <tr><td>useTranslation</td><td><span class="node-type hook">Hook</span></td><td>src/hooks/useTranslation.ts</td><td>i18n text</td></tr>
+                    <tr><td>useCSSVariables</td><td><span class="node-type hook">Hook</span></td><td>src/hooks/useCSSVariables.ts</td><td>CSS variables</td></tr>
+                    <tr><td>useWallpaperRefresh</td><td><span class="node-type hook">Hook</span></td><td>src/hooks/useWallpaperRefresh.ts</td><td>Auto-refresh</td></tr>
+                    <tr><td>useKeyboardShortcuts</td><td><span class="node-type hook">Hook</span></td><td>src/hooks/useKeyboardShortcuts.ts</td><td>Keyboard handlers</td></tr>
+                    <tr><td>useLists</td><td><span class="node-type hook">Hook</span></td><td>src/hooks/useLists.ts</td><td>List state</td></tr>
+                    <tr><td>useCanvas</td><td><span class="node-type hook">Hook</span></td><td>src/hooks/useCanvas.ts</td><td>Canvas operations</td></tr>
+                    <tr><td>background.ts</td><td><span class="node-type api">API</span></td><td>src/background.ts</td><td>Service worker</td></tr>
+                    <tr><td>Wallhaven API</td><td><span class="node-type api">API</span></td><td>External</td><td>Wallpaper source</td></tr>
+                    <tr><td>Pixabay API</td><td><span class="node-type api">API</span></td><td>External</td><td>Wallpaper source</td></tr>
+                    <tr><td>Picsum API</td><td><span class="node-type api">API</span></td><td>External</td><td>Wallpaper source</td></tr>
+                    <tr><td>Catbox API</td><td><span class="node-type api">API</span></td><td>External</td><td>Wallpaper source</td></tr>
+                    <tr><td>Google Suggestions</td><td><span class="node-type api">API</span></td><td>External</td><td>Search suggestions</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        mermaid.initialize({ startOnLoad: true, theme: 'dark' });
+
+        function showTab(tabId) {
+            document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>
