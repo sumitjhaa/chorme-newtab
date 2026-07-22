@@ -1,15 +1,25 @@
 // @ts-nocheck
-import { useState, useCallback, useRef, useEffect } from 'react'
+import { useState, useCallback, useRef, useEffect, type ReactNode } from 'react'
 
-export default function Draggable({ id, col, onDrop, numColumns, maxCol, span = 1, children }) {
+interface DraggableProps {
+  id: string
+  col: number
+  onDrop: (id: string, col: number, order: number) => void
+  numColumns: number
+  maxCol?: number
+  span?: number
+  children: ReactNode
+}
+
+export default function Draggable({ id, col, onDrop, numColumns, maxCol, span = 1, children }: DraggableProps) {
   const [dragging, setDragging] = useState(false)
   const [dragPos, setDragPos] = useState({ x: 0, y: 0 })
   const [ghostHeight, setGhostHeight] = useState(0)
-  const elRef = useRef(null)
+  const elRef = useRef<HTMLDivElement>(null)
   const offset = useRef({ x: 0, y: 0 })
   const onDropRef = useRef(onDrop)
   onDropRef.current = onDrop
-  const indicatorRef = useRef(null)
+  const indicatorRef = useRef<HTMLDivElement | null>(null)
 
   const removeIndicator = useCallback(() => {
     if (indicatorRef.current) {
@@ -18,13 +28,13 @@ export default function Draggable({ id, col, onDrop, numColumns, maxCol, span = 
     }
   }, [])
 
-  const updateIndicator = useCallback((clientX, clientY) => {
+  const updateIndicator = useCallback((clientX: number, clientY: number) => {
     const columns = document.querySelectorAll('.kanban-column')
     removeIndicator()
 
-    let targetColEl = null
+    let targetColEl: Element | null = null
     let targetColIndex = -1
-    let insertBefore = null
+    let insertBefore: Element | null = null
 
     columns.forEach((colEl, i) => {
       const rect = colEl.getBoundingClientRect()
@@ -55,7 +65,6 @@ export default function Draggable({ id, col, onDrop, numColumns, maxCol, span = 
         const firstCol = columns[startCol]
         const lastCol = columns[Math.min(startCol + span - 1, numColumns - 1)]
         if (firstCol && lastCol && board) {
-          const boardRect = board.getBoundingClientRect()
           const firstRect = firstCol.getBoundingClientRect()
           const lastRect = lastCol.getBoundingClientRect()
           const indicator = document.createElement('div')
@@ -86,22 +95,23 @@ export default function Draggable({ id, col, onDrop, numColumns, maxCol, span = 
     }
   }, [ghostHeight, removeIndicator, span, numColumns])
 
-  const handleGrabStart = useCallback((clientX, clientY) => {
-    const rect = elRef.current.getBoundingClientRect()
+  const handleGrabStart = useCallback((clientX: number, clientY: number) => {
+    const rect = elRef.current?.getBoundingClientRect()
+    if (!rect) return
     offset.current = { x: clientX - rect.left, y: clientY - rect.top }
     setGhostHeight(rect.height)
     setDragPos({ x: clientX - offset.current.x, y: clientY - offset.current.y })
     setDragging(true)
   }, [])
 
-  const handleGrabMouseDown = useCallback((e) => {
+  const handleGrabMouseDown = useCallback((e: React.MouseEvent) => {
     if (e.button !== 0) return
     e.preventDefault()
     e.stopPropagation()
     handleGrabStart(e.clientX, e.clientY)
   }, [handleGrabStart])
 
-  const handleGrabTouchStart = useCallback((e) => {
+  const handleGrabTouchStart = useCallback((e: React.TouchEvent) => {
     e.stopPropagation()
     const touch = e.touches[0]
     handleGrabStart(touch.clientX, touch.clientY)
@@ -110,17 +120,17 @@ export default function Draggable({ id, col, onDrop, numColumns, maxCol, span = 
   useEffect(() => {
     if (!dragging) return
 
-    const handleMove = (e) => {
-      const clientX = e.clientX ?? e.touches?.[0]?.clientX
-      const clientY = e.clientY ?? e.touches?.[0]?.clientY
+    const handleMove = (e: MouseEvent | TouchEvent) => {
+      const clientX = 'clientX' in e ? e.clientX : e.touches?.[0]?.clientX
+      const clientY = 'clientY' in e ? e.clientY : e.touches?.[0]?.clientY
       if (clientX == null || clientY == null) return
       setDragPos({ x: clientX - offset.current.x, y: clientY - offset.current.y })
       updateIndicator(clientX, clientY)
     }
 
-    const handleUp = (e) => {
-      const clientX = e.clientX ?? e.changedTouches?.[0]?.clientX
-      const clientY = e.clientY ?? e.changedTouches?.[0]?.clientY
+    const handleUp = (e: MouseEvent | TouchEvent) => {
+      const clientX = 'clientX' in e ? e.clientX : e.changedTouches?.[0]?.clientX
+      const clientY = 'clientY' in e ? e.clientY : e.changedTouches?.[0]?.clientY
       removeIndicator()
       if (clientX == null || clientY == null) {
         setDragging(false)
