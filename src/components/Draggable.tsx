@@ -34,6 +34,7 @@ export default memo(function Draggable({ id, col, onDrop, numColumns, maxCol, sp
     const [dragPos, setDragPos] = useState({ x: 0, y: 0 })
     const [ghostHeight, setGhostHeight] = useState(0)
     const elRef = useRef<HTMLDivElement>(null)
+    const handleRef = useRef<HTMLButtonElement>(null)
     const offset = useRef({ x: 0, y: 0 })
     const onDropRef = useRef(onDrop)
     onDropRef.current = onDrop
@@ -115,12 +116,25 @@ export default memo(function Draggable({ id, col, onDrop, numColumns, maxCol, sp
         }
     }, [ghostHeight, removeIndicator, span, numColumns])
 
-    const handleGrabStart = useCallback((clientX: number, clientY: number) => {
+    const handleGrabStart = useCallback((clientX: number, clientY: number, handleEl: HTMLElement | null) => {
         const rect = elRef.current?.getBoundingClientRect()
         if (!rect) return
-        offset.current = { x: clientX - rect.left, y: clientY - rect.top }
+
+        if (handleEl) {
+            const hr = handleEl.getBoundingClientRect()
+            const hcX = hr.left + hr.width / 2
+            const hcY = hr.top + hr.height / 2
+            offset.current = {
+                x: hcX - rect.left,
+                y: hcY - rect.top,
+            }
+            setDragPos({ x: clientX - (hcX - rect.left), y: clientY - (hcY - rect.top) })
+        } else {
+            offset.current = { x: clientX - rect.left, y: clientY - rect.top }
+            setDragPos({ x: rect.left, y: rect.top })
+        }
+
         setGhostHeight(rect.height)
-        setDragPos({ x: clientX - offset.current.x, y: clientY - offset.current.y })
         setDragging(true)
     }, [])
 
@@ -128,13 +142,13 @@ export default memo(function Draggable({ id, col, onDrop, numColumns, maxCol, sp
         if (e.button !== 0) return
         e.preventDefault()
         e.stopPropagation()
-        handleGrabStart(e.clientX, e.clientY)
+        handleGrabStart(e.clientX, e.clientY, handleRef.current)
     }, [handleGrabStart])
 
     const handleGrabTouchStart = useCallback((e: React.TouchEvent) => {
         e.stopPropagation()
         const touch = e.touches[0]
-        handleGrabStart(touch.clientX, touch.clientY)
+        handleGrabStart(touch.clientX, touch.clientY, handleRef.current)
     }, [handleGrabStart])
 
     useEffect(() => {
@@ -224,6 +238,7 @@ export default memo(function Draggable({ id, col, onDrop, numColumns, maxCol, sp
                 style={dragging ? floatingStyle : undefined}
             >
                 <button
+                    ref={handleRef}
                     className="drag-handle"
                     onMouseDown={handleGrabMouseDown}
                     onTouchStart={handleGrabTouchStart}
