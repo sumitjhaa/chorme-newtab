@@ -1,5 +1,5 @@
 import { useCallback } from 'react'
-import { t as translate, getLanguageName } from '../translations.js'
+import { t as translate, getLanguageName } from '../translations/index.js'
 import { useSettings } from './useSettings.js'
 
 export function useTranslation() {
