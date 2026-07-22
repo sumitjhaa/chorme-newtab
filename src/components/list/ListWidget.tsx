@@ -2,7 +2,7 @@
   * @fileoverview Todo list widget with multiple list groups.
   */
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, memo } from 'react'
 import ListItem from './ListItem'
 import './list.css'
 import type { TodoList, TodoItem } from '../../types/list'
@@ -25,7 +25,7 @@ interface ListGroupProps {
   * 
   * @param props - ListGroupProps
   */
-function ListGroup({ list, index, onChange, onDelete }: ListGroupProps) {
+const ListGroup = memo(function ListGroup({ list, index, onChange, onDelete }: ListGroupProps) {
     const [editingTitle, setEditingTitle] = useState(false)
     const titleRef = useRef<HTMLDivElement>(null)
 
@@ -119,7 +119,7 @@ function ListGroup({ list, index, onChange, onDelete }: ListGroupProps) {
             </button>
         </div>
     )
-}
+})
 
 /** Props for the ListWidget component */
 interface ListWidgetProps {
@@ -139,7 +139,7 @@ interface ListWidgetProps {
   * @param props - ListWidgetProps
   * @example <ListWidget lists={lists} onUpdate={set} onRemove={del} onAdd={add} />
   */
-export default function ListWidget({ lists, onUpdate, onRemove }: ListWidgetProps) {
+const ListWidget = memo(function ListWidget({ lists, onUpdate, onRemove }: ListWidgetProps) {
     return (
         <div className="list-widget">
             {lists.map((list, i) => (
@@ -153,4 +153,6 @@ export default function ListWidget({ lists, onUpdate, onRemove }: ListWidgetProp
             ))}
         </div>
     )
-}
+})
+
+export default ListWidget

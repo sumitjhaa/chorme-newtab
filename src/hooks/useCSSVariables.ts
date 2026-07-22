@@ -2,7 +2,7 @@
   * @fileoverview Hooks for applying settings as CSS variables to the document root.
   */
 
-import { useEffect, useMemo } from 'react'
+import { useEffect } from 'react'
 import { useSettings } from './useSettings'
 
 /**

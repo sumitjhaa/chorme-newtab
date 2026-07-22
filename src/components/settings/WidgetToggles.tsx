@@ -66,10 +66,8 @@ function WidgetToggles() {
             } catch {}
         }
         window.addEventListener('sticky-update', readNotes)
-        const interval = setInterval(readNotes, 500)
         return () => {
             window.removeEventListener('sticky-update', readNotes)
-            clearInterval(interval)
         }
     }, [])
 
@@ -81,10 +79,8 @@ function WidgetToggles() {
             } catch {}
         }
         window.addEventListener('lists-update', readLists)
-        const interval = setInterval(readLists, 500)
         return () => {
             window.removeEventListener('lists-update', readLists)
-            clearInterval(interval)
         }
     }, [])
 

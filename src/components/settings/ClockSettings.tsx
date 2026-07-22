@@ -57,6 +57,15 @@ function ClockSettings() {
         })
     ], [t])
 
+    const worldClockTimezoneOptions = useMemo(() =>
+        SUPPORTED_TIMEZONES.map((tzOption: string) => {
+            const parts = tzOption.split('/')
+            const label = parts.length > 1 ? parts[parts.length - 1].replace(/_/g, ' ') : tzOption
+            return { value: tzOption, label }
+        }),
+        []
+    )
+
     const dateFormatOptions = useMemo(() =>
         DATE_FORMAT_OPTIONS.map(o => ({ value: o.value, label: t(o.labelKey) })),
         [t]
@@ -182,11 +191,7 @@ function ClockSettings() {
                                 <SettingSelect
                                     value={tz}
                                     onChange={(val) => handleWorldClockChange(i, val)}
-                                    options={SUPPORTED_TIMEZONES.map((tzOption: string) => {
-                                        const parts = tzOption.split('/')
-                                        const label = parts.length > 1 ? parts[parts.length - 1].replace(/_/g, ' ') : tzOption
-                                        return { value: tzOption, label }
-                                    })}
+                                    options={worldClockTimezoneOptions}
                                 />
                                 <button
                                     className="wc-remove-btn"

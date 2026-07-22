@@ -71,7 +71,7 @@ function Pomodoro() {
 
     useEffect(() => {
         saveState({ phase, timeLeft, cycles })
-    }, [phase, timeLeft, cycles])
+    }, [phase, cycles])
 
     useEffect(() => {
         if (!running) return

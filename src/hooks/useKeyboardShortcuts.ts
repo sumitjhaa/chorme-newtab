@@ -2,7 +2,7 @@
   * @fileoverview Hook for registering keyboard shortcuts.
   */
 
-import { useEffect, useCallback, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 
 /** Map of keyboard key names to handler functions */
 interface ShortcutMap {

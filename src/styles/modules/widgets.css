@@ -1,4 +1,28 @@
+/* ─── Shared Widget Base ─── */
+/* Used by: .greeting-widget, .clock, .calendar-widget, .pomodoro-widget, .sysinfo-widget, .weather-widget */
+.widget-base {
+  background: var(--wallpaper-color);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+  width: 100%;
+  font-family: var(--font-family);
+  color: var(--text-primary);
+}
+
 /* ─── Greeting Widget ─── */
+
+@supports not (backdrop-filter: blur(1px)) {
+    .greeting-widget,
+    .clock,
+    .calendar-widget,
+    .pomodoro-widget,
+    .sysinfo-widget,
+    .weather-widget {
+        background: rgba(20, 20, 30, 0.85);
+    }
+}
 
 .greeting-widget {
   background: var(--wallpaper-color);
@@ -14,6 +38,7 @@
   flex-direction: column;
   align-items: center;
   gap: 0.35rem;
+  contain: layout style;
 }
 
 .greeting-row {
@@ -49,6 +74,7 @@
   text-align: center;
   font-family: var(--font-family);
   color: var(--text-primary);
+  contain: layout style;
 }
 
 .clock-time {
@@ -124,7 +150,7 @@
 
 .world-clocks {
   margin-top: 0.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid var(--color-surface);
   padding-top: 0.5rem;
 }
 
@@ -154,7 +180,7 @@
   transition: color var(--transition-fast);
 }
 
-.wc-remove-btn:hover { color: #ff6b6b; }
+.wc-remove-btn:hover { color: var(--color-danger); }
 
 .wc-add-btn {
   background: var(--bg-glass);
@@ -166,7 +192,7 @@
   font-size: 0.7rem;
   font-weight: 600;
   width: 100%;
-  transition: all var(--transition-fast);
+  transition: background 160ms ease;
 }
 
 .wc-add-btn:hover { background: var(--bg-glass-hover); color: var(--text-primary); }
@@ -182,6 +208,7 @@
   width: 100%;
   font-family: var(--font-family);
   color: var(--text-primary);
+  contain: layout style;
 }
 
 .cal-header {
@@ -255,6 +282,7 @@
   text-align: center;
   font-family: var(--font-family);
   color: var(--text-primary);
+  contain: layout style;
 }
 
 .pomo-tabs {
@@ -275,7 +303,7 @@
   letter-spacing: 0.05em;
   text-transform: uppercase;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: background 160ms ease, color 160ms ease;
 }
 
 .pomo-tab:hover { color: var(--text-primary); border-color: rgba(255, 255, 255, 0.2); }
@@ -312,7 +340,7 @@
 }
 
 .pomo-btn {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--color-surface);
   border: none;
   color: var(--text-primary);
   padding: 4px 14px;
@@ -337,6 +365,7 @@
   width: 100%;
   font-family: var(--font-family);
   color: var(--text-primary);
+  contain: layout style;
 }
 
 .sysinfo-title {
@@ -411,7 +440,7 @@
   border-radius: 3px;
 }
 
-.sysinfo-badge.low { color: #f87171; background: rgba(248, 113, 113, 0.1); }
+.sysinfo-badge.low { color: var(--color-danger-light); background: rgba(248, 113, 113, 0.1); }
 
 .sys-graph {
   width: 100%;
@@ -430,6 +459,7 @@
   text-align: center;
   font-family: var(--font-family);
   color: var(--text-primary);
+  contain: layout style;
 }
 
 .weather-title {

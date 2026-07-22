@@ -2,7 +2,7 @@
   * @fileoverview Individual todo list item component.
   */
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, memo } from 'react'
 import type { TodoItem } from '../../types/list'
 
 /**
@@ -35,7 +35,7 @@ interface ListItemProps {
   * @param props - ListItemProps
   * @example <ListItem item={item} onChange={set} onDelete={del} onAddBelow={add} />
   */
-export default function ListItem({ item, onChange, onDelete, onAddBelow }: ListItemProps) {
+export default memo(function ListItem({ item, onChange, onDelete, onAddBelow }: ListItemProps) {
     const [editing, setEditing] = useState(!item.url)
     const urlRef = useRef<HTMLInputElement>(null)
     const titleRef = useRef<HTMLDivElement>(null)
@@ -147,4 +147,4 @@ export default function ListItem({ item, onChange, onDelete, onAddBelow }: ListI
             </button>
         </div>
     )
-}
+})

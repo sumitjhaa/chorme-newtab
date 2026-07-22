@@ -3,7 +3,7 @@
   min-height: 200px;
   padding: 32px 16px 24px;
   color: #171A21;
-  font-size: 15px;
+  font-size: var(--font-size-lg);
   letter-spacing: 0.5px;
   font-family: "Comic Sans MS", cursive, sans-serif;
   border-radius: var(--radius-lg);
@@ -11,6 +11,7 @@
   -webkit-backdrop-filter: blur(20px);
   box-shadow: 4px 4px 12px rgba(0, 0, 0, 0.15);
   transition: background 0.3s ease;
+  contain: layout style paint;
 }
 
 .sticky-tape {
@@ -77,7 +78,7 @@
   border-radius: 6px;
   color: rgba(0, 0, 0, 0.35);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background 160ms ease, transform 160ms ease;
   padding: 0;
 }
 
@@ -126,7 +127,7 @@
   font-family: monospace;
   font-size: 0.9em;
 }
-.sticky-preview a { color: #1a73e8; text-decoration: underline; }
+.sticky-preview a { color: var(--color-link); text-decoration: underline; }
 .sticky-preview ul { margin: 0.2em 0; padding-left: 1.5em; }
 .sticky-preview li { margin: 0.1em 0; }
 

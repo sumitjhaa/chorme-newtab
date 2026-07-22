@@ -2,7 +2,7 @@
   * @fileoverview Widget layout management utilities for column-based positioning.
   */
 
-import type { WidgetId, LayoutMap, LayoutPosition } from '../types'
+import type { WidgetId, LayoutMap } from '../types'
 import { LAYOUT_DEFAULTS } from '../utils/defaults'
 
 const LAYOUT_KEY = 'newtab_layout'

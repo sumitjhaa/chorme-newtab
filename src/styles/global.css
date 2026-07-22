@@ -1,9 +1,1 @@
-@import './modules/base.css';
-@import './modules/layout.css';
-@import './modules/wallpaper.css';
-@import './modules/draggable.css';
-@import './modules/search.css';
-@import './modules/widgets.css';
-@import './modules/sticky.css';
-@import './modules/controls.css';
-@import './modules/settings.css';
+/* Imports moved to main.tsx for direct bundling */

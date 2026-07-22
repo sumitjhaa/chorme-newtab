@@ -3,7 +3,6 @@
   */
 
 import type { Settings } from '../types'
-import { SETTINGS_DEFAULTS } from './defaults'
 
 const SETTINGS_KEY = 'newtab_settings'
 

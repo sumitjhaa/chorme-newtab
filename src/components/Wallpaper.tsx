@@ -29,12 +29,23 @@ function Wallpaper({ wallpaper, isLoading }: WallpaperProps) {
             )}
 
             {wallpaper?.url ? (
-                <img
-                    className="wallpaper-image"
-                    src={wallpaper.url}
-                    alt="Wallpaper"
-                    loading="eager"
-                />
+                <picture>
+                    {wallpaper.thumbnail && (
+                        <source srcSet={wallpaper.thumbnail} media="(max-width: 1024px)" />
+                    )}
+                    <img
+                        src={wallpaper.url}
+                        alt=""
+                        className={`wallpaper-img${isLoading ? ' loading' : ''}`}
+                        width={wallpaper.width}
+                        height={wallpaper.height}
+                        decoding="async"
+                        onError={(e) => {
+                            const target = e.target as HTMLImageElement
+                            target.style.display = 'none'
+                        }}
+                    />
+                </picture>
             ) : (
                 <div className="default-background" />
             )}

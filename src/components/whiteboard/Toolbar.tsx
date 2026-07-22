@@ -2,8 +2,8 @@
   * @fileoverview Whiteboard toolbar with tool selection and actions.
   */
 
-import React from 'react'
-import { TOOLS, type ToolId } from './tools'
+import React, { memo } from 'react'
+import { TOOLS } from './tools'
 import ColorPicker from './ColorPicker'
 
 /** SVG icons for each tool */
@@ -82,7 +82,7 @@ interface ToolbarProps {
   * @param props - ToolbarProps
   * @example <Toolbar activeTool="pencil" color="#000" lineWidth={2} onSelectTool={setTool} onSelectColor={setColor} onSelectLineWidth={setWidth} onClear={clear} onDelete={del} onSave={save} />
   */
-export default function Toolbar({ activeTool, color, lineWidth, onSelectTool, onSelectColor, onSelectLineWidth, onClear, onDelete, onSave }: ToolbarProps) {
+export default memo(function Toolbar({ activeTool, color, lineWidth, onSelectTool, onSelectColor, onSelectLineWidth, onClear, onDelete, onSave }: ToolbarProps) {
     const isEraser = activeTool === 'eraser'
     const minSize = isEraser ? 8 : 1
     const maxSize = isEraser ? 40 : 20
@@ -144,4 +144,4 @@ export default function Toolbar({ activeTool, color, lineWidth, onSelectTool, on
             </div>
         </div>
     )
-}
+})

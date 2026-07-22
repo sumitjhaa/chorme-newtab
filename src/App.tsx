@@ -2,19 +2,20 @@
   * @fileoverview Main application component that orchestrates the new tab page.
   */
 
-import { useState, useEffect, useCallback } from 'react'
-import SearchBar from './components/SearchBar'
+import { useState, useEffect, useCallback, useMemo, lazy, Suspense } from 'react'
 import Wallpaper from './components/Wallpaper'
-import Clock from './components/Clock'
-import Calendar from './components/Calendar'
-import Pomodoro from './components/Pomodoro'
-import Weather from './components/Weather'
-import Greeting from './components/Greeting'
-import StickyNote from './components/StickyNote'
-import Lists from './components/list/Lists'
-import Whiteboard from './components/whiteboard/Whiteboard'
-import Settings from './components/Settings'
 import Draggable from './components/Draggable'
+
+const Clock = lazy(() => import('./components/Clock'))
+const Calendar = lazy(() => import('./components/Calendar'))
+const Pomodoro = lazy(() => import('./components/Pomodoro'))
+const Weather = lazy(() => import('./components/Weather'))
+const Greeting = lazy(() => import('./components/Greeting'))
+const StickyNote = lazy(() => import('./components/StickyNote'))
+const Lists = lazy(() => import('./components/list/Lists'))
+const Whiteboard = lazy(() => import('./components/whiteboard/Whiteboard'))
+const SearchBar = lazy(() => import('./components/SearchBar'))
+const Settings = lazy(() => import('./components/Settings'))
 import { AppErrorBoundary, WidgetErrorBoundary } from './components/errors'
 import { fetchRandomWallpaper } from './api/index'
 import { getCurrentWallpaper, setCurrentWallpaper, getWallpaperSource } from './utils/storage'
@@ -143,38 +144,48 @@ export default function App() {
         })
     }, [])
 
-    // Build visible widgets
-    const visibleWidgets: { id: WidgetId; component: React.ReactNode }[] = []
-    if (settings.showClockWidget)    visibleWidgets.push({ id: 'clock', component: <Clock /> })
-    if (settings.showCalendarWidget) visibleWidgets.push({ id: 'calendar', component: <Calendar /> })
-    if (settings.showPomodoroWidget) visibleWidgets.push({ id: 'pomodoro', component: <Pomodoro /> })
-    if (settings.showWeatherWidget)  visibleWidgets.push({ id: 'weather', component: <Weather /> })
-    if (settings.showStickyNote)     visibleWidgets.push({ id: 'sticky-note', component: <StickyNote /> })
-    if (settings.showWhiteboard)     visibleWidgets.push({ id: 'whiteboard', component: <Whiteboard onDelete={() => {
+    const handleDeleteWhiteboard = useCallback(() => {
         const data = JSON.parse(localStorage.getItem('newtab_settings') || '{}')
         data.showWhiteboard = false
         localStorage.setItem('newtab_settings', JSON.stringify(data))
         try { chrome.storage.local.set({ showWhiteboard: false }) } catch {}
         window.dispatchEvent(new Event('storage'))
-    }} /> })
-    if (settings.showList)           visibleWidgets.push({ id: 'list', component: <Lists /> })
-    if (settings.enableGreeting)     visibleWidgets.push({ id: 'greeting', component: <Greeting /> })
-    if (settings.enableSearchBar)    visibleWidgets.push({ id: 'search-bar', component: <SearchBar /> })
+    }, [])
+
+    const handleRefresh = useCallback(() => loadWallpaper(), [loadWallpaper])
+
+    // Build visible widgets
+    const visibleWidgets = useMemo(() => {
+        const widgets: { id: WidgetId; component: React.ReactNode }[] = []
+        if (settings.showClockWidget)    widgets.push({ id: 'clock', component: <Clock /> })
+        if (settings.showCalendarWidget) widgets.push({ id: 'calendar', component: <Calendar /> })
+        if (settings.showPomodoroWidget) widgets.push({ id: 'pomodoro', component: <Pomodoro /> })
+        if (settings.showWeatherWidget)  widgets.push({ id: 'weather', component: <Weather /> })
+        if (settings.showStickyNote)     widgets.push({ id: 'sticky-note', component: <StickyNote /> })
+        if (settings.showWhiteboard)     widgets.push({ id: 'whiteboard', component: <Whiteboard onDelete={handleDeleteWhiteboard} /> })
+        if (settings.showList)           widgets.push({ id: 'list', component: <Lists /> })
+        if (settings.enableGreeting)     widgets.push({ id: 'greeting', component: <Greeting /> })
+        if (settings.enableSearchBar)    widgets.push({ id: 'search-bar', component: <SearchBar /> })
+        return widgets
+    }, [settings.showClockWidget, settings.showCalendarWidget, settings.showPomodoroWidget, settings.showWeatherWidget, settings.showStickyNote, settings.showWhiteboard, settings.showList, settings.enableGreeting, settings.enableSearchBar, handleDeleteWhiteboard])
 
     // Distribute widgets into columns
-    const columns: { id: WidgetId; component: React.ReactNode; order: number }[][] =
-        Array.from({ length: NUM_COLUMNS }, () => [])
+    const columns = useMemo(() => {
+        const cols: { id: WidgetId; component: React.ReactNode; order: number }[][] =
+            Array.from({ length: NUM_COLUMNS }, () => [])
+        visibleWidgets.forEach(w => {
+            if (w.id === 'search-bar') return
+            const pos = layout[w.id] || { col: 0, order: 0 }
+            const col = Math.min(pos.col, NUM_COLUMNS - 1)
+            cols[col].push({ ...w, order: pos.order })
+        })
+        cols.forEach(col => col.sort((a, b) => a.order - b.order))
+        return cols
+    }, [visibleWidgets, layout])
+
     const searchBarWidget = visibleWidgets.find(w => w.id === 'search-bar')
     const sbLayout = layout['search-bar'] || { col: 1 }
     const sbCol = Math.min(sbLayout.col ?? 1, NUM_COLUMNS - 2)
-
-    visibleWidgets.forEach(w => {
-        if (w.id === 'search-bar') return
-        const pos = layout[w.id] || { col: 0, order: 0 }
-        const col = Math.min(pos.col, NUM_COLUMNS - 1)
-        columns[col].push({ ...w, order: pos.order })
-    })
-    columns.forEach(col => col.sort((a, b) => a.order - b.order))
 
     // Search bar measurement — useEffect required for DOM measurement / layout calculation
     const [sbHeightPx, setSbHeightPx] = useState(0)
@@ -204,60 +215,62 @@ export default function App() {
             <div className="app">
                 <Wallpaper wallpaper={wallpaper} isLoading={isLoading} />
 
-                <div className="kanban-board">
-                    {searchBarWidget && settings.enableSearchBar && (
-                        <div
-                            className="search-bar-span"
-                            style={{ left: sbPos.left, width: sbPos.width, top: sbPos.top }}
-                            ref={sbMeasureRef}
-                        >
-                            <WidgetErrorBoundary widgetName="Search Bar">
-                                <Draggable
-                                    id="search-bar"
-                                    col={sbCol}
-                                    onDrop={handleDrop}
-                                    numColumns={NUM_COLUMNS}
-                                    maxCol={NUM_COLUMNS - 2}
-                                    span={2}
-                                >
-                                    {searchBarWidget.component}
-                                </Draggable>
-                            </WidgetErrorBoundary>
-                        </div>
-                    )}
-
-                    {columns.map((colWidgets, colIndex) => {
-                        const covered = settings.enableSearchBar && colIndex >= sbCol && colIndex <= sbCol + 1
-                        return (
+                <Suspense fallback={null}>
+                    <div className="kanban-board">
+                        {searchBarWidget && settings.enableSearchBar && (
                             <div
-                                className="kanban-column"
-                                key={colIndex}
-                                data-col={colIndex}
-                                style={{ gridColumn: colIndex + 1 }}
+                                className="search-bar-span"
+                                style={{ left: sbPos.left, width: sbPos.width, top: sbPos.top }}
+                                ref={sbMeasureRef}
                             >
-                                <div className="kanban-column-inner" style={covered ? { paddingTop: sbHeightPx + 12 } : undefined}>
-                                    {colWidgets.map(w => (
-                                        <WidgetErrorBoundary key={w.id} widgetName={WIDGET_NAME_MAP[w.id]}>
-                                            <Draggable
-                                                id={w.id}
-                                                col={colIndex}
-                                                onDrop={handleDrop}
-                                                numColumns={NUM_COLUMNS}
-                                            >
-                                                {w.component}
-                                            </Draggable>
-                                        </WidgetErrorBoundary>
-                                    ))}
-                                </div>
+                                <WidgetErrorBoundary widgetName="Search Bar">
+                                    <Draggable
+                                        id="search-bar"
+                                        col={sbCol}
+                                        onDrop={handleDrop}
+                                        numColumns={NUM_COLUMNS}
+                                        maxCol={NUM_COLUMNS - 2}
+                                        span={2}
+                                    >
+                                        {searchBarWidget.component}
+                                    </Draggable>
+                                </WidgetErrorBoundary>
                             </div>
-                        )
-                    })}
-                </div>
+                        )}
+
+                        {columns.map((colWidgets, colIndex) => {
+                            const covered = settings.enableSearchBar && colIndex >= sbCol && colIndex <= sbCol + 1
+                            return (
+                                <div
+                                    className="kanban-column"
+                                    key={colIndex}
+                                    data-col={colIndex}
+                                    style={{ gridColumn: colIndex + 1 }}
+                                >
+                                    <div className="kanban-column-inner" style={covered ? { paddingTop: sbHeightPx + 12 } : undefined}>
+                                        {colWidgets.map(w => (
+                                            <WidgetErrorBoundary key={w.id} widgetName={WIDGET_NAME_MAP[w.id]}>
+                                                <Draggable
+                                                    id={w.id}
+                                                    col={colIndex}
+                                                    onDrop={handleDrop}
+                                                    numColumns={NUM_COLUMNS}
+                                                >
+                                                    {w.component}
+                                                </Draggable>
+                                            </WidgetErrorBoundary>
+                                        ))}
+                                    </div>
+                                </div>
+                            )
+                        })}
+                    </div>
+                </Suspense>
 
                 <div className={`bottom-buttons visible${settings.hideSettingsIcons ? ' hidden-icons' : ''}`}>
                     <button
                         className="refresh-btn"
-                        onClick={() => loadWallpaper()}
+                        onClick={handleRefresh}
                         disabled={isLoading}
                         title={t('refreshWallpaper')}
                     >
@@ -277,7 +290,9 @@ export default function App() {
                     </button>
                 </div>
 
-                <Settings isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(prev => !prev)} />
+                <Suspense fallback={null}>
+                    <Settings isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(prev => !prev)} />
+                </Suspense>
             </div>
         </AppErrorBoundary>
     )

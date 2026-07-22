@@ -83,7 +83,7 @@ interface StickyNoteEditorProps {
   * @param props - StickyNoteEditorProps
   * @returns Sticky note component
   */
-function StickyNoteEditor({ note, index, onChange, onDelete }: StickyNoteEditorProps) {
+const StickyNoteEditor = memo(function StickyNoteEditor({ note, index, onChange, onDelete }: StickyNoteEditorProps) {
     const { t } = useTranslation()
     const [editing, setEditing] = useState(false)
     const [confirmDelete, setConfirmDelete] = useState(false)
@@ -173,7 +173,7 @@ function StickyNoteEditor({ note, index, onChange, onDelete }: StickyNoteEditorP
             )}
         </div>
     )
-}
+})
 
 /**
   * Sticky notes container that manages multiple notes.

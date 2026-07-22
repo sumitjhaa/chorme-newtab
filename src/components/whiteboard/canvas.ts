@@ -2,7 +2,7 @@
   * @fileoverview Canvas drawing utilities for the whiteboard.
   */
 
-import { isShapeTool, type ToolDef } from './tools'
+import { type ToolDef } from './tools'
 
 /** localStorage key for whiteboard image */
 const IMAGE_KEY = 'newtab_whiteboard_image'

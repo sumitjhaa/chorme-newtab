@@ -2,6 +2,7 @@
   position: relative;
   z-index: 1;
   touch-action: none;
+  contain: layout style;
 }
 
 .drag-ghost {
@@ -22,6 +23,7 @@
   box-sizing: border-box;
   pointer-events: none;
   animation: drop-pulse 1s ease-in-out infinite alternate;
+  will-change: border-color, background;
 }
 
 @keyframes drop-pulse {
@@ -41,6 +43,7 @@
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(74, 158, 255, 0.2);
   border-radius: var(--radius-lg);
   cursor: grabbing;
+  will-change: transform, opacity;
 }
 
 .draggable.is-dragging {
@@ -58,6 +61,7 @@
   justify-content: center;
   border: none;
   background: rgba(0, 0, 0, 0.35);
+  -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
   border-radius: 4px;
   cursor: grab;

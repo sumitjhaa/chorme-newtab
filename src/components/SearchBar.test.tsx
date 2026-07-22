@@ -135,7 +135,7 @@ describe('SearchBar', () => {
     })
 
     it('trims whitespace from query before searching', () => {
-        const { container } = renderWithProvider(<SearchBar />)
+        renderWithProvider(<SearchBar />)
         const input = screen.getByPlaceholderText('Search with Google or type a URL')
         fireEvent.change(input, { target: { value: '  hello  ' } })
 

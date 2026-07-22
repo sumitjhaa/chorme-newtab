@@ -71,7 +71,7 @@ async function fetchCoords(geolocation: string, manualLocation: string): Promise
   * @param unit - Temperature unit
   * @returns Weather data
   */
-async function fetchWeather(lat: number, lon: number, unit: string): Promise<WeatherData> {
+async function fetchWeather(lat: number, lon: number, _unit: string): Promise<WeatherData> {
     const params = new URLSearchParams({
         latitude: String(lat),
         longitude: String(lon),

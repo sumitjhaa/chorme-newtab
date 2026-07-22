@@ -2,7 +2,7 @@
   * @fileoverview Color picker component for the whiteboard.
   */
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, memo } from 'react'
 import { createPortal } from 'react-dom'
 import { PRESET_COLORS } from './tools'
 
@@ -20,7 +20,7 @@ interface ColorPickerProps {
   * @param props - ColorPickerProps
   * @example <ColorPicker color="#000" onSelect={setColor} />
   */
-export default function ColorPicker({ color, onSelect }: ColorPickerProps) {
+export default memo(function ColorPicker({ color, onSelect }: ColorPickerProps) {
     const [open, setOpen] = useState(false)
     const [custom, setCustom] = useState(color)
     const btnRef = useRef<HTMLButtonElement>(null)
@@ -82,4 +82,4 @@ export default function ColorPicker({ color, onSelect }: ColorPickerProps) {
             )}
         </>
     )
-}
+})

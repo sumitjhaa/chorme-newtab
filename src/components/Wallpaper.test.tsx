@@ -4,9 +4,9 @@ import Wallpaper from './Wallpaper'
 
 describe('Wallpaper', () => {
     it('renders wallpaper image when wallpaper has url', () => {
-        render(<Wallpaper wallpaper={{ url: 'https://example.com/img.jpg', thumbnail: '', source: 'wallhaven' }} isLoading={false} />)
+        const { container } = render(<Wallpaper wallpaper={{ url: 'https://example.com/img.jpg', thumbnail: '', source: 'wallhaven' }} isLoading={false} />)
 
-        const img = screen.getByRole('img', { name: 'Wallpaper' })
+        const img = container.querySelector('img')
         expect(img).toBeInTheDocument()
         expect(img).toHaveAttribute('src', 'https://example.com/img.jpg')
     })
@@ -44,9 +44,9 @@ describe('Wallpaper', () => {
         expect(container.querySelector('.wallpaper-overlay')).toBeInTheDocument()
     })
 
-    it('uses eager loading for images', () => {
-        render(<Wallpaper wallpaper={{ url: 'test.jpg', thumbnail: '', source: 'wallhaven' }} isLoading={false} />)
+    it('uses async decoding for images', () => {
+        const { container } = render(<Wallpaper wallpaper={{ url: 'test.jpg', thumbnail: '', source: 'wallhaven' }} isLoading={false} />)
 
-        expect(screen.getByRole('img')).toHaveAttribute('loading', 'eager')
+        expect(container.querySelector('img')).toHaveAttribute('decoding', 'async')
     })
 })

@@ -2,7 +2,7 @@
   * @fileoverview Draggable wrapper component for widget reordering.
   */
 
-import { useState, useCallback, useRef, useEffect, type ReactNode } from 'react'
+import { useState, useCallback, useRef, useEffect, useMemo, memo, type ReactNode } from 'react'
 
 /** Props for the Draggable component */
 interface DraggableProps {
@@ -29,7 +29,7 @@ interface DraggableProps {
   * @param props - DraggableProps
   * @returns Draggable widget container
   */
-export default function Draggable({ id, col, onDrop, numColumns, maxCol, span = 1, children }: DraggableProps) {
+export default memo(function Draggable({ id, col, onDrop, numColumns, maxCol, span = 1, children }: DraggableProps) {
     const [dragging, setDragging] = useState(false)
     const [dragPos, setDragPos] = useState({ x: 0, y: 0 })
     const [ghostHeight, setGhostHeight] = useState(0)
@@ -201,6 +201,15 @@ export default function Draggable({ id, col, onDrop, numColumns, maxCol, span = 
         }
     }, [dragging, id, col, updateIndicator, removeIndicator])
 
+    const floatingStyle = useMemo(() => ({
+        position: 'fixed' as const,
+        left: dragPos.x,
+        top: dragPos.y,
+        width: elRef.current?.offsetWidth,
+        zIndex: 9999,
+        pointerEvents: 'none' as const,
+    }), [dragPos.x, dragPos.y])
+
     return (
         <div
             ref={elRef}
@@ -212,14 +221,7 @@ export default function Draggable({ id, col, onDrop, numColumns, maxCol, span = 
 
             <div
                 className={`drag-content${dragging ? ' floating' : ''}`}
-                style={dragging ? {
-                    position: 'fixed',
-                    left: dragPos.x,
-                    top: dragPos.y,
-                    width: elRef.current?.offsetWidth,
-                    zIndex: 9999,
-                    pointerEvents: 'none',
-                } : undefined}
+                style={dragging ? floatingStyle : undefined}
             >
                 <button
                     className="drag-handle"
@@ -235,4 +237,4 @@ export default function Draggable({ id, col, onDrop, numColumns, maxCol, span = 
             </div>
         </div>
     )
-}
+})

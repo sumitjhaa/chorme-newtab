@@ -1,23 +1,20 @@
 /**
-  * @fileoverview Hook for synchronizing state with localStorage.
+  * @fileoverview Hook for synchronizing state with localStorage via custom events.
   */
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 
 /**
-  * Synchronizes state with localStorage, polling for changes.
-  * Replaces the duplicated addEventListener + setInterval pattern.
+  * Synchronizes state with localStorage via custom events.
   * 
   * @param key - localStorage key to sync
   * @param eventName - custom event name to listen for (e.g., 'sticky-update')
   * @param parser - optional custom parser (defaults to JSON.parse)
-  * @param intervalMs - polling interval (default 300ms)
   */
 export function useStorageSync<T>(
     key: string,
     eventName?: string,
-    parser?: (raw: string) => T,
-    intervalMs = 300
+    parser?: (raw: string) => T
 ): {
     data: T
     setData: (value: T | ((prev: T) => T)) => void
@@ -40,11 +37,6 @@ export function useStorageSync<T>(
             setDataState(parserRef.current ? parserRef.current(raw) : JSON.parse(raw))
         }
     }, [key])
-
-    useEffect(() => {
-        const interval = setInterval(reload, intervalMs)
-        return () => clearInterval(interval)
-    }, [reload, intervalMs])
 
     useEffect(() => {
         if (!eventName) return
