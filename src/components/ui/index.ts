@@ -1,5 +1,12 @@
-// @ts-nocheck
-export { default as SettingRow } from './SettingRow'
-export { default as SegmentedControl } from './SegmentedControl'
-export { default as SettingSelect } from './SettingSelect'
-export { default as SettingInput } from './SettingInput'
+/**
+ * @fileoverview Barrel export for reusable UI primitives.
+ */
+
+export { Box, type BoxProps } from './Box'
+export { Stack, type StackProps } from './Stack'
+export { PolymorphicText, type TextProps } from './PolymorphicText'
+export { SettingRow } from './SettingRow'
+export { SegmentedControl } from './SegmentedControl'
+export { SettingSelect } from './SettingSelect'
+export { SettingInput } from './SettingInput'
+export { ToggleSwitch } from './ToggleSwitch'

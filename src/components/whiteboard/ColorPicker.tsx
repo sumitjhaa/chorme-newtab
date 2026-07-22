@@ -1,13 +1,30 @@
-// @ts-nocheck
+/**
+ * @fileoverview Color picker component for the whiteboard.
+ */
+
 import { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { PRESET_COLORS } from './tools'
 
-export default function ColorPicker({ color, onSelect }) {
+/** Props for the ColorPicker component */
+interface ColorPickerProps {
+  /** Currently selected color */
+  color: string
+  /** Callback when color is selected */
+  onSelect: (color: string) => void
+}
+
+/**
+ * Color picker with preset colors and custom color input.
+ * 
+ * @param props - ColorPickerProps
+ * @example <ColorPicker color="#000" onSelect={setColor} />
+ */
+export default function ColorPicker({ color, onSelect }: ColorPickerProps) {
   const [open, setOpen] = useState(false)
   const [custom, setCustom] = useState(color)
-  const btnRef = useRef(null)
-  const panelRef = useRef(null)
+  const btnRef = useRef<HTMLButtonElement>(null)
+  const panelRef = useRef<HTMLDivElement>(null)
   const [pos, setPos] = useState({ top: 0, left: 0 })
 
   useEffect(() => {
@@ -18,8 +35,8 @@ export default function ColorPicker({ color, onSelect }) {
 
   useEffect(() => {
     if (!open) return
-    function handleClick(e) {
-      if (panelRef.current && !panelRef.current.contains(e.target) && btnRef.current && !btnRef.current.contains(e.target)) {
+    function handleClick(e: MouseEvent) {
+      if (panelRef.current && !panelRef.current.contains(e.target as Node) && btnRef.current && !btnRef.current.contains(e.target as Node)) {
         setOpen(false)
       }
     }

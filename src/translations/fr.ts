@@ -1,4 +1,3 @@
-// @ts-nocheck
 export default {
   newTab: 'Nouvel onglet',
   refreshWallpaper: 'Actualiser le fond',

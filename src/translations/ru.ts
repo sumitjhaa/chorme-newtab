@@ -1,4 +1,3 @@
-// @ts-nocheck
 export default {
   newTab: 'Новая вкладка',
   refreshWallpaper: 'Обновить обои',

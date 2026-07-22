@@ -1,11 +1,30 @@
-// @ts-nocheck
+/**
+ * @fileoverview Greeting widget settings panel.
+ */
+
+import { useCallback, memo } from 'react'
 import { useSettings } from '../../hooks/useSettings'
 import { useTranslation } from '../../hooks/useTranslation'
-import ToggleSwitch from '../ToggleSwitch'
+import { SettingRow } from '../ui/SettingRow'
+import { SettingInput } from '../ui/SettingInput'
+import { ToggleSwitch } from '../ui/ToggleSwitch'
 
-export default function GreetingSettings() {
+/**
+ * Greeting widget settings with enable toggle and name input.
+ * 
+ * @example <GreetingSettings />
+ */
+function GreetingSettings() {
   const { settings, update } = useSettings()
   const { t } = useTranslation()
+
+  const toggleEnableGreeting = useCallback(() => {
+    update('enableGreeting', !settings.enableGreeting)
+  }, [settings.enableGreeting, update])
+
+  const handleGreetingNameChange = useCallback((val: string) => {
+    update('greetingName', val)
+  }, [update])
 
   return (
     <div className="settings-group">
@@ -13,22 +32,22 @@ export default function GreetingSettings() {
         <span>{t('greeting')}</span>
         <ToggleSwitch
           checked={settings.enableGreeting}
-          onChange={() => update('enableGreeting', !settings.enableGreeting)}
+          onChange={toggleEnableGreeting}
         />
       </div>
 
       {settings.enableGreeting && (
-        <div className="setting-row">
-          <span className="setting-label">{t('greetingName')}</span>
-          <input
+        <SettingRow label={t('greetingName')}>
+          <SettingInput
             type="text"
-            className="setting-input"
             value={settings.greetingName}
-            onChange={(e) => update('greetingName', e.target.value)}
+            onChange={handleGreetingNameChange}
             placeholder={t('yourName')}
           />
-        </div>
+        </SettingRow>
       )}
     </div>
   )
 }
+
+export default memo(GreetingSettings)

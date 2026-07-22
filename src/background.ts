@@ -1,10 +1,33 @@
-// @ts-nocheck
-const API_ENDPOINTS = {
+/**
+ * @fileoverview Chrome extension background script for wallpaper fetching and suggestions.
+ */
+
+const API_ENDPOINTS: Record<string, string> = {
   wallhaven: 'https://wallhaven.cc/api/v1/search',
   pixabay: 'https://pixabay.com/api/',
 }
 
-async function fetchWallhaven() {
+/** Wallpaper API response format */
+interface WallpaperResponse {
+  /** Full resolution image URL */
+  url: string
+  /** Thumbnail URL */
+  thumb: string
+  /** Source provider */
+  source: string
+  /** Image ID */
+  id: string | number
+  /** Image resolution */
+  resolution: string
+  /** Author name (optional) */
+  author?: string
+}
+
+/**
+ * Fetch random wallpaper from Wallhaven.
+ * @returns Wallpaper response data
+ */
+async function fetchWallhaven(): Promise<WallpaperResponse> {
   const params = new URLSearchParams({
     categories: '010',
     sorting: 'random',
@@ -34,7 +57,11 @@ async function fetchWallhaven() {
   }
 }
 
-async function fetchPixabay() {
+/**
+ * Fetch random wallpaper from Pixabay.
+ * @returns Wallpaper response data
+ */
+async function fetchPixabay(): Promise<WallpaperResponse> {
   const response = await fetch(
     `${API_ENDPOINTS.pixabay}?image_type=photo&orientation=horizontal&min_width=1920&per_page=200`
   )
@@ -61,7 +88,11 @@ async function fetchPixabay() {
   }
 }
 
-async function fetchPicsum() {
+/**
+ * Fetch random wallpaper from Picsum.
+ * @returns Wallpaper response data
+ */
+async function fetchPicsum(): Promise<WallpaperResponse> {
   const response = await fetch('https://picsum.photos/1920/1080/random', {
     redirect: 'follow',
   })
@@ -81,7 +112,11 @@ async function fetchPicsum() {
   }
 }
 
-async function fetchCatbox() {
+/**
+ * Fetch random wallpaper from Catbox.
+ * @returns Wallpaper response data
+ */
+async function fetchCatbox(): Promise<WallpaperResponse> {
   const response = await fetch('https://catbox.moe/user/api.php?req=get&cats=风景&width=1920&height=1080')
   
   if (!response.ok) {
@@ -103,16 +138,22 @@ async function fetchCatbox() {
   }
 }
 
-const fetchers = {
+/** Map of source names to fetcher functions */
+const fetchers: Record<string, () => Promise<WallpaperResponse>> = {
   wallhaven: fetchWallhaven,
   pixabay: fetchPixabay,
   picsum: fetchPicsum,
   catbox: fetchCatbox,
 }
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.type === 'FETCH_WALLPAPER') {
-    const source = message.source || 'wallhaven'
+/**
+ * Handle messages from content scripts.
+ * Supports FETCH_WALLPAPER and FETCH_SUGGESTIONS message types.
+ */
+chrome.runtime.onMessage.addListener((message: unknown, _sender: unknown, sendResponse: (response: unknown) => void) => {
+  const msg = message as { type: string; source?: string; query?: string }
+  if (msg.type === 'FETCH_WALLPAPER') {
+    const source = msg.source || 'wallhaven'
     const fetcher = fetchers[source]
 
     if (!fetcher) {
@@ -124,17 +165,20 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       .then((wallpaper) => {
         sendResponse({ wallpaper })
       })
-      .catch((error) => {
+      .catch((error: Error) => {
         sendResponse({ error: error.message })
       })
 
     return true
   }
 
-  if (message.type === 'FETCH_SUGGESTIONS') {
-    fetch(`https://suggestqueries.google.com/complete/search?client=chrome&q=${encodeURIComponent(message.query)}`)
+  if (msg.type === 'FETCH_SUGGESTIONS') {
+    fetch(`https://suggestqueries.google.com/complete/search?client=chrome&q=${encodeURIComponent(msg.query || '')}`)
       .then(res => res.json())
-      .then(data => sendResponse({ suggestions: data[1] || [] }))
+      .then((data: unknown) => {
+        const arr = data as [string, string[]]
+        sendResponse({ suggestions: arr[1] || [] })
+      })
       .catch(() => sendResponse({ suggestions: [] }))
     return true
   }

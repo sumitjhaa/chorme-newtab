@@ -1,6 +1,10 @@
-// @ts-nocheck
-import type { WallpaperSource, SearchEngineKey, BgType, BgFrequency } from '../types'
+/**
+ * @fileoverview Application constants for API sources, storage keys, and configuration.
+ */
 
+import type { WallpaperSource, SearchEngineKey, BgType, BgFrequency } from './types'
+
+/** API source identifiers */
 export const API_SOURCES = {
   WALLHAVEN: 'wallhaven' as const,
   UNSPLASH: 'unsplash' as const,
@@ -9,6 +13,7 @@ export const API_SOURCES = {
   CATBOX: 'catbox' as const,
 } satisfies Record<string, WallpaperSource>
 
+/** localStorage and chrome.storage keys */
 export const STORAGE_KEYS = {
   CURRENT_WALLPAPER: 'currentWallpaper',
   WALLPAPER_SOURCE: 'wallpaperSource',
@@ -16,6 +21,7 @@ export const STORAGE_KEYS = {
   WALLPAPER_CACHE: 'wallpaperCache',
 } as const
 
+/** Search engine configurations */
 export const SEARCH_ENGINES = {
   GOOGLE: { name: 'Google', url: 'https://www.google.com/search?q=' },
   DUCKDUCKGO: { name: 'DuckDuckGo', url: 'https://duckduckgo.com/?q=' },
@@ -29,8 +35,10 @@ export const SEARCH_ENGINES = {
   MOJEEK: { name: 'Mojeek', url: 'https://www.mojeek.com/search?q=' },
 } satisfies Record<SearchEngineKey, { name: string; url: string }>
 
+/** Default wallpaper refresh interval (30 minutes) */
 export const DEFAULT_REFRESH_INTERVAL = 30 * 60 * 1000
 
+/** Background type options */
 export const BACKGROUND_TYPES = [
   { value: 'images' as const, label: 'Images' },
   { value: 'videos' as const, label: 'Videos' },
@@ -39,6 +47,7 @@ export const BACKGROUND_TYPES = [
   { value: 'solid' as const, label: 'Solid Color' },
 ] satisfies { value: BgType; label: string }[]
 
+/** Wallpaper refresh frequency options */
 export const FREQUENCIES = [
   { value: 'every_tab' as const, label: 'Every Tab' },
   { value: 'every_hour' as const, label: 'Every Hour' },
@@ -47,6 +56,7 @@ export const FREQUENCIES = [
   { value: 'locked' as const, label: 'Locked' },
 ] satisfies { value: BgFrequency; label: string }[]
 
+/** Available texture overlay options */
 export const TEXTURES = [
   'Grain', 'Vector grain', 'Diagonal dots', 'Vertical dots',
   'Topographic', 'Aztec', 'Checkerboard', 'Isometric',

@@ -1,11 +1,24 @@
-// @ts-nocheck
+/**
+ * @fileoverview Calendar widget component displaying the current month.
+ */
+
 import { useState, useEffect, memo } from 'react'
 import { useTranslation } from '../hooks/useTranslation'
 
+/**
+ * Get localized day names for the calendar header.
+ * @param t - Translation function
+ * @returns Array of day abbreviations
+ */
 function getDays(t: (key: string) => string): string[] {
   return [t('sun'), t('mon'), t('tue'), t('wed'), t('thu'), t('fri'), t('sat')]
 }
 
+/**
+ * Calendar widget displaying a monthly grid with navigation.
+ * 
+ * @example <Calendar />
+ */
 function Calendar() {
   const { t, lang } = useTranslation()
   const [today, setToday] = useState(new Date())

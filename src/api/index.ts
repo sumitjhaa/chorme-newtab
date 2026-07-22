@@ -1,7 +1,18 @@
-// @ts-nocheck
-import { API_SOURCES } from '../constants'
+/**
+ * @fileoverview API utilities for fetching wallpapers from various sources.
+ */
 
-export async function fetchRandomWallpaper(source = API_SOURCES.WALLHAVEN) {
+import { API_SOURCES } from '../constants'
+import type { WallpaperSource } from '../types'
+import type { WallpaperImage } from '../types/wallpaper'
+
+/**
+ * Fetch a random wallpaper from the specified source via the background script.
+ * @param source - Wallpaper source provider (default: wallhaven)
+ * @returns Wallpaper image data
+ * @throws Error on timeout or fetch failure
+ */
+export async function fetchRandomWallpaper(source: WallpaperSource = API_SOURCES.WALLHAVEN): Promise<WallpaperImage> {
   return new Promise((resolve, reject) => {
     const timeout = setTimeout(() => {
       reject(new Error('Request timed out'))
@@ -9,7 +20,7 @@ export async function fetchRandomWallpaper(source = API_SOURCES.WALLHAVEN) {
 
     chrome.runtime.sendMessage(
       { type: 'FETCH_WALLPAPER', source },
-      (response) => {
+      ((response: { wallpaper?: WallpaperImage; error?: string } | null) => {
         clearTimeout(timeout)
 
         if (chrome.runtime.lastError) {
@@ -22,12 +33,16 @@ export async function fetchRandomWallpaper(source = API_SOURCES.WALLHAVEN) {
           return
         }
 
-        resolve(response.wallpaper)
-      }
+        resolve(response!.wallpaper!)
+      }) as (response: unknown) => void
     )
   })
 }
 
+/**
+ * Get list of available wallpaper sources.
+ * @returns Array of source identifiers
+ */
 export function getAvailableSources() {
   return [
     API_SOURCES.WALLHAVEN,

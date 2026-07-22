@@ -1,16 +1,34 @@
-// @ts-nocheck
+/**
+ * @fileoverview Draggable wrapper component for widget reordering.
+ */
+
 import { useState, useCallback, useRef, useEffect, type ReactNode } from 'react'
 
+/** Props for the Draggable component */
 interface DraggableProps {
+  /** Unique widget identifier */
   id: string
+  /** Current column index */
   col: number
+  /** Callback when widget is dropped */
   onDrop: (id: string, col: number, order: number) => void
+  /** Total number of columns */
   numColumns: number
+  /** Maximum column index this widget can be placed in */
   maxCol?: number
+  /** Number of columns this widget spans (default: 1) */
   span?: number
+  /** Widget content */
   children: ReactNode
 }
 
+/**
+ * Draggable wrapper that enables drag-and-drop reordering of widgets.
+ * Supports both mouse and touch interactions.
+ * 
+ * @param props - DraggableProps
+ * @returns Draggable widget container
+ */
 export default function Draggable({ id, col, onDrop, numColumns, maxCol, span = 1, children }: DraggableProps) {
   const [dragging, setDragging] = useState(false)
   const [dragPos, setDragPos] = useState({ x: 0, y: 0 })
@@ -36,13 +54,14 @@ export default function Draggable({ id, col, onDrop, numColumns, maxCol, span = 
     let targetColIndex = -1
     let insertBefore: Element | null = null
 
-    columns.forEach((colEl, i) => {
+    for (let idx = 0; idx < columns.length; idx++) {
+      const colEl = columns[idx]
       const rect = colEl.getBoundingClientRect()
       if (clientX >= rect.left && clientX <= rect.right) {
         targetColEl = colEl
-        targetColIndex = i
+        targetColIndex = idx
         const inner = colEl.querySelector('.kanban-column-inner')
-        if (!inner) return
+        if (!inner) continue
         const kids = Array.from(inner.children).filter(
           c => !c.classList.contains('is-dragging') && !c.classList.contains('drop-indicator')
         )
@@ -56,7 +75,7 @@ export default function Draggable({ id, col, onDrop, numColumns, maxCol, span = 
           }
         }
       }
-    })
+    }
 
     if (targetColEl) {
       if (span > 1 && targetColIndex >= 0) {
@@ -79,7 +98,8 @@ export default function Draggable({ id, col, onDrop, numColumns, maxCol, span = 
           indicatorRef.current = indicator
         }
       } else {
-        const inner = targetColEl.querySelector('.kanban-column-inner')
+        const colEl = targetColEl
+        const inner = colEl.querySelector('.kanban-column-inner')
         if (inner) {
           const indicator = document.createElement('div')
           indicator.className = 'drop-indicator'

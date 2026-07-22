@@ -1,11 +1,10 @@
-// @ts-nocheck
 import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import Wallpaper from './Wallpaper'
 
 describe('Wallpaper', () => {
   it('renders wallpaper image when wallpaper has url', () => {
-    render(<Wallpaper wallpaper={{ url: 'https://example.com/img.jpg' }} isLoading={false} />)
+    render(<Wallpaper wallpaper={{ url: 'https://example.com/img.jpg', thumbnail: '', source: 'wallhaven' }} isLoading={false} />)
 
     const img = screen.getByRole('img', { name: 'Wallpaper' })
     expect(img).toBeInTheDocument()
@@ -20,7 +19,7 @@ describe('Wallpaper', () => {
   })
 
   it('renders default background when wallpaper has no url', () => {
-    const { container } = render(<Wallpaper wallpaper={{ source: 'wallhaven' }} isLoading={false} />)
+    const { container } = render(<Wallpaper wallpaper={{ url: '', thumbnail: '', source: 'wallhaven' }} isLoading={false} />)
 
     expect(screen.queryByRole('img')).not.toBeInTheDocument()
     expect(container.querySelector('.default-background')).toBeInTheDocument()
@@ -40,13 +39,13 @@ describe('Wallpaper', () => {
   })
 
   it('always renders wallpaper overlay', () => {
-    const { container } = render(<Wallpaper wallpaper={{ url: 'test.jpg' }} isLoading={false} />)
+    const { container } = render(<Wallpaper wallpaper={{ url: 'test.jpg', thumbnail: '', source: 'wallhaven' }} isLoading={false} />)
 
     expect(container.querySelector('.wallpaper-overlay')).toBeInTheDocument()
   })
 
   it('uses eager loading for images', () => {
-    render(<Wallpaper wallpaper={{ url: 'test.jpg' }} isLoading={false} />)
+    render(<Wallpaper wallpaper={{ url: 'test.jpg', thumbnail: '', source: 'wallhaven' }} isLoading={false} />)
 
     expect(screen.getByRole('img')).toHaveAttribute('loading', 'eager')
   })

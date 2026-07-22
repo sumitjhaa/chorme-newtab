@@ -1,4 +1,3 @@
-// @ts-nocheck
 export default {
   newTab: 'Нова вкладка',
   refreshWallpaper: 'Оновити шпалери',

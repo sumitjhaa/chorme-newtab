@@ -1,10 +1,28 @@
-// @ts-nocheck
-import { useState, useCallback } from 'react'
-import { TOOL_TYPES, PRESET_COLORS, getToolById } from '../tools'
+/**
+ * @fileoverview Hook for managing whiteboard tool state.
+ */
 
+import { useState, useCallback } from 'react'
+import { TOOL_TYPES, PRESET_COLORS, getToolById, type ToolDef } from '../tools'
+
+/** localStorage key for tool state */
 const STORAGE_KEY = 'newtab_whiteboard'
 
-function loadToolState() {
+/** Tool state interface */
+interface ToolState {
+  /** Active tool ID */
+  activeTool: string
+  /** Selected color */
+  color: string
+  /** Line width */
+  lineWidth: number
+}
+
+/**
+ * Load tool state from localStorage.
+ * @returns Saved tool state
+ */
+function loadToolState(): ToolState {
   try {
     const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null')
     return {
@@ -17,7 +35,11 @@ function loadToolState() {
   }
 }
 
-function saveToolState(state) {
+/**
+ * Save tool state to localStorage.
+ * @param state - Partial state to save
+ */
+function saveToolState(state: Partial<ToolState>): void {
   try {
     const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null') || {}
     Object.assign(data, state)
@@ -25,29 +47,34 @@ function saveToolState(state) {
   } catch {}
 }
 
+/**
+ * Hook for managing whiteboard tool state with persistence.
+ * 
+ * @returns Tool state and selection functions
+ */
 export function useTools() {
-  const [activeTool, setActiveTool] = useState(() => loadToolState().activeTool)
-  const [color, setColor] = useState(() => loadToolState().color)
-  const [lineWidth, setLineWidth] = useState(() => loadToolState().lineWidth)
+  const [activeTool, setActiveTool] = useState<string>(() => loadToolState().activeTool)
+  const [color, setColor] = useState<string>(() => loadToolState().color)
+  const [lineWidth, setLineWidth] = useState<number>(() => loadToolState().lineWidth)
 
-  const selectTool = useCallback((id) => {
+  const selectTool = useCallback((id: string) => {
     setActiveTool(id)
     const base = getToolById(id)
     const next = base.id === 'eraser' ? base.lineWidth : lineWidth
     saveToolState({ activeTool: id, lineWidth: next })
   }, [lineWidth])
 
-  const selectColor = useCallback((c) => {
+  const selectColor = useCallback((c: string) => {
     setColor(c)
     saveToolState({ color: c })
   }, [])
 
-  const selectLineWidth = useCallback((w) => {
+  const selectLineWidth = useCallback((w: number) => {
     setLineWidth(w)
     saveToolState({ lineWidth: w })
   }, [])
 
-  const tool = { ...getToolById(activeTool), lineWidth }
+  const tool: ToolDef = { ...getToolById(activeTool), lineWidth }
 
   return { activeTool, color, tool, lineWidth, selectTool, selectColor, selectLineWidth }
 }

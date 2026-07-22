@@ -1,12 +1,44 @@
-// @ts-nocheck
+/**
+ * @fileoverview Search bar settings panel.
+ */
+
+import { useCallback, memo } from 'react'
 import { useSettings } from '../../hooks/useSettings'
 import { useTranslation } from '../../hooks/useTranslation'
 import { SEARCH_ENGINES } from '../../constants'
-import ToggleSwitch from '../ToggleSwitch'
+import { SettingRow } from '../ui/SettingRow'
+import { SettingInput } from '../ui/SettingInput'
+import { ToggleSwitch } from '../ui/ToggleSwitch'
+import type { SearchEngineKey } from '../../types'
 
-export default function SearchSettings() {
+/**
+ * Search bar settings with engine selection and suggestion toggles.
+ * 
+ * @example <SearchSettings />
+ */
+function SearchSettings() {
   const { settings, update } = useSettings()
   const { t } = useTranslation()
+
+  const toggleEnableSearchBar = useCallback(() => {
+    update('enableSearchBar', !settings.enableSearchBar)
+  }, [settings.enableSearchBar, update])
+
+  const toggleOpenInNewTab = useCallback(() => {
+    update('openInNewTab', !settings.openInNewTab)
+  }, [settings.openInNewTab, update])
+
+  const toggleShowSuggestions = useCallback(() => {
+    update('showSuggestions', !settings.showSuggestions)
+  }, [settings.showSuggestions, update])
+
+  const handleSearchPlaceholderChange = useCallback((val: string) => {
+    update('searchPlaceholder', val)
+  }, [update])
+
+  const handleSearchEngineChange = useCallback((key: SearchEngineKey) => {
+    update('searchEngine', key)
+  }, [update])
 
   return (
     <div className="settings-group">
@@ -14,47 +46,43 @@ export default function SearchSettings() {
         <span>{t('searchBar')}</span>
         <ToggleSwitch
           checked={settings.enableSearchBar}
-          onChange={() => update('enableSearchBar', !settings.enableSearchBar)}
+          onChange={toggleEnableSearchBar}
         />
       </div>
 
       {settings.enableSearchBar && (
         <>
-          <div className="setting-row">
-            <span className="setting-label">{t('openInNewTab')}</span>
+          <SettingRow label={t('openInNewTab')}>
             <ToggleSwitch
               checked={settings.openInNewTab}
-              onChange={() => update('openInNewTab', !settings.openInNewTab)}
+              onChange={toggleOpenInNewTab}
             />
-          </div>
+          </SettingRow>
 
-          <div className="setting-row">
-            <span className="setting-label">{t('suggestions')}</span>
+          <SettingRow label={t('suggestions')}>
             <ToggleSwitch
               checked={settings.showSuggestions}
-              onChange={() => update('showSuggestions', !settings.showSuggestions)}
+              onChange={toggleShowSuggestions}
             />
-          </div>
+          </SettingRow>
 
-          <div className="setting-row">
-            <span className="setting-label">{t('placeholder')}</span>
-            <input
+          <SettingRow label={t('placeholder')}>
+            <SettingInput
               type="text"
-              className="setting-input"
               value={settings.searchPlaceholder}
-              onChange={(e) => update('searchPlaceholder', e.target.value)}
+              onChange={handleSearchPlaceholderChange}
               placeholder={t('defaultPlaceholder')}
             />
-          </div>
+          </SettingRow>
 
           <div className="setting-row" style={{ alignItems: 'flex-start' }}>
             <span className="setting-label">{t('searchEngine')}</span>
             <div className="engine-icon-grid">
-              {Object.keys(SEARCH_ENGINES).map((key) => (
+              {(Object.keys(SEARCH_ENGINES) as SearchEngineKey[]).map((key) => (
                 <button
                   key={key}
                   className={`engine-icon-btn ${settings.searchEngine === key ? 'active' : ''}`}
-                  onClick={() => update('searchEngine', key)}
+                  onClick={() => handleSearchEngineChange(key)}
                   title={SEARCH_ENGINES[key].name}
                 >
                   <img
@@ -70,3 +98,5 @@ export default function SearchSettings() {
     </div>
   )
 }
+
+export default memo(SearchSettings)

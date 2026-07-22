@@ -1,8 +1,15 @@
-// @ts-nocheck
+/**
+ * @fileoverview Greeting widget component with time-based greetings.
+ */
+
 import { memo } from 'react'
 import { useTranslation } from '../hooks/useTranslation'
 import { useSettings } from '../hooks/useSettings'
 
+/**
+ * Morning sun icon.
+ * @returns SVG sun icon
+ */
 function MorningIcon() {
   return (
     <svg width="28" height="28" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -22,6 +29,10 @@ function MorningIcon() {
   )
 }
 
+/**
+ * Afternoon sun with clouds icon.
+ * @returns SVG afternoon icon
+ */
 function AfternoonIcon() {
   return (
     <svg width="28" height="28" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -39,6 +50,10 @@ function AfternoonIcon() {
   )
 }
 
+/**
+ * Evening moon icon.
+ * @returns SVG moon icon
+ */
 function EveningIcon() {
   return (
     <svg width="28" height="28" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -51,6 +66,11 @@ function EveningIcon() {
   )
 }
 
+/**
+ * Get greeting text and icon based on time of day.
+ * @param t - Translation function
+ * @returns Object with text and Icon component
+ */
 function getGreetingData(t: (key: string) => string) {
   const h = new Date().getHours()
   if (h < 12) return { text: t('goodMorning'), Icon: MorningIcon }
@@ -58,6 +78,11 @@ function getGreetingData(t: (key: string) => string) {
   return { text: t('goodEvening'), Icon: EveningIcon }
 }
 
+/**
+ * Greeting widget displaying time-based greeting with optional name.
+ * 
+ * @example <Greeting />
+ */
 function Greeting() {
   const { t } = useTranslation()
   const { settings } = useSettings()

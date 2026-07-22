@@ -1,8 +1,13 @@
-// @ts-nocheck
-import { TOOLS } from './tools'
+/**
+ * @fileoverview Whiteboard toolbar with tool selection and actions.
+ */
+
+import React from 'react'
+import { TOOLS, type ToolId } from './tools'
 import ColorPicker from './ColorPicker'
 
-const TOOL_ICONS = {
+/** SVG icons for each tool */
+const TOOL_ICONS: Record<string, React.ReactElement> = {
   pencil: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
@@ -49,7 +54,35 @@ const TOOL_ICONS = {
   ),
 }
 
-export default function Toolbar({ activeTool, color, lineWidth, onSelectTool, onSelectColor, onSelectLineWidth, onClear, onDelete, onSave }) {
+/** Props for the Toolbar component */
+interface ToolbarProps {
+  /** Currently active tool ID */
+  activeTool: string
+  /** Current drawing color */
+  color: string
+  /** Current line width */
+  lineWidth: number
+  /** Callback to select a tool */
+  onSelectTool: (id: string) => void
+  /** Callback to select a color */
+  onSelectColor: (color: string) => void
+  /** Callback to select line width */
+  onSelectLineWidth: (width: number) => void
+  /** Callback to clear canvas */
+  onClear: () => void
+  /** Callback to delete whiteboard widget */
+  onDelete: () => void
+  /** Callback to save canvas as PNG */
+  onSave: () => void
+}
+
+/**
+ * Whiteboard toolbar with tool selection, color picker, and actions.
+ * 
+ * @param props - ToolbarProps
+ * @example <Toolbar activeTool="pencil" color="#000" lineWidth={2} onSelectTool={setTool} onSelectColor={setColor} onSelectLineWidth={setWidth} onClear={clear} onDelete={del} onSave={save} />
+ */
+export default function Toolbar({ activeTool, color, lineWidth, onSelectTool, onSelectColor, onSelectLineWidth, onClear, onDelete, onSave }: ToolbarProps) {
   const isEraser = activeTool === 'eraser'
   const minSize = isEraser ? 8 : 1
   const maxSize = isEraser ? 40 : 20

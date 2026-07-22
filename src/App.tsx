@@ -1,5 +1,8 @@
-// @ts-nocheck
-import { useState, useEffect, useCallback, useRef, type ReactNode } from 'react'
+/**
+ * @fileoverview Main application component that orchestrates the new tab page.
+ */
+
+import { useState, useEffect, useCallback } from 'react'
 import SearchBar from './components/SearchBar'
 import Wallpaper from './components/Wallpaper'
 import Clock from './components/Clock'
@@ -12,97 +15,62 @@ import Lists from './components/list/Lists'
 import Whiteboard from './components/whiteboard/Whiteboard'
 import Settings from './components/Settings'
 import Draggable from './components/Draggable'
+import { AppErrorBoundary, WidgetErrorBoundary } from './components/errors'
 import { fetchRandomWallpaper } from './api/index'
 import { getCurrentWallpaper, setCurrentWallpaper, getWallpaperSource } from './utils/storage'
-import { API_SOURCES, DEFAULT_REFRESH_INTERVAL } from './constants'
+import { API_SOURCES } from './constants'
 import { useSettings } from './hooks/useSettings'
 import { useTranslation } from './hooks/useTranslation'
-import { LAYOUT_DEFAULTS } from './utils/defaults'
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
+import { useFontCSSVariables, useBackgroundCSSVariables } from './hooks/useCSSVariables'
+import { useWallpaperRefresh } from './hooks/useWallpaperRefresh'
+import { extractDominantColor } from './lib/canvas'
+import { loadLayout, saveLayout } from './helpers/layout'
+import { applyDarkMode } from './helpers/darkMode'
 import type { WallpaperImage } from './types/wallpaper'
-import type { WidgetId, LayoutMap } from './types'
-
-interface VisibleWidget {
-  id: WidgetId
-  component: ReactNode
-}
-
-function extractWallpaperColors(imgUrl: string) {
-  const img = new Image()
-  img.crossOrigin = 'anonymous'
-  img.onload = () => {
-    const canvas = document.createElement('canvas')
-    const ctx = canvas.getContext('2d')
-    const size = 50
-    canvas.width = size
-    canvas.height = size
-    ctx.drawImage(img, 0, 0, size, size)
-    const data = ctx.getImageData(0, 0, size, size).data
-
-    let r = 0, g = 0, b = 0, count = 0
-    for (let i = 0; i < data.length; i += 16) {
-      r += data[i]
-      g += data[i + 1]
-      b += data[i + 2]
-      count++
-    }
-    r = Math.round(r / count)
-    g = Math.round(g / count)
-    b = Math.round(b / count)
-
-    document.documentElement.style.setProperty('--wallpaper-color', `rgba(${r}, ${g}, ${b}, 0.45)`)
-    document.documentElement.style.setProperty('--wallpaper-color-light', `rgba(${r}, ${g}, ${b}, 0.25)`)
-  }
-  img.src = imgUrl
-}
+import type { WidgetId, WallpaperSource } from './types'
 
 const NUM_COLUMNS = 6
 
-function loadLayout(): LayoutMap {
-  try {
-    return JSON.parse(localStorage.getItem('newtab_layout') || 'null') || LAYOUT_DEFAULTS
-  } catch {
-    return LAYOUT_DEFAULTS
-  }
+/**
+ * Extract dominant color from wallpaper and apply as CSS variables.
+ * @param imgUrl - URL of the wallpaper image
+ */
+async function applyWallpaperColors(imgUrl: string) {
+  const avg = await extractDominantColor(imgUrl)
+  if (!avg) return
+  document.documentElement.style.setProperty('--wallpaper-color', `rgba(${avg.r}, ${avg.g}, ${avg.b}, 0.45)`)
+  document.documentElement.style.setProperty('--wallpaper-color-light', `rgba(${avg.r}, ${avg.g}, ${avg.b}, 0.25)`)
 }
 
-function saveLayout(layout: LayoutMap) {
-  try {
-    localStorage.setItem('newtab_layout', JSON.stringify(layout))
-  } catch {}
-}
-
-function applyDarkMode(mode: string) {
-  if (mode === 'light') {
-    document.documentElement.classList.remove('dark')
-    document.documentElement.classList.add('light')
-  } else if (mode === 'dark') {
-    document.documentElement.classList.remove('light')
-    document.documentElement.classList.add('dark')
-  } else {
-    document.documentElement.classList.remove('light', 'dark')
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-    document.documentElement.classList.add(prefersDark ? 'dark' : 'light')
-  }
+const WIDGET_NAME_MAP: Record<WidgetId, string> = {
+  'clock': 'Clock',
+  'calendar': 'Calendar',
+  'pomodoro': 'Pomodoro',
+  'weather': 'Weather',
+  'sticky-note': 'Sticky Note',
+  'whiteboard': 'Whiteboard',
+  'list': 'Lists',
+  'greeting': 'Greeting',
+  'search-bar': 'Search Bar',
 }
 
 export default function App() {
   const { t } = useTranslation()
   const { settings } = useSettings()
   const [wallpaper, setWallpaper] = useState<WallpaperImage | null>(null)
-  const [source, setSource] = useState(API_SOURCES.WALLHAVEN)
+  const [source, setSource] = useState<string>(API_SOURCES.WALLHAVEN)
   const [isLoading, setIsLoading] = useState(false)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [layout, setLayout] = useState(loadLayout)
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const loadWallpaper = useCallback(async (selectedSource?: string) => {
     setIsLoading(true)
-
     try {
-      const newWallpaper = await fetchRandomWallpaper(selectedSource || source)
+      const newWallpaper = await fetchRandomWallpaper((selectedSource || source) as WallpaperSource)
       setWallpaper(newWallpaper)
       await setCurrentWallpaper(newWallpaper)
-      if (newWallpaper?.url) extractWallpaperColors(newWallpaper.url)
+      if (newWallpaper?.url) applyWallpaperColors(newWallpaper.url)
     } catch (err) {
       console.error(err)
     } finally {
@@ -110,45 +78,18 @@ export default function App() {
     }
   }, [source])
 
-  const toggleSettings = useCallback(() => {
-    setIsSettingsOpen((prev) => !prev)
-  }, [])
-
-  const handleDrop = useCallback((widgetId: string, targetCol: number, targetOrder: number) => {
-    setLayout(prev => {
-      const next = { ...prev }
-
-      const affectedInTarget = Object.entries(next)
-        .filter(([id, pos]) => id !== widgetId && pos.col === targetCol)
-        .sort((a, b) => a[1].order - b[1].order)
-
-      affectedInTarget.forEach(([id, pos], i) => {
-        if (i >= targetOrder) {
-          next[id] = { ...pos, order: i + 1 }
-        } else {
-          next[id] = pos
-        }
-      })
-
-      next[widgetId] = { col: targetCol, order: targetOrder }
-      saveLayout(next)
-      return next
-    })
-  }, [])
-
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape') {
-        setIsSettingsOpen((prev) => !prev)
-      }
-      if (e.key === 'r' && !e.ctrlKey && !e.metaKey && !(e.target as HTMLElement)?.closest('input, textarea, select')) {
-        loadWallpaper()
-      }
-    }
-
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
+  /**
+   * Handle keyboard shortcuts for the application.
+   * Escape toggles settings, R refreshes wallpaper.
+   */
+  useKeyboardShortcuts({
+    Escape: () => setIsSettingsOpen(prev => !prev),
+    r: () => loadWallpaper(),
   }, [loadWallpaper])
+
+  useFontCSSVariables()
+  useBackgroundCSSVariables()
+  useWallpaperRefresh(() => loadWallpaper())
 
   useEffect(() => {
     applyDarkMode(settings.darkMode)
@@ -158,65 +99,71 @@ export default function App() {
     document.title = settings.tabTitle || t('newTab')
   }, [settings.tabTitle])
 
-  useEffect(() => {
-    document.documentElement.style.setProperty('--font-family', `'${settings.fontFamily}', sans-serif`)
-    document.documentElement.style.setProperty('--font-weight', String(settings.fontWeight))
-    document.documentElement.style.setProperty('--font-color', settings.fontColor)
-    document.documentElement.style.setProperty('--font-size', `${Math.round(settings.fontSize)}%`)
-    document.documentElement.style.setProperty('--font-shadow', settings.fontShadow > 0 ? `0 0 ${settings.fontShadow}px rgba(0,0,0,0.8)` : 'none')
-  }, [settings.fontFamily, settings.fontWeight, settings.fontColor, settings.fontSize, settings.fontShadow])
-
-  useEffect(() => {
-    const root = document.documentElement
-    root.style.setProperty('--bg-blur', `${settings.bgBlur}px`)
-    root.style.setProperty('--bg-brightness', `${settings.bgBrightness}%`)
-  }, [settings.bgBlur, settings.bgBrightness])
-
+  /**
+   * Initialize wallpaper from storage or fetch a new one.
+   */
   useEffect(() => {
     async function init() {
       const savedWallpaper = await getCurrentWallpaper()
       const savedSource = await getWallpaperSource()
-
-      if (savedSource) setSource(savedSource)
+      if (savedSource) setSource(savedSource as WallpaperSource)
       if (savedWallpaper) {
-        setWallpaper(savedWallpaper)
-        if (savedWallpaper.url) extractWallpaperColors(savedWallpaper.url)
+        const wp = savedWallpaper as WallpaperImage
+        setWallpaper(wp)
+        if (wp.url) applyWallpaperColors(wp.url)
       } else {
         await loadWallpaper(savedSource || API_SOURCES.WALLHAVEN)
       }
     }
-
     init()
   }, [])
 
-  useEffect(() => {
-    intervalRef.current = setInterval(() => {
-      loadWallpaper()
-    }, DEFAULT_REFRESH_INTERVAL)
+  /**
+   * Handle widget drop events for reordering.
+   * @param widgetId - ID of the widget being dropped
+   * @param targetCol - Target column index
+   * @param targetOrder - Target order within the column
+   */
+  const handleDrop = useCallback((widgetId: string, targetCol: number, targetOrder: number) => {
+    setLayout(prev => {
+      const next = { ...prev }
+      const affectedInTarget = Object.entries(next)
+        .filter(([id, pos]) => id !== widgetId && pos.col === targetCol)
+        .sort((a, b) => a[1].order - b[1].order)
+      affectedInTarget.forEach(([id, pos], i) => {
+        if (i >= targetOrder) {
+          next[id as WidgetId] = { ...pos, order: i + 1 }
+        } else {
+          next[id as WidgetId] = pos
+        }
+      })
+      next[widgetId as WidgetId] = { col: targetCol, order: targetOrder }
+      saveLayout(next)
+      return next
+    })
+  }, [])
 
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current)
-    }
-  }, [loadWallpaper])
-
-  const visibleWidgets: VisibleWidget[] = []
-  if (settings.showClockWidget)       visibleWidgets.push({ id: 'clock', component: <Clock /> })
-  if (settings.showCalendarWidget)    visibleWidgets.push({ id: 'calendar', component: <Calendar /> })
-  if (settings.showPomodoroWidget)    visibleWidgets.push({ id: 'pomodoro', component: <Pomodoro /> })
-  if (settings.showWeatherWidget)     visibleWidgets.push({ id: 'weather', component: <Weather /> })
-  if (settings.showStickyNote)        visibleWidgets.push({ id: 'sticky-note', component: <StickyNote /> })
-  if (settings.showWhiteboard)        visibleWidgets.push({ id: 'whiteboard', component: <Whiteboard onDelete={() => {
+  // Build visible widgets
+  const visibleWidgets: { id: WidgetId; component: React.ReactNode }[] = []
+  if (settings.showClockWidget)    visibleWidgets.push({ id: 'clock', component: <Clock /> })
+  if (settings.showCalendarWidget) visibleWidgets.push({ id: 'calendar', component: <Calendar /> })
+  if (settings.showPomodoroWidget) visibleWidgets.push({ id: 'pomodoro', component: <Pomodoro /> })
+  if (settings.showWeatherWidget)  visibleWidgets.push({ id: 'weather', component: <Weather /> })
+  if (settings.showStickyNote)     visibleWidgets.push({ id: 'sticky-note', component: <StickyNote /> })
+  if (settings.showWhiteboard)     visibleWidgets.push({ id: 'whiteboard', component: <Whiteboard onDelete={() => {
     const data = JSON.parse(localStorage.getItem('newtab_settings') || '{}')
     data.showWhiteboard = false
     localStorage.setItem('newtab_settings', JSON.stringify(data))
     try { chrome.storage.local.set({ showWhiteboard: false }) } catch {}
     window.dispatchEvent(new Event('storage'))
   }} /> })
-  if (settings.showList)              visibleWidgets.push({ id: 'list', component: <Lists /> })
-  if (settings.enableGreeting)          visibleWidgets.push({ id: 'greeting', component: <Greeting /> })
-  if (settings.enableSearchBar)       visibleWidgets.push({ id: 'search-bar', component: <SearchBar /> })
+  if (settings.showList)           visibleWidgets.push({ id: 'list', component: <Lists /> })
+  if (settings.enableGreeting)     visibleWidgets.push({ id: 'greeting', component: <Greeting /> })
+  if (settings.enableSearchBar)    visibleWidgets.push({ id: 'search-bar', component: <SearchBar /> })
 
-  const columns: VisibleWidget[][] = Array.from({ length: NUM_COLUMNS }, () => [])
+  // Distribute widgets into columns
+  const columns: { id: WidgetId; component: React.ReactNode; order: number }[][] =
+    Array.from({ length: NUM_COLUMNS }, () => [])
   const searchBarWidget = visibleWidgets.find(w => w.id === 'search-bar')
   const sbLayout = layout['search-bar'] || { col: 1 }
   const sbCol = Math.min(sbLayout.col ?? 1, NUM_COLUMNS - 2)
@@ -229,6 +176,7 @@ export default function App() {
   })
   columns.forEach(col => col.sort((a, b) => a.order - b.order))
 
+  // Search bar measurement — useEffect required for DOM measurement / layout calculation
   const [sbHeightPx, setSbHeightPx] = useState(0)
   const [sbPos, setSbPos] = useState({ left: 0, width: 0, top: 0 })
   const sbMeasureRef = useCallback((node: HTMLDivElement | null) => {
@@ -251,84 +199,86 @@ export default function App() {
     })
   }, [settings.enableSearchBar, sbCol, searchBarWidget])
 
-
   return (
-    <div className="app">
-      <Wallpaper wallpaper={wallpaper} isLoading={isLoading} />
+    <AppErrorBoundary>
+      <div className="app">
+        <Wallpaper wallpaper={wallpaper} isLoading={isLoading} />
 
-      <div className="kanban-board">
-        {searchBarWidget && settings.enableSearchBar && (
-          <div
-            className="search-bar-span"
-            style={{ left: sbPos.left, width: sbPos.width, top: sbPos.top }}
-            ref={sbMeasureRef}
-          >
-            <Draggable
-              id="search-bar"
-              col={sbCol}
-              onDrop={handleDrop}
-              numColumns={NUM_COLUMNS}
-              maxCol={NUM_COLUMNS - 2}
-              span={2}
-            >
-              {searchBarWidget.component}
-            </Draggable>
-          </div>
-        )}
-
-        {columns.map((colWidgets, colIndex) => {
-          const covered = settings.enableSearchBar && colIndex >= sbCol && colIndex <= sbCol + 1
-          return (
+        <div className="kanban-board">
+          {searchBarWidget && settings.enableSearchBar && (
             <div
-              className="kanban-column"
-              key={colIndex}
-              data-col={colIndex}
-              style={{
-                gridColumn: colIndex + 1,
-              }}
+              className="search-bar-span"
+              style={{ left: sbPos.left, width: sbPos.width, top: sbPos.top }}
+              ref={sbMeasureRef}
             >
-              <div className="kanban-column-inner" style={covered ? { paddingTop: sbHeightPx + 12 } : undefined}>
-                {colWidgets.map(w => (
-                  <Draggable
-                    key={w.id}
-                    id={w.id}
-                    col={colIndex}
-                    onDrop={handleDrop}
-                    numColumns={NUM_COLUMNS}
-                  >
-                    {w.component}
-                  </Draggable>
-                ))}
-              </div>
+              <WidgetErrorBoundary widgetName="Search Bar">
+                <Draggable
+                  id="search-bar"
+                  col={sbCol}
+                  onDrop={handleDrop}
+                  numColumns={NUM_COLUMNS}
+                  maxCol={NUM_COLUMNS - 2}
+                  span={2}
+                >
+                  {searchBarWidget.component}
+                </Draggable>
+              </WidgetErrorBoundary>
             </div>
-          )
-        })}
+          )}
+
+          {columns.map((colWidgets, colIndex) => {
+            const covered = settings.enableSearchBar && colIndex >= sbCol && colIndex <= sbCol + 1
+            return (
+              <div
+                className="kanban-column"
+                key={colIndex}
+                data-col={colIndex}
+                style={{ gridColumn: colIndex + 1 }}
+              >
+                <div className="kanban-column-inner" style={covered ? { paddingTop: sbHeightPx + 12 } : undefined}>
+                  {colWidgets.map(w => (
+                    <WidgetErrorBoundary key={w.id} widgetName={WIDGET_NAME_MAP[w.id]}>
+                      <Draggable
+                        id={w.id}
+                        col={colIndex}
+                        onDrop={handleDrop}
+                        numColumns={NUM_COLUMNS}
+                      >
+                        {w.component}
+                      </Draggable>
+                    </WidgetErrorBoundary>
+                  ))}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        <div className={`bottom-buttons visible${settings.hideSettingsIcons ? ' hidden-icons' : ''}`}>
+          <button
+            className="refresh-btn"
+            onClick={() => loadWallpaper()}
+            disabled={isLoading}
+            title={t('refreshWallpaper')}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+              <path d="M21 3v5h-5"/>
+              <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+              <path d="M8 16H3v5"/>
+            </svg>
+          </button>
+
+          <button className="settings-btn" onClick={() => setIsSettingsOpen(prev => !prev)} title={t('settingsEsc')}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+          </button>
+        </div>
+
+        <Settings isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(prev => !prev)} />
       </div>
-
-      <div className={`bottom-buttons visible${settings.hideSettingsIcons ? ' hidden-icons' : ''}`}>
-        <button
-          className="refresh-btn"
-          onClick={() => loadWallpaper()}
-          disabled={isLoading}
-          title={t('refreshWallpaper')}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
-            <path d="M21 3v5h-5"/>
-            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
-            <path d="M8 16H3v5"/>
-          </svg>
-        </button>
-
-        <button className="settings-btn" onClick={toggleSettings} title={t('settingsEsc')}>
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="3"/>
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-          </svg>
-        </button>
-      </div>
-
-      <Settings isOpen={isSettingsOpen} onClose={toggleSettings} />
-    </div>
+    </AppErrorBoundary>
   )
 }

@@ -1,104 +1,139 @@
-// @ts-nocheck
+/**
+ * @fileoverview Weather widget settings panel.
+ */
+
+import { useCallback, memo } from 'react'
 import { useSettings } from '../../hooks/useSettings'
 import { useTranslation } from '../../hooks/useTranslation'
-import ToggleSwitch from '../ToggleSwitch'
+import { SettingRow } from '../ui/SettingRow'
+import { SettingSelect } from '../ui/SettingSelect'
+import { SettingInput } from '../ui/SettingInput'
+import { SegmentedControl } from '../ui/SegmentedControl'
+import { ToggleSwitch } from '../ui/ToggleSwitch'
 
-export default function WeatherSettings() {
+/**
+ * Weather widget settings with geolocation and display options.
+ * 
+ * @example <WeatherSettings />
+ */
+function WeatherSettings() {
   const { settings, update } = useSettings()
   const { t } = useTranslation()
+
+  const toggleShowWeatherWidget = useCallback(() => {
+    update('showWeatherWidget', !settings.showWeatherWidget)
+  }, [settings.showWeatherWidget, update])
+
+  const handleGeolocationChange = useCallback((val: string) => {
+    update('geolocation', val)
+  }, [update])
+
+  const handleManualLocationChange = useCallback((val: string) => {
+    update('manualLocation', val)
+  }, [update])
+
+  const handleTempUnitChange = useCallback((val: string) => {
+    update('tempUnit', val)
+  }, [update])
+
+  const handleForecastChange = useCallback((val: string) => {
+    update('forecast', val)
+  }, [update])
+
+  const handleTempDisplayChange = useCallback((val: string) => {
+    update('tempDisplay', val)
+  }, [update])
+
+  const handleWeatherShowChange = useCallback((val: string) => {
+    update('weatherShow', val)
+  }, [update])
 
   return (
     <div className="settings-group">
       <div className="settings-group-title">{t('weather')}</div>
-      <div className="setting-row">
-        <span className="setting-label">{t('showWeather')}</span>
+      <SettingRow label={t('showWeather')}>
         <ToggleSwitch
           checked={settings.showWeatherWidget}
-          onChange={() => update('showWeatherWidget', !settings.showWeatherWidget)}
+          onChange={toggleShowWeatherWidget}
         />
-      </div>
+      </SettingRow>
 
       {settings.showWeatherWidget && (
         <>
-          <div className="setting-row">
-            <span className="setting-label">{t('geolocation')}</span>
-            <select
-              className="setting-select"
+          <SettingRow label={t('geolocation')}>
+            <SettingSelect
               value={settings.geolocation}
-              onChange={(e) => update('geolocation', e.target.value)}
-            >
-              <option value="approximate">{t('approximate')}</option>
-              <option value="manual">{t('manual')}</option>
-              <option value="precise">{t('precise')}</option>
-            </select>
-          </div>
+              onChange={handleGeolocationChange}
+              options={[
+                { value: 'approximate', label: t('approximate') },
+                { value: 'manual', label: t('manual') },
+                { value: 'precise', label: t('precise') },
+              ]}
+            />
+          </SettingRow>
 
           {settings.geolocation === 'manual' && (
-            <div className="setting-row">
-              <span className="setting-label">{t('location')}</span>
-              <input
+            <SettingRow label={t('location')}>
+              <SettingInput
                 type="text"
-                className="setting-input"
                 value={settings.manualLocation}
-                onChange={(e) => update('manualLocation', e.target.value)}
+                onChange={handleManualLocationChange}
                 placeholder={t('cityOrCoords')}
               />
-            </div>
+            </SettingRow>
           )}
 
-          <div className="setting-row">
-            <span className="setting-label">{t('tempUnit')}</span>
-            <select
-              className="setting-select"
+          <SettingRow label={t('tempUnit')}>
+            <SegmentedControl
+              options={[
+                { value: 'celsius', label: '°C' },
+                { value: 'fahrenheit', label: '°F' },
+              ]}
               value={settings.tempUnit}
-              onChange={(e) => update('tempUnit', e.target.value)}
-            >
-              <option value="celsius">{t('celsius')}</option>
-              <option value="fahrenheit">{t('fahrenheit')}</option>
-            </select>
-          </div>
+              onChange={handleTempUnitChange}
+            />
+          </SettingRow>
 
-          <div className="setting-row">
-            <span className="setting-label">{t('forecast')}</span>
-            <select
-              className="setting-select"
+          <SettingRow label={t('forecast')}>
+            <SettingSelect
               value={settings.forecast}
-              onChange={(e) => update('forecast', e.target.value)}
-            >
-              <option value="automatic">{t('automatic')}</option>
-              <option value="always">{t('always')}</option>
-              <option value="never">{t('never')}</option>
-            </select>
-          </div>
+              onChange={handleForecastChange}
+              options={[
+                { value: 'automatic', label: t('automatic') },
+                { value: 'always', label: t('always') },
+                { value: 'never', label: t('never') },
+              ]}
+            />
+          </SettingRow>
 
-          <div className="setting-row">
-            <span className="setting-label">{t('temperature')}</span>
-            <select
-              className="setting-select"
+          <SettingRow label={t('temperature')}>
+            <SettingSelect
               value={settings.tempDisplay}
-              onChange={(e) => update('tempDisplay', e.target.value)}
-            >
-              <option value="actual">{t('actual')}</option>
-              <option value="feels_like">{t('feelsLike')}</option>
-              <option value="both">{t('both')}</option>
-            </select>
-          </div>
+              onChange={handleTempDisplayChange}
+              options={[
+                { value: 'actual', label: t('actual') },
+                { value: 'feels_like', label: t('feelsLike') },
+                { value: 'both', label: t('both') },
+              ]}
+            />
+          </SettingRow>
 
-          <div className="setting-row">
-            <span className="setting-label">{t('show')}</span>
-            <select
-              className="setting-select"
+          <SettingRow label={t('show')}>
+            <SettingSelect
               value={settings.weatherShow}
-              onChange={(e) => update('weatherShow', e.target.value)}
-            >
-              <option value="description_icon">{t('descAndIcon')}</option>
-              <option value="description">{t('description')}</option>
-              <option value="icon">{t('icon')}</option>
-              <option value="nothing">{t('nothing')}</option>
-            </select>
-          </div>
+              onChange={handleWeatherShowChange}
+              options={[
+                { value: 'description_icon', label: t('descAndIcon') },
+                { value: 'description', label: t('description') },
+                { value: 'icon', label: t('icon') },
+                { value: 'nothing', label: t('nothing') },
+              ]}
+            />
+          </SettingRow>
         </>
       )}
     </div>
   )
 }
+
+export default memo(WeatherSettings)

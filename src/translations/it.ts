@@ -1,4 +1,3 @@
-// @ts-nocheck
 export default {
   newTab: 'Nuova scheda',
   refreshWallpaper: 'Aggiorna sfondo',

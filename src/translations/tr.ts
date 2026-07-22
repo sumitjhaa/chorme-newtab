@@ -1,4 +1,3 @@
-// @ts-nocheck
 export default {
   newTab: 'Yeni sekme',
   refreshWallpaper: 'Duvar kağıdını yenile',

@@ -1,4 +1,7 @@
-// @ts-nocheck
+/**
+ * @fileoverview Settings sidebar component with tabbed navigation.
+ */
+
 import { useState, memo } from 'react'
 import { useTranslation } from '../hooks/useTranslation'
 import GeneralSettings from './settings/GeneralSettings'
@@ -10,11 +13,20 @@ import PomodoroSettings from './settings/PomodoroSettings'
 import ClockSettings from './settings/ClockSettings'
 import WeatherSettings from './settings/WeatherSettings'
 
+/** Props for the Settings component */
 interface SettingsProps {
+  /** Whether the settings panel is open */
   isOpen: boolean
+  /** Callback to close the settings panel */
   onClose: () => void
 }
 
+/**
+ * Settings sidebar with tabs for general, background, and widget settings.
+ * 
+ * @param props - SettingsProps
+ * @example <Settings isOpen={true} onClose={() => {}} />
+ */
 function Settings({ isOpen, onClose }: SettingsProps) {
   const [activeTab, setActiveTab] = useState<'settings' | 'background' | 'widgets'>('settings')
   const { t } = useTranslation()

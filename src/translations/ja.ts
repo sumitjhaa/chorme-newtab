@@ -1,4 +1,3 @@
-// @ts-nocheck
 export default {
   newTab: '新しいタブ',
   refreshWallpaper: '壁紙を更新',

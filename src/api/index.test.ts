@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { fetchRandomWallpaper, getAvailableSources } from './index'
 import { API_SOURCES } from '../constants'
@@ -21,9 +20,9 @@ describe('getAvailableSources', () => {
 
 describe('fetchRandomWallpaper', () => {
   it('sends message to background and resolves with wallpaper', async () => {
-    const mockWallpaper = { url: 'https://example.com/wall.jpg', source: 'wallhaven' }
+    const mockWallpaper = { url: 'https://example.com/wall.jpg', thumbnail: '', source: 'wallhaven' }
 
-    chrome.runtime.sendMessage.mockImplementation((msg, cb) => {
+    ;(chrome.runtime.sendMessage as ReturnType<typeof vi.fn>).mockImplementation((_msg: unknown, cb: (response: unknown) => void) => {
       cb({ wallpaper: mockWallpaper })
     })
 
@@ -36,7 +35,7 @@ describe('fetchRandomWallpaper', () => {
   })
 
   it('rejects when response has error', async () => {
-    chrome.runtime.sendMessage.mockImplementation((msg, cb) => {
+    ;(chrome.runtime.sendMessage as ReturnType<typeof vi.fn>).mockImplementation((_msg: unknown, cb: (response: unknown) => void) => {
       cb({ error: 'API limit reached' })
     })
 
@@ -44,7 +43,7 @@ describe('fetchRandomWallpaper', () => {
   })
 
   it('rejects when chrome.runtime.lastError is set', async () => {
-    chrome.runtime.sendMessage.mockImplementation((msg, cb) => {
+    ;(chrome.runtime.sendMessage as ReturnType<typeof vi.fn>).mockImplementation((_msg: unknown, cb: (response: unknown) => void) => {
       chrome.runtime.lastError = { message: 'Service worker unavailable' }
       cb(null)
     })
@@ -53,8 +52,8 @@ describe('fetchRandomWallpaper', () => {
   })
 
   it('defaults to WALLHAVEN source when none specified', async () => {
-    chrome.runtime.sendMessage.mockImplementation((msg, cb) => {
-      cb({ wallpaper: { url: 'test.jpg' } })
+    ;(chrome.runtime.sendMessage as ReturnType<typeof vi.fn>).mockImplementation((_msg: unknown, cb: (response: unknown) => void) => {
+      cb({ wallpaper: { url: 'test.jpg', thumbnail: '', source: 'wallhaven' } })
     })
 
     await fetchRandomWallpaper()

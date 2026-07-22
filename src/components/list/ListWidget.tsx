@@ -1,20 +1,37 @@
-// @ts-nocheck
+/**
+ * @fileoverview Todo list widget with multiple list groups.
+ */
+
 import { useState, useRef, useEffect } from 'react'
 import ListItem from './ListItem'
 import './list.css'
 import type { TodoList, TodoItem } from '../../types/list'
 
+/**
+ * Generate a unique ID.
+ * @returns Unique string ID
+ */
 function generateId(): string {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 6)
 }
 
+/** Props for the ListGroup component */
 interface ListGroupProps {
+  /** Todo list data */
   list: TodoList
+  /** List index for display */
   index: number
+  /** Callback when list is updated */
   onChange: (updated: TodoList) => void
+  /** Callback when list is deleted */
   onDelete: () => void
 }
 
+/**
+ * Single list group with items and editing capabilities.
+ * 
+ * @param props - ListGroupProps
+ */
 function ListGroup({ list, index, onChange, onDelete }: ListGroupProps) {
   const [editingTitle, setEditingTitle] = useState(false)
   const titleRef = useRef<HTMLDivElement>(null)
@@ -25,8 +42,10 @@ function ListGroup({ list, index, onChange, onDelete }: ListGroupProps) {
       const range = document.createRange()
       range.selectNodeContents(titleRef.current)
       const sel = window.getSelection()
-      sel.removeAllRanges()
-      sel.addRange(range)
+      if (sel) {
+        sel.removeAllRanges()
+        sel.addRange(range)
+      }
     }
   }, [editingTitle])
 
@@ -44,7 +63,7 @@ function ListGroup({ list, index, onChange, onDelete }: ListGroupProps) {
 
   function addItem() {
     if (list.items.length >= 50) return
-    onChange({ ...list, items: [...list.items, { id: generateId(), url: '', title: '', completed: false, createdAt: Date.now() }] })
+    onChange({ ...list, items: [...list.items, { id: generateId(), text: '', url: '', title: '', completed: false, createdAt: Date.now() }] })
   }
 
   function updateItem(i: number, item: TodoItem) {
@@ -109,13 +128,24 @@ function ListGroup({ list, index, onChange, onDelete }: ListGroupProps) {
   )
 }
 
+/** Props for the ListWidget component */
 interface ListWidgetProps {
+  /** Array of todo lists */
   lists: TodoList[]
+  /** Callback to update a list */
   onUpdate: (index: number, list: TodoList) => void
+  /** Callback to remove a list */
   onRemove: (index: number) => void
+  /** Callback to add a new list */
   onAdd: () => void
 }
 
+/**
+ * Todo list widget displaying multiple list groups.
+ * 
+ * @param props - ListWidgetProps
+ * @example <ListWidget lists={lists} onUpdate={set} onRemove={del} onAdd={add} />
+ */
 export default function ListWidget({ lists, onUpdate, onRemove }: ListWidgetProps) {
   return (
     <div className="list-widget">

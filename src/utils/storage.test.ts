@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import {
   getFromStorage,
@@ -11,17 +10,17 @@ import {
   setSearchEngine,
 } from './storage'
 
-let savedStorage
+let savedStorage: typeof chrome.storage
 
 beforeEach(() => {
   localStorage.clear()
   vi.clearAllMocks()
   savedStorage = chrome.storage
-  delete chrome.storage
+  ;(chrome as { storage?: typeof chrome.storage }).storage = undefined as unknown as typeof chrome.storage
 })
 
 afterEach(() => {
-  chrome.storage = savedStorage
+  ;(chrome as { storage: typeof chrome.storage }).storage = savedStorage
 })
 
 describe('getFromStorage / setToStorage', () => {

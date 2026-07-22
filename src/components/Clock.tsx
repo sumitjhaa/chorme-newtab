@@ -1,8 +1,17 @@
-// @ts-nocheck
+/**
+ * @fileoverview Clock widget component with digital and analog display modes.
+ */
+
 import { useState, useEffect, memo } from 'react'
 import { useSettings } from '../hooks/useSettings'
 import type { Settings } from '../types'
 
+/**
+ * Format time based on clock settings.
+ * @param date - Date object to format
+ * @param s - Clock settings
+ * @returns Formatted time string
+ */
 function formatTime(date: Date, s: Settings): string {
   const is24h = s.clockFormat === '24h'
   const opts: Intl.DateTimeFormatOptions = { hour: '2-digit', minute: '2-digit', hour12: !is24h }
@@ -13,6 +22,12 @@ function formatTime(date: Date, s: Settings): string {
   return str.replace(/\s?(AM|PM|am|pm)$/i, '').trim()
 }
 
+/**
+ * Get AM/PM indicator string.
+ * @param date - Date object
+ * @param s - Clock settings
+ * @returns AM/PM string or empty
+ */
 function getAmPm(date: Date, s: Settings): string {
   if (s.clockFormat === '24h' || !s.showAmPm) return ''
   const opts: Intl.DateTimeFormatOptions = { hour: 'numeric', hour12: true }
@@ -22,6 +37,12 @@ function getAmPm(date: Date, s: Settings): string {
   return daypart ? daypart.value.toUpperCase() : ''
 }
 
+/**
+ * Get seconds string.
+ * @param date - Date object
+ * @param s - Clock settings
+ * @returns Seconds string or empty
+ */
 function getSeconds(date: Date, s: Settings): string {
   if (!s.showSeconds) return ''
   const opts: Intl.DateTimeFormatOptions = { second: '2-digit' }
@@ -29,6 +50,12 @@ function getSeconds(date: Date, s: Settings): string {
   return date.toLocaleTimeString('en-US', opts)
 }
 
+/**
+ * Format date string based on date format setting.
+ * @param date - Date object
+ * @param s - Clock settings
+ * @returns Formatted date string
+ */
 function formatDate(date: Date, s: Settings): string {
   const tz = s.timeZone !== 'local' ? { timeZone: s.timeZone } : {}
   const day = String(new Intl.DateTimeFormat('en-US', { day: '2-digit', ...tz }).format(date)).padStart(2, '0')
@@ -39,16 +66,30 @@ function formatDate(date: Date, s: Settings): string {
   return `${day}/${month}/${year}`
 }
 
+/**
+ * Get human-readable timezone label.
+ * @param tz - Timezone string (e.g., "America/New_York")
+ * @returns Formatted label (e.g., "New York")
+ */
 function tzLabel(tz: string): string {
   const parts = tz.split('/')
   return parts.length > 1 ? parts[parts.length - 1].replace(/_/g, ' ') : tz
 }
 
+/** Props for the AnalogClock component */
 interface AnalogClockProps {
+  /** Current date/time */
   date: Date
+  /** Timezone to display */
   timeZone: string
 }
 
+/**
+ * Analog clock display with hour, minute, and second hands.
+ * 
+ * @param props - AnalogClockProps
+ * @returns SVG-based analog clock face
+ */
 function AnalogClock({ date, timeZone }: AnalogClockProps) {
   const tz = timeZone !== 'local' ? { timeZone } : {}
   const parts = new Intl.DateTimeFormat('en-US', {
@@ -81,6 +122,11 @@ function AnalogClock({ date, timeZone }: AnalogClockProps) {
   )
 }
 
+/**
+ * Clock widget with digital/analog display and world clock support.
+ * 
+ * @example <Clock />
+ */
 function Clock() {
   const [time, setTime] = useState(new Date())
   const { settings } = useSettings()
@@ -90,8 +136,8 @@ function Clock() {
     return () => clearInterval(interval)
   }, [])
 
-  const showClock = settings.showClockDate !== 'date'
-  const showDate = settings.showClockDate !== 'clock'
+  const showClock = settings.showClockDate !== 'date_only'
+  const showDate = settings.showClockDate !== 'none'
   const scale = settings.clockSize / 100
   const ampm = getAmPm(time, settings)
   const secs = getSeconds(time, settings)
@@ -112,7 +158,7 @@ function Clock() {
       {showDate && <div className="clock-date">{formatDate(time, settings)}</div>}
       {settings.worldClockTimezones && settings.worldClockTimezones.length > 0 && (
         <div className="world-clocks">
-          {settings.worldClockTimezones.map((tz) => (
+          {settings.worldClockTimezones.map((tz: string) => (
             <div key={tz} className="world-clock-row">
               <span className="world-clock-label">{tzLabel(tz)}</span>
               <span className="world-clock-time">{formatTime(time, { ...settings, timeZone: tz, showSeconds: false, showAmPm: false })}</span>

@@ -1,7 +1,13 @@
-// @ts-nocheck
+/**
+ * @fileoverview Sticky notes widget with markdown support.
+ */
+
 import { useState, useEffect, useRef, memo, useCallback } from 'react'
 import { useTranslation } from '../hooks/useTranslation'
+import { useStorageSync } from '../hooks/useStorageSync'
+import { saveJSON } from '../lib/storage'
 
+/** Available sticky note colors */
 const COLORS = [
   { name: 'Pink',    bg: 'rgba(250, 227, 227, 0.65)' },
   { name: 'Yellow',  bg: 'rgba(255, 248, 198, 0.65)' },
@@ -11,14 +17,24 @@ const COLORS = [
   { name: 'Orange',  bg: 'rgba(253, 235, 208, 0.65)' },
 ]
 
-function complementTape(rgba) {
+/**
+ * Get complementary tape color for the sticky note.
+ * @param rgba - Background color RGBA string
+ * @returns Complementary color RGBA string
+ */
+function complementTape(rgba: string): string {
   const m = rgba.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/)
   if (!m) return 'rgba(180,180,180,0.35)'
   const r = 255 - +m[1], g = 255 - +m[2], b = 255 - +m[3]
   return `rgba(${r},${g},${b},0.35)`
 }
 
-function parseMd(md) {
+/**
+ * Parse simple markdown to HTML.
+ * @param md - Markdown string
+ * @returns HTML string
+ */
+function parseMd(md: string): string {
   if (!md) return ''
   let html = md
     .replace(/&/g, '&amp;')
@@ -49,25 +65,29 @@ function parseMd(md) {
   return processed.join('\n')
 }
 
-function loadNotes() {
-  try {
-    const data = JSON.parse(localStorage.getItem('newtab_sticky') || 'null')
-    if (Array.isArray(data)) return data
-    if (data && typeof data === 'object') return [{ html: data.html || data.text || '', colorIdx: data.colorIdx ?? 0 }]
-    return []
-  } catch { return [] }
+/** Props for the StickyNoteEditor component */
+interface StickyNoteEditorProps {
+  /** Note data */
+  note: { html: string; colorIdx: number }
+  /** Note index in the array */
+  index: number
+  /** Callback when note is updated */
+  onChange: (index: number, updated: { html: string; colorIdx: number }) => void
+  /** Callback when note is deleted */
+  onDelete: (index: number) => void
 }
 
-function saveNotes(notes) {
-  localStorage.setItem('newtab_sticky', JSON.stringify(notes))
-  window.dispatchEvent(new Event('sticky-update'))
-}
-
-function StickyNoteEditor({ note, index, onChange, onDelete }) {
+/**
+ * Individual sticky note editor with markdown preview.
+ * 
+ * @param props - StickyNoteEditorProps
+ * @returns Sticky note component
+ */
+function StickyNoteEditor({ note, index, onChange, onDelete }: StickyNoteEditorProps) {
   const { t } = useTranslation()
   const [editing, setEditing] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
-  const editorRef = useRef(null)
+  const editorRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (editing && editorRef.current) {
@@ -78,8 +98,10 @@ function StickyNoteEditor({ note, index, onChange, onDelete }) {
       range.selectNodeContents(editorRef.current)
       range.collapse(false)
       const sel = window.getSelection()
-      sel.removeAllRanges()
-      sel.addRange(range)
+      if (sel) {
+        sel.removeAllRanges()
+        sel.addRange(range)
+      }
     }
   }, [editing])
 
@@ -91,7 +113,7 @@ function StickyNoteEditor({ note, index, onChange, onDelete }) {
     setEditing(false)
   }
 
-  function handleKeyDown(e) {
+  function handleKeyDown(e: React.KeyboardEvent) {
     if (e.key === 'Escape') editorRef.current?.blur()
   }
 
@@ -153,25 +175,20 @@ function StickyNoteEditor({ note, index, onChange, onDelete }) {
   )
 }
 
+/**
+ * Sticky notes container that manages multiple notes.
+ * 
+ * @example <StickyNote />
+ */
 function StickyNote() {
-  const [notes, setNotes] = useState(loadNotes)
-  const mountedRef = useRef(false)
-
-  useEffect(() => {
-    function refresh() { setNotes(loadNotes()) }
-    window.addEventListener('sticky-update', refresh)
-    const interval = setInterval(refresh, 300)
-    mountedRef.current = true
-    return () => {
-      window.removeEventListener('sticky-update', refresh)
-      clearInterval(interval)
-    }
-  }, [])
-
-  useEffect(() => {
-    if (!mountedRef.current) return
-    saveNotes(notes)
-  }, [notes])
+  const { data: notes, setData: setNotes } = useStorageSync<any[]>('newtab_sticky', 'sticky-update', (raw) => {
+    try {
+      const data = JSON.parse(raw || 'null')
+      if (Array.isArray(data)) return data
+      if (data && typeof data === 'object') return [{ html: data.html || data.text || '', colorIdx: data.colorIdx ?? 0 }]
+      return []
+    } catch { return [] }
+  })
 
   useEffect(() => {
     if (notes.length === 0) {
@@ -179,7 +196,7 @@ function StickyNote() {
         const data = JSON.parse(localStorage.getItem('newtab_settings') || '{}')
         if (data.showStickyNote) {
           data.showStickyNote = false
-          localStorage.setItem('newtab_settings', JSON.stringify(data))
+          saveJSON('newtab_settings', data)
           try { chrome.storage.local.set({ showStickyNote: false }) } catch {}
           window.dispatchEvent(new Event('storage'))
         }
@@ -187,13 +204,13 @@ function StickyNote() {
     }
   }, [notes.length])
 
-  const handleChange = useCallback((i, updated) => {
-    setNotes(prev => prev.map((n, idx) => idx === i ? updated : n))
-  }, [])
+  const handleChange = useCallback((i: number, updated: { html: string; colorIdx: number }) => {
+    setNotes(prev => prev.map((n: { html: string; colorIdx: number }, idx: number) => idx === i ? updated : n))
+  }, [setNotes])
 
-  const handleDelete = useCallback((i) => {
-    setNotes(prev => prev.filter((_, idx) => idx !== i))
-  }, [])
+  const handleDelete = useCallback((i: number) => {
+    setNotes(prev => prev.filter((_: { html: string; colorIdx: number }, idx: number) => idx !== i))
+  }, [setNotes])
 
   return (
     <div className="sticky-notes-container">

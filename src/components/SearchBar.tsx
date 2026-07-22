@@ -1,14 +1,24 @@
-// @ts-nocheck
+/**
+ * @fileoverview Search bar widget with engine selection and suggestions.
+ */
+
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { SEARCH_ENGINES } from '../constants'
 import { useSettings } from '../hooks/useSettings'
 import { EngineGrid, ENGINE_ICONS, SuggestionsDropdown } from './search'
+import type { SearchEngineKey } from '../types'
 
+/**
+ * Search bar widget with engine selection, suggestions, and keyboard navigation.
+ * Spans two columns in the layout.
+ * 
+ * @example <SearchBar />
+ */
 export default function SearchBar() {
   const { settings, update } = useSettings()
   const [query, setQuery] = useState('')
   const [isOpen, setIsOpen] = useState(false)
-  const [suggestions, setSuggestions] = useState([])
+  const [suggestions, setSuggestions] = useState<string[]>([])
   const [suggestionPos, setSuggestionPos] = useState({ top: 0, left: 0, width: 0 })
   const [enginePos, setEnginePos] = useState({ top: 0, left: 0, width: 0 })
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -57,7 +67,11 @@ export default function SearchBar() {
     updateSuggestionPos()
     const timer = setTimeout(async () => {
       try {
-        const data = await chrome.runtime.sendMessage({ type: 'FETCH_SUGGESTIONS', query: query.trim() })
+        const data = await new Promise<{ suggestions?: string[] } | null>((resolve) => {
+          chrome.runtime.sendMessage({ type: 'FETCH_SUGGESTIONS', query: query.trim() }, (response: unknown) => {
+            resolve(response as { suggestions?: string[] } | null)
+          })
+        })
         setSuggestions(data?.suggestions || [])
       } catch { setSuggestions([]) }
     }, 200)
@@ -67,7 +81,7 @@ export default function SearchBar() {
   const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault()
     if (!query.trim()) return
-    const selectedEngine = SEARCH_ENGINES[settings.searchEngine]
+    const selectedEngine = SEARCH_ENGINES[settings.searchEngine as SearchEngineKey]
     const url = `${selectedEngine.url}${encodeURIComponent(query.trim())}`
     if (settings.openInNewTab) {
       window.open(url, '_blank')
@@ -79,7 +93,7 @@ export default function SearchBar() {
   const handleSuggestionClick = useCallback((s: string) => {
     setQuery(s)
     setSuggestions([])
-    const selectedEngine = SEARCH_ENGINES[settings.searchEngine]
+    const selectedEngine = SEARCH_ENGINES[settings.searchEngine as SearchEngineKey]
     const url = `${selectedEngine.url}${encodeURIComponent(s)}`
     if (settings.openInNewTab) {
       window.open(url, '_blank')
@@ -93,7 +107,7 @@ export default function SearchBar() {
     setIsOpen(false)
   }, [update])
 
-  const iconSrc = ENGINE_ICONS[settings.searchEngine]
+  const iconSrc = ENGINE_ICONS[settings.searchEngine as SearchEngineKey]
   return (
     <form ref={formRef} className="search-bar" onSubmit={handleSubmit} style={{ width: '100%' }}>
       <div className="search-input-wrapper" style={{

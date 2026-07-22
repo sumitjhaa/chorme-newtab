@@ -1,17 +1,31 @@
-// @ts-nocheck
-import type { ReactNode } from 'react'
+import React from 'react'
+import { Box, BoxProps } from './Box'
 
-interface SettingRowProps {
+/**
+ * Props for the polymorphic SettingRow component.
+ */
+export interface SettingRowProps<As extends React.ElementType = 'div'> extends BoxProps<As> {
+  /** Label displayed on the left side of the row. */
   label: string
-  children: ReactNode
-  className?: string
 }
 
-export default function SettingRow({ label, children, className = '' }: SettingRowProps) {
+/**
+ * A labeled settings row built on the polymorphic `Box`.
+ * Renders as `<div>` by default.
+ *
+ * @example <SettingRow label="Name"><input /></SettingRow>
+ * @example <SettingRow as="li" label="Theme"><select /></SettingRow>
+ */
+export function SettingRow<As extends React.ElementType = 'div'>({
+  label,
+  children,
+  className = '',
+  ...props
+}: SettingRowProps<As>) {
   return (
-    <div className={`setting-row ${className}`}>
+    <Box className={`setting-row ${className}`} {...props}>
       <span className="setting-label">{label}</span>
       {children}
-    </div>
+    </Box>
   )
 }

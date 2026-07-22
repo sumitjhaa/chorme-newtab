@@ -1,10 +1,11 @@
-// @ts-nocheck
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { SettingsProvider } from '../context/SettingsContext'
 import SearchBar from './SearchBar'
+import type { ReactElement } from 'react'
+import type { RenderOptions } from '@testing-library/react'
 
-function renderWithProvider(ui, options) {
+function renderWithProvider(ui: ReactElement, options?: Omit<RenderOptions, 'wrapper'>) {
   return render(<SettingsProvider>{ui}</SettingsProvider>, options)
 }
 
@@ -13,8 +14,8 @@ beforeEach(() => {
   vi.restoreAllMocks()
 })
 
-const openDropdown = (container) => {
-  fireEvent.click(container.querySelector('.search-engine-icon'))
+const openDropdown = (container: HTMLElement) => {
+  fireEvent.click(container.querySelector('.search-engine-icon')!)
 }
 
 describe('SearchBar', () => {
@@ -60,7 +61,7 @@ describe('SearchBar', () => {
     openDropdown(container)
     fireEvent.click(screen.getByTitle('Brave'))
 
-    const saved = JSON.parse(localStorage.getItem('newtab_settings'))
+    const saved = JSON.parse(localStorage.getItem('newtab_settings') || '{}')
     expect(saved.searchEngine).toBe('BRAVE')
   })
 
@@ -69,7 +70,7 @@ describe('SearchBar', () => {
     const { container } = renderWithProvider(<SearchBar />)
 
     const btn = container.querySelector('.search-engine-icon')
-    expect(btn.querySelector('img')).toBeInTheDocument()
+    expect(btn?.querySelector('img')).toBeInTheDocument()
   })
 
   it('defaults to GOOGLE when no saved preference', () => {
@@ -82,19 +83,17 @@ describe('SearchBar', () => {
     const input = screen.getByPlaceholderText('Search with Google or type a URL')
     fireEvent.change(input, { target: { value: 'test query' } })
 
-    const form = container.querySelector('form')
+    const form = container.querySelector('form')!
     const submitEvent = new Event('submit', { bubbles: true, cancelable: true })
     Object.defineProperty(submitEvent, 'preventDefault', { value: vi.fn() })
     form.dispatchEvent(submitEvent)
 
-    // Instead of checking window.location.href (can't spy in jsdom),
-    // verify the form would have submitted with the right data
     expect(input).toHaveValue('test query')
   })
 
   it('does not navigate on empty query', () => {
     const { container } = renderWithProvider(<SearchBar />)
-    const form = container.querySelector('form')
+    const form = container.querySelector('form')!
     const submitEvent = new Event('submit', { bubbles: true, cancelable: true })
     const preventDefault = vi.fn()
     Object.defineProperty(submitEvent, 'preventDefault', { value: preventDefault })
@@ -110,7 +109,7 @@ describe('SearchBar', () => {
       </div>
     )
 
-    const btn = document.querySelector('.search-engine-icon')
+    const btn = document.querySelector('.search-engine-icon')!
     fireEvent.click(btn)
     expect(screen.getByTitle('DuckDuckGo')).toBeInTheDocument()
 
@@ -127,7 +126,7 @@ describe('SearchBar', () => {
     const input = screen.getByPlaceholderText('Search with Google or type a URL')
     fireEvent.change(input, { target: { value: 'search' } })
 
-    const form = container.querySelector('form')
+    const form = container.querySelector('form')!
     const submitEvent = new Event('submit', { bubbles: true, cancelable: true })
     Object.defineProperty(submitEvent, 'preventDefault', { value: vi.fn() })
     form.dispatchEvent(submitEvent)

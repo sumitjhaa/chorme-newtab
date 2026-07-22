@@ -1,8 +1,17 @@
-// @ts-nocheck
+/**
+ * @fileoverview General settings panel for language, dark mode, and tab title.
+ */
+
+import { useCallback, memo } from 'react'
 import { useSettings } from '../../hooks/useSettings'
 import { useTranslation } from '../../hooks/useTranslation'
-import ToggleSwitch from '../ToggleSwitch'
+import { SettingRow } from '../ui/SettingRow'
+import { SettingSelect } from '../ui/SettingSelect'
+import { SettingInput } from '../ui/SettingInput'
+import { SegmentedControl } from '../ui/SegmentedControl'
+import { ToggleSwitch } from '../ui/ToggleSwitch'
 
+/** Available language options */
 const LANGUAGES = [
   { code: 'en', label: 'English' },
   { code: 'es', label: 'Español' },
@@ -26,60 +35,68 @@ const LANGUAGES = [
   { code: 'sv', label: 'Svenska' },
 ]
 
-export default function GeneralSettings() {
+/**
+ * General settings panel with language, dark mode, and tab title controls.
+ * 
+ * @example <GeneralSettings />
+ */
+function GeneralSettings() {
   const { settings, update } = useSettings()
   const { t, lang, getLanguageName } = useTranslation()
+
+  const handleToggleHideSettingsIcons = useCallback(() => {
+    update('hideSettingsIcons', !settings.hideSettingsIcons)
+  }, [settings.hideSettingsIcons, update])
+
+  const handleLanguageChange = useCallback((val: string) => {
+    update('language', val)
+  }, [update])
+
+  const handleDarkModeChange = useCallback((val: string) => {
+    update('darkMode', val)
+  }, [update])
+
+  const handleTabTitleChange = useCallback((val: string) => {
+    update('tabTitle', val)
+  }, [update])
 
   return (
     <div className="settings-group">
       <div className="settings-group-title">{t('general')}</div>
 
-      <div className="setting-row">
-        <span className="setting-label">{t('hideSettingsIcons')}</span>
+      <SettingRow label={t('hideSettingsIcons')}>
         <ToggleSwitch
           checked={settings.hideSettingsIcons}
-          onChange={() => update('hideSettingsIcons', !settings.hideSettingsIcons)}
+          onChange={handleToggleHideSettingsIcons}
         />
-      </div>
+      </SettingRow>
 
-      <div className="setting-row">
-        <span className="setting-label">{t('language')} {lang !== 'en' && `(${getLanguageName(lang)})`}</span>
-        <select
-          className="setting-select"
+      <SettingRow label={`${t('language')}${lang !== 'en' ? ` (${getLanguageName(lang)})` : ''}`}>
+        <SettingSelect
           value={settings.language}
-          onChange={(e) => update('language', e.target.value)}
-        >
-          {LANGUAGES.map((l) => (
-            <option key={l.code} value={l.code}>{l.label}</option>
-          ))}
-        </select>
-      </div>
+          onChange={handleLanguageChange}
+          options={LANGUAGES.map((l) => ({ value: l.code, label: l.label }))}
+        />
+      </SettingRow>
 
-      <div className="setting-row">
-        <span className="setting-label">{t('darkMode')}</span>
-        <div className="segmented-control">
-          {['light', 'dark', 'system'].map((mode) => (
-            <button
-              key={mode}
-              className={`segmented-option ${settings.darkMode === mode ? 'active' : ''}`}
-              onClick={() => update('darkMode', mode)}
-            >
-              {t(mode)}
-            </button>
-          ))}
-        </div>
-      </div>
+      <SettingRow label={t('darkMode')}>
+        <SegmentedControl
+          options={['light', 'dark', 'system'].map((mode) => ({ value: mode, label: t(mode) }))}
+          value={settings.darkMode}
+          onChange={handleDarkModeChange}
+        />
+      </SettingRow>
 
-      <div className="setting-row">
-        <span className="setting-label">{t('tabTitle')}</span>
-        <input
+      <SettingRow label={t('tabTitle')}>
+        <SettingInput
           type="text"
-          className="setting-input"
           value={settings.tabTitle}
-          onChange={(e) => update('tabTitle', e.target.value)}
+          onChange={handleTabTitleChange}
           placeholder={t('newTab')}
         />
-      </div>
+      </SettingRow>
     </div>
   )
 }
+
+export default memo(GeneralSettings)

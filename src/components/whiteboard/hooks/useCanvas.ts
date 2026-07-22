@@ -1,9 +1,39 @@
-// @ts-nocheck
+/**
+ * @fileoverview Hook for whiteboard canvas drawing operations.
+ */
+
 import { useRef, useCallback, useEffect } from 'react'
 import { getPointerPos, drawSegment, drawDot, clearCanvas, saveCanvasImage, loadCanvasImage } from '../canvas'
 import { isShapeTool } from '../tools'
+import type { ToolDef } from '../tools'
 
-function getCssPointerPos(canvas, e) {
+/** 2D point coordinates */
+interface Point {
+  /** X coordinate */
+  x: number
+  /** Y coordinate */
+  y: number
+}
+
+/** Simplified pointer event type */
+interface PointerEventLike {
+  /** Client X position */
+  clientX: number
+  /** Client Y position */
+  clientY: number
+  /** Prevent default */
+  preventDefault(): void
+  /** Touch events */
+  touches?: { clientX: number; clientY: number }[]
+}
+
+/**
+ * Get CSS-relative pointer position.
+ * @param canvas - Canvas element
+ * @param e - Pointer event
+ * @returns CSS coordinates
+ */
+function getCssPointerPos(canvas: HTMLCanvasElement, e: PointerEventLike): Point {
   const rect = canvas.getBoundingClientRect()
   const clientX = e.touches ? e.touches[0].clientX : e.clientX
   const clientY = e.touches ? e.touches[0].clientY : e.clientY
@@ -13,15 +43,22 @@ function getCssPointerPos(canvas, e) {
   }
 }
 
-export function useCanvas(tool, color) {
-  const canvasRef = useRef(null)
-  const containerRef = useRef(null)
+/**
+ * Hook for whiteboard canvas drawing operations.
+ * 
+ * @param tool - Current tool definition
+ * @param color - Current drawing color
+ * @returns Canvas refs and event handlers
+ */
+export function useCanvas(tool: ToolDef, color: string) {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
   const drawing = useRef(false)
-  const originPos = useRef(null)
-  const offscreenRef = useRef(null)
+  const originPos = useRef<Point | null>(null)
+  const offscreenRef = useRef<HTMLCanvasElement | null>(null)
 
   const getCtx = useCallback(() => {
-    return canvasRef.current?.getContext('2d')
+    return canvasRef.current?.getContext('2d') || null
   }, [])
 
   const ensureOffscreen = useCallback(() => {
@@ -36,7 +73,7 @@ export function useCanvas(tool, color) {
     return offscreenRef.current
   }, [])
 
-  const handlePointerDown = useCallback((e) => {
+  const handlePointerDown = useCallback((e: PointerEventLike) => {
     e.preventDefault()
     const canvas = canvasRef.current
     if (!canvas) return
@@ -48,7 +85,7 @@ export function useCanvas(tool, color) {
       originPos.current = pos
       const off = ensureOffscreen()
       if (off) {
-        const offCtx = off.getContext('2d')
+        const offCtx = off.getContext('2d')!
         offCtx.clearRect(0, 0, off.width, off.height)
         offCtx.save()
         offCtx.setTransform(1, 0, 0, 1, 0, 0)
@@ -62,7 +99,7 @@ export function useCanvas(tool, color) {
     }
   }, [tool, color, getCtx, ensureOffscreen])
 
-  const handlePointerMove = useCallback((e) => {
+  const handlePointerMove = useCallback((e: PointerEventLike) => {
     if (!drawing.current) return
     e.preventDefault()
     const canvas = canvasRef.current
@@ -73,7 +110,7 @@ export function useCanvas(tool, color) {
       const pos = getCssPointerPos(canvas, e)
       const off = ensureOffscreen()
       if (off && originPos.current) {
-        const offCtx = off.getContext('2d')
+        const offCtx = off.getContext('2d')!
         offCtx.clearRect(0, 0, off.width, off.height)
         offCtx.save()
         offCtx.setTransform(1, 0, 0, 1, 0, 0)
@@ -108,11 +145,11 @@ export function useCanvas(tool, color) {
       drawing.current = false
       originPos.current = null
       if (offscreenRef.current) {
-        offscreenRef.current.getContext('2d').clearRect(0, 0, offscreenRef.current.width, offscreenRef.current.height)
+        offscreenRef.current.getContext('2d')?.clearRect(0, 0, offscreenRef.current.width, offscreenRef.current.height)
       }
-      saveCanvasImage(canvas)
+      if (canvas) saveCanvasImage(canvas)
     }
-  }, [getCtx])
+  }, [getCtx, tool.id])
 
   const handleClear = useCallback(() => {
     const canvas = canvasRef.current
@@ -137,6 +174,7 @@ export function useCanvas(tool, color) {
     const canvas = canvasRef.current
     if (!container || !canvas) return
     const ctx = canvas.getContext('2d')
+    if (!ctx) return
     const dpr = window.devicePixelRatio || 1
     const w = container.clientWidth
     const h = container.clientHeight
@@ -165,7 +203,7 @@ export function useCanvas(tool, color) {
   }
 }
 
-function drawShapeOnCtx(ctx, from, to, tool, color) {
+function drawShapeOnCtx(ctx: CanvasRenderingContext2D, from: Point, to: Point, tool: ToolDef, color: string): void {
   ctx.strokeStyle = color
   ctx.fillStyle = color
   ctx.lineWidth = tool.lineWidth

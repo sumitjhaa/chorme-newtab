@@ -1,9 +1,50 @@
-// @ts-nocheck
+/**
+ * @fileoverview Weather widget component displaying current conditions.
+ */
+
 import { useState, useEffect, useCallback, memo } from 'react'
 import { useTranslation } from '../hooks/useTranslation'
 import { useSettings } from '../hooks/useSettings'
 
-async function fetchCoords(geolocation, manualLocation) {
+/** Weather location coordinates */
+interface WeatherCoords {
+  /** Latitude */
+  lat: number
+  /** Longitude */
+  lon: number
+  /** Location name */
+  name: string
+  /** Country name */
+  country: string
+}
+
+/** Weather API response data */
+interface WeatherData {
+  /** Current weather conditions */
+  current: {
+    /** Temperature in Celsius */
+    temperature_2m: number
+    /** Apparent temperature in Celsius */
+    apparent_temperature: number
+    /** WMO weather code */
+    weather_code: number
+  }
+  /** Daily forecast data */
+  daily: {
+    /** Maximum temperatures */
+    temperature_2m_max: number[]
+    /** Minimum temperatures */
+    temperature_2m_min: number[]
+  }
+}
+
+/**
+ * Fetch location coordinates based on geolocation settings.
+ * @param geolocation - Geolocation mode
+ * @param manualLocation - Manual location string
+ * @returns Coordinates or null if unavailable
+ */
+async function fetchCoords(geolocation: string, manualLocation: string): Promise<WeatherCoords | null> {
   if (geolocation === 'manual' && manualLocation) {
     const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(manualLocation)}&count=1&language=en&format=json`)
     const data = await res.json()
@@ -14,7 +55,7 @@ async function fetchCoords(geolocation, manualLocation) {
   }
   if (geolocation !== 'never') {
     try {
-      const pos = await new Promise((resolve, reject) =>
+      const pos = await new Promise<GeolocationPosition>((resolve, reject) =>
         navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000, enableHighAccuracy: geolocation === 'precise' })
       )
       return { lat: pos.coords.latitude, lon: pos.coords.longitude, name: '', country: '' }
@@ -23,20 +64,40 @@ async function fetchCoords(geolocation, manualLocation) {
   return null
 }
 
-async function fetchWeather(lat, lon, unit) {
+/**
+ * Fetch weather data from Open-Meteo API.
+ * @param lat - Latitude
+ * @param lon - Longitude
+ * @param unit - Temperature unit
+ * @returns Weather data
+ */
+async function fetchWeather(lat: number, lon: number, unit: string): Promise<WeatherData> {
   const params = new URLSearchParams({
-    latitude: lat,
-    longitude: lon,
+    latitude: String(lat),
+    longitude: String(lon),
     current: 'temperature_2m,apparent_temperature,weather_code',
     daily: 'temperature_2m_max,temperature_2m_min,weather_code',
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-    forecast_days: 1,
+    forecast_days: '1',
   })
   const res = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`)
-  return res.json()
+  return res.json() as Promise<WeatherData>
 }
 
-function getWeatherCodes(t) {
+/** Weather code display information */
+interface WeatherCodeInfo {
+  /** Localized weather description */
+  label: string
+  /** Weather emoji icon */
+  icon: string
+}
+
+/**
+ * Get weather code display info with translations.
+ * @param t - Translation function
+ * @returns Map of weather codes to display info
+ */
+function getWeatherCodes(t: (key: string) => string): Record<number, WeatherCodeInfo> {
   return {
     0: { label: t('clear'), icon: '☀️' },
     1: { label: t('mainlyClear'), icon: '🌤️' },
@@ -62,16 +123,39 @@ function getWeatherCodes(t) {
   }
 }
 
-function toF(c) { return Math.round(c * 9 / 5 + 32) }
-function convertTemp(c, unit) { return unit === 'fahrenheit' ? toF(c) : Math.round(c) }
-function unitLabel(unit) { return unit === 'fahrenheit' ? '°F' : '°C' }
+/**
+ * Convert Celsius to Fahrenheit.
+ * @param c - Temperature in Celsius
+ * @returns Temperature in Fahrenheit
+ */
+function toF(c: number): number { return Math.round(c * 9 / 5 + 32) }
 
+/**
+ * Convert temperature to the specified unit.
+ * @param c - Temperature in Celsius
+ * @param unit - Target unit
+ * @returns Converted temperature
+ */
+function convertTemp(c: number, unit: string): number { return unit === 'fahrenheit' ? toF(c) : Math.round(c) }
+
+/**
+ * Get unit label string.
+ * @param unit - Temperature unit
+ * @returns Unit label (°C or °F)
+ */
+function unitLabel(unit: string): string { return unit === 'fahrenheit' ? '°F' : '°C' }
+
+/**
+ * Weather widget displaying current conditions with geolocation support.
+ * 
+ * @example <Weather />
+ */
 function Weather() {
   const { t } = useTranslation()
   const { settings } = useSettings()
-  const [weather, setWeather] = useState(null)
+  const [weather, setWeather] = useState<WeatherData | null>(null)
   const [location, setLocation] = useState('')
-  const [error, setError] = useState(null)
+  const [error, setError] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     setError(null)
@@ -99,7 +183,7 @@ function Weather() {
 
   const weatherCodes = getWeatherCodes(t)
   const code = weather.current.weather_code
-  const info = weatherCodes[code] || { label: t('unknown'), icon: '❓' }
+  const info = weatherCodes[code as number] || { label: t('unknown'), icon: '❓' }
   const u = settings.tempUnit
   const temp = convertTemp(weather.current.temperature_2m, u)
   const feels = convertTemp(weather.current.apparent_temperature, u)

@@ -1,8 +1,16 @@
-// @ts-nocheck
+/**
+ * @fileoverview Todo list widget container component.
+ */
+
 import { memo } from 'react'
 import { useLists } from './hooks/useLists'
 import ListWidget from './ListWidget'
 
+/**
+ * Todo list widget that manages multiple lists.
+ * 
+ * @example <Lists />
+ */
 function Lists() {
   const { lists, addList, updateList, removeList } = useLists()
 

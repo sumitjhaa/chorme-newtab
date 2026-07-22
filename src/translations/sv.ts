@@ -1,4 +1,3 @@
-// @ts-nocheck
 export default {
   newTab: 'Ny flik',
   refreshWallpaper: 'Uppdatera bakgrundsbild',

@@ -1,8 +1,8 @@
-// @ts-nocheck
 import '@testing-library/jest-dom'
+import { vi } from 'vitest'
 
 // Mock chrome.storage API for tests
-globalThis.chrome = {
+;(globalThis as Record<string, unknown>).chrome = {
   storage: {
     local: {
       get: vi.fn(() => Promise.resolve({})),

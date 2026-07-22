@@ -1,4 +1,7 @@
-// @ts-nocheck
+/**
+ * @fileoverview Default settings and layout values for the application.
+ */
+
 import type { Settings } from '../types'
 import { API_SOURCES } from '../constants'
 
@@ -70,6 +73,7 @@ export const SETTINGS_DEFAULTS: Settings = {
   pomodoroCycles: 4,
 }
 
+/** Default widget layout positions */
 export const LAYOUT_DEFAULTS = {
   clock:         { col: 0, order: 0 },
   calendar:      { col: 0, order: 1 },

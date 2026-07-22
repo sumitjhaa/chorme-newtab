@@ -1,4 +1,3 @@
-// @ts-nocheck
 export default {
   newTab: 'Nowa karta',
   refreshWallpaper: 'Odśwież tapetę',

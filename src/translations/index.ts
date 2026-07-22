@@ -1,4 +1,7 @@
-// @ts-nocheck
+/**
+ * @fileoverview Internationalization utilities for translating UI strings.
+ */
+
 import en from './en'
 import es from './es'
 import fr from './fr'
@@ -20,15 +23,27 @@ import id from './id'
 import uk from './uk'
 import sv from './sv'
 
-const translations = {
+const translations: Record<string, Record<string, string>> = {
   en, es, fr, de, pt, ja, ko, zh, hi, ar,
   ru, it, nl, pl, tr, vi, th, id, uk, sv,
 }
 
+/**
+ * Translate a key to the specified language.
+ * Falls back to English if the key is not found.
+ * @param key - Translation key
+ * @param lang - Language code (default: 'en')
+ * @returns Translated string or the key itself
+ */
 export function t(key: string, lang = 'en'): string {
   return translations[lang]?.[key] || translations.en[key] || key
 }
 
+/**
+ * Get the display name for a language code.
+ * @param code - ISO 639-1 language code
+ * @returns Language display name
+ */
 export function getLanguageName(code: string): string {
   const names: Record<string, string> = {
     en: 'English', es: 'Español', fr: 'Français', de: 'Deutsch',

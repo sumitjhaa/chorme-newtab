@@ -1,4 +1,3 @@
-// @ts-nocheck
 export default {
   newTab: 'नया टैब',
   refreshWallpaper: 'वॉलपेपर रीफ्रेश करें',

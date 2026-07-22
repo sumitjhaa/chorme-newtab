@@ -1,14 +1,25 @@
-// @ts-nocheck
+/**
+ * @fileoverview Whiteboard drawing widget component.
+ */
+
 import { memo } from 'react'
 import { useTools } from './hooks/useTools'
 import { useCanvas } from './hooks/useCanvas'
 import Toolbar from './Toolbar'
 import './whiteboard.css'
 
+/** Props for the Whiteboard component */
 interface WhiteboardProps {
+  /** Callback to remove the whiteboard widget */
   onDelete: () => void
 }
 
+/**
+ * Whiteboard widget with drawing tools and canvas.
+ * 
+ * @param props - WhiteboardProps
+ * @example <Whiteboard onDelete={() => {}} />
+ */
 function Whiteboard({ onDelete }: WhiteboardProps) {
   const { activeTool, color, tool, lineWidth, selectTool, selectColor, selectLineWidth } = useTools()
   const {
@@ -42,9 +53,6 @@ function Whiteboard({ onDelete }: WhiteboardProps) {
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
           onPointerLeave={handlePointerUp}
-          onTouchStart={handlePointerDown}
-          onTouchMove={handlePointerMove}
-          onTouchEnd={handlePointerUp}
         />
       </div>
     </div>

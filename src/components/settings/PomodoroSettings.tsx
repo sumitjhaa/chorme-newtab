@@ -1,68 +1,92 @@
-// @ts-nocheck
+/**
+ * @fileoverview Pomodoro timer settings panel.
+ */
+
+import { useCallback, memo } from 'react'
 import { useSettings } from '../../hooks/useSettings'
 import { useTranslation } from '../../hooks/useTranslation'
-import ToggleSwitch from '../ToggleSwitch'
+import { SettingRow } from '../ui/SettingRow'
+import { SettingInput } from '../ui/SettingInput'
+import { ToggleSwitch } from '../ui/ToggleSwitch'
 
-export default function PomodoroSettings() {
+/**
+ * Pomodoro timer settings with work/break duration controls.
+ * 
+ * @example <PomodoroSettings />
+ */
+function PomodoroSettings() {
   const { settings, update } = useSettings()
   const { t } = useTranslation()
+
+  const toggleShowPomodoroWidget = useCallback(() => {
+    update('showPomodoroWidget', !settings.showPomodoroWidget)
+  }, [settings.showPomodoroWidget, update])
+
+  const handleWorkChange = useCallback((val: string) => {
+    update('pomodoroWork', Number(val))
+  }, [update])
+
+  const handleShortBreakChange = useCallback((val: string) => {
+    update('pomodoroShort', Number(val))
+  }, [update])
+
+  const handleLongBreakChange = useCallback((val: string) => {
+    update('pomodoroLong', Number(val))
+  }, [update])
+
+  const handleCyclesChange = useCallback((val: string) => {
+    update('pomodoroCycles', Number(val))
+  }, [update])
 
   return (
     <div className="settings-group">
       <div className="settings-group-title">{t('pomodoro')}</div>
-      <div className="setting-row">
-        <span className="setting-label">{t('showPomodoro')}</span>
+      <SettingRow label={t('showPomodoro')}>
         <ToggleSwitch
           checked={settings.showPomodoroWidget}
-          onChange={() => update('showPomodoroWidget', !settings.showPomodoroWidget)}
+          onChange={toggleShowPomodoroWidget}
         />
-      </div>
+      </SettingRow>
       {settings.showPomodoroWidget && (<>
-        <div className="setting-row">
-          <span className="setting-label">{t('workMin')}</span>
-          <input
+        <SettingRow label={t('workMin')}>
+          <SettingInput
             type="number"
-            className="setting-input"
-            min="1"
-            max="120"
-            value={settings.pomodoroWork ?? 25}
-            onChange={(e) => update('pomodoroWork', Number(e.target.value))}
+            min={1}
+            max={120}
+            value={String(settings.pomodoroWork ?? 25)}
+            onChange={handleWorkChange}
           />
-        </div>
-        <div className="setting-row">
-          <span className="setting-label">{t('shortBreakMin')}</span>
-          <input
+        </SettingRow>
+        <SettingRow label={t('shortBreakMin')}>
+          <SettingInput
             type="number"
-            className="setting-input"
-            min="1"
-            max="30"
-            value={settings.pomodoroShort ?? 5}
-            onChange={(e) => update('pomodoroShort', Number(e.target.value))}
+            min={1}
+            max={30}
+            value={String(settings.pomodoroShort ?? 5)}
+            onChange={handleShortBreakChange}
           />
-        </div>
-        <div className="setting-row">
-          <span className="setting-label">{t('longBreakMin')}</span>
-          <input
+        </SettingRow>
+        <SettingRow label={t('longBreakMin')}>
+          <SettingInput
             type="number"
-            className="setting-input"
-            min="1"
-            max="60"
-            value={settings.pomodoroLong ?? 15}
-            onChange={(e) => update('pomodoroLong', Number(e.target.value))}
+            min={1}
+            max={60}
+            value={String(settings.pomodoroLong ?? 15)}
+            onChange={handleLongBreakChange}
           />
-        </div>
-        <div className="setting-row">
-          <span className="setting-label">{t('longBreakAfter')}</span>
-          <input
+        </SettingRow>
+        <SettingRow label={t('longBreakAfter')}>
+          <SettingInput
             type="number"
-            className="setting-input"
-            min="1"
-            max="10"
-            value={settings.pomodoroCycles ?? 4}
-            onChange={(e) => update('pomodoroCycles', Number(e.target.value))}
+            min={1}
+            max={10}
+            value={String(settings.pomodoroCycles ?? 4)}
+            onChange={handleCyclesChange}
           />
-        </div>
+        </SettingRow>
       </>)}
     </div>
   )
 }
+
+export default memo(PomodoroSettings)

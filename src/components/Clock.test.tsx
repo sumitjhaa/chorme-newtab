@@ -1,10 +1,11 @@
-// @ts-nocheck
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, act } from '@testing-library/react'
 import { SettingsProvider } from '../context/SettingsContext'
 import Clock from './Clock'
+import type { ReactElement } from 'react'
+import type { RenderOptions } from '@testing-library/react'
 
-function renderWithProvider(ui, options) {
+function renderWithProvider(ui: ReactElement, options?: Omit<RenderOptions, 'wrapper'>) {
   return render(<SettingsProvider>{ui}</SettingsProvider>, options)
 }
 

@@ -1,4 +1,7 @@
-// @ts-nocheck
+/**
+ * @fileoverview Type definitions for application settings.
+ */
+
 import type {
   ClockPosition,
   ClockFormat,
@@ -17,6 +20,10 @@ import type {
   WeatherShow,
 } from './index'
 
+/**
+ * Application settings configuration.
+ * Contains all user preferences for widgets, appearance, and behavior.
+ */
 export interface Settings {
   // General
   clockPosition: ClockPosition
@@ -94,4 +101,5 @@ export interface Settings {
   pomodoroCycles: number
 }
 
+/** Union of all Settings keys */
 export type SettingsKey = keyof Settings

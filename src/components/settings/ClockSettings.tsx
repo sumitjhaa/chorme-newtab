@@ -1,110 +1,208 @@
-// @ts-nocheck
+/**
+ * @fileoverview Clock widget settings panel.
+ */
+
+import { useCallback, useMemo, memo } from 'react'
 import { useSettings } from '../../hooks/useSettings'
 import { useTranslation } from '../../hooks/useTranslation'
-import ToggleSwitch from '../ToggleSwitch'
+import { SettingRow } from '../ui/SettingRow'
+import { SettingSelect } from '../ui/SettingSelect'
+import { ToggleSwitch } from '../ui/ToggleSwitch'
 
-export default function ClockSettings() {
+/** Date format options */
+const DATE_FORMAT_OPTIONS = [
+  { value: 'DD/MM/YYYY', labelKey: 'dayMonthYear' },
+  { value: 'MM/DD/YYYY', labelKey: 'monthDayYear' },
+  { value: 'YYYY-MM-DD', labelKey: 'yearMonthDay' },
+]
+
+/** Display options */
+const SHOW_OPTIONS = [
+  { value: 'both', labelKey: 'clockAndDate' },
+  { value: 'clock', labelKey: 'clockOnly' },
+  { value: 'date', labelKey: 'dateOnly' },
+]
+
+/**
+ * Get supported timezones from Intl API.
+ * @returns Array of timezone strings
+ */
+function getSupportedTimeZones(): string[] {
+  try {
+    if (typeof Intl !== 'undefined' && 'supportedValuesOf' in Intl) {
+      return (Intl as unknown as { supportedValuesOf(type: string): string[] }).supportedValuesOf('timeZone')
+    }
+  } catch {}
+  return []
+}
+
+/** Cached list of supported timezones */
+const SUPPORTED_TIMEZONES = getSupportedTimeZones()
+
+/**
+ * Clock widget settings with format, timezone, and world clock controls.
+ * 
+ * @example <ClockSettings />
+ */
+function ClockSettings() {
   const { settings, update } = useSettings()
   const { t } = useTranslation()
+
+  const timeZoneOptions = useMemo(() => [
+    { value: 'local', label: t('local') },
+    ...SUPPORTED_TIMEZONES.map((tz: string) => {
+      const parts = tz.split('/')
+      const label = parts.length > 1 ? parts[parts.length - 1].replace(/_/g, ' ') : tz
+      return { value: tz, label }
+    })
+  ], [t])
+
+  const dateFormatOptions = useMemo(() =>
+    DATE_FORMAT_OPTIONS.map(o => ({ value: o.value, label: t(o.labelKey) })),
+    [t]
+  )
+
+  const showOptions = useMemo(() =>
+    SHOW_OPTIONS.map(o => ({ value: o.value, label: t(o.labelKey) })),
+    [t]
+  )
+
+  const toggleShowClockWidget = useCallback(() => {
+    update('showClockWidget', !settings.showClockWidget)
+  }, [settings.showClockWidget, update])
+
+  const toggleClockFormat = useCallback(() => {
+    update('clockFormat', settings.clockFormat === '12h' ? '24h' : '12h')
+  }, [settings.clockFormat, update])
+
+  const toggleShowAmPm = useCallback(() => {
+    update('showAmPm', !settings.showAmPm)
+  }, [settings.showAmPm, update])
+
+  const toggleShowSeconds = useCallback(() => {
+    update('showSeconds', !settings.showSeconds)
+  }, [settings.showSeconds, update])
+
+  const toggleAnalogClock = useCallback(() => {
+    update('analogClock', !settings.analogClock)
+  }, [settings.analogClock, update])
+
+  const toggleWorldClocks = useCallback(() => {
+    if ((settings.worldClockTimezones || []).length > 0) {
+      update('worldClockTimezones', [])
+    } else {
+      update('worldClockTimezones', ['America/New_York', 'Europe/London', 'Asia/Tokyo'])
+    }
+  }, [settings.worldClockTimezones, update])
+
+  const handleClockSizeChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    update('clockSize', Number(e.target.value))
+  }, [update])
+
+  const handleTimeZoneChange = useCallback((val: string) => {
+    update('timeZone', val)
+  }, [update])
+
+  const handleDateFormatChange = useCallback((val: string) => {
+    update('dateFormat', val)
+  }, [update])
+
+  const handleShowChange = useCallback((val: string) => {
+    update('showClockDate', val)
+  }, [update])
+
+  const handleWorldClockChange = useCallback((i: number, val: string) => {
+    const list = [...settings.worldClockTimezones]
+    list[i] = val
+    update('worldClockTimezones', list)
+  }, [settings.worldClockTimezones, update])
+
+  const handleRemoveWorldClock = useCallback((i: number) => {
+    const list = [...settings.worldClockTimezones]
+    list.splice(i, 1)
+    update('worldClockTimezones', list)
+  }, [settings.worldClockTimezones, update])
+
+  const handleAddWorldClock = useCallback(() => {
+    const list = [...(settings.worldClockTimezones || [])]
+    if (!list.includes('America/New_York')) list.push('America/New_York')
+    else if (!list.includes('Europe/London')) list.push('Europe/London')
+    else if (!list.includes('Asia/Tokyo')) list.push('Asia/Tokyo')
+    else list.push(SUPPORTED_TIMEZONES[0])
+    update('worldClockTimezones', list)
+  }, [settings.worldClockTimezones, update])
+
+  const worldClockTimezones = settings.worldClockTimezones || []
+  const hasWorldClocks = worldClockTimezones.length > 0
 
   return (
     <div className="settings-group">
       <div className="settings-group-title">{t('date')}</div>
-      <div className="setting-row">
-        <span className="setting-label">{t('showClock')}</span>
+      <SettingRow label={t('showClock')}>
         <ToggleSwitch
           checked={settings.showClockWidget}
-          onChange={() => update('showClockWidget', !settings.showClockWidget)}
+          onChange={toggleShowClockWidget}
         />
-      </div>
+      </SettingRow>
       {settings.showClockWidget && (<>
-        <div className="setting-row">
-          <span className="setting-label">{t('twelveHrFormat')}</span>
+        <SettingRow label={t('twelveHrFormat')}>
           <ToggleSwitch
             checked={settings.clockFormat === '12h'}
-            onChange={() => update('clockFormat', settings.clockFormat === '12h' ? '24h' : '12h')}
+            onChange={toggleClockFormat}
           />
-        </div>
-        <div className="setting-row">
-          <span className="setting-label">{t('showAmPm')}</span>
+        </SettingRow>
+        <SettingRow label={t('showAmPm')}>
           <ToggleSwitch
             checked={settings.showAmPm}
-            onChange={() => update('showAmPm', !settings.showAmPm)}
+            onChange={toggleShowAmPm}
           />
-        </div>
-        <div className="setting-row">
-          <span className="setting-label">{t('showSeconds')}</span>
+        </SettingRow>
+        <SettingRow label={t('showSeconds')}>
           <ToggleSwitch
             checked={settings.showSeconds}
-            onChange={() => update('showSeconds', !settings.showSeconds)}
+            onChange={toggleShowSeconds}
           />
-        </div>
-        <div className="setting-row">
-          <span className="setting-label">{t('analogClock')}</span>
+        </SettingRow>
+        <SettingRow label={t('analogClock')}>
           <ToggleSwitch
             checked={settings.analogClock}
-            onChange={() => update('analogClock', !settings.analogClock)}
+            onChange={toggleAnalogClock}
           />
-        </div>
-        <div className="setting-row">
-          <span className="setting-label">{t('worldClocks')}</span>
+        </SettingRow>
+        <SettingRow label={t('worldClocks')}>
           <ToggleSwitch
-            checked={(settings.worldClockTimezones || []).length > 0}
-            onChange={() => {
-              if ((settings.worldClockTimezones || []).length > 0) {
-                update('worldClockTimezones', [])
-              } else {
-                update('worldClockTimezones', ['America/New_York', 'Europe/London', 'Asia/Tokyo'])
-              }
-            }}
+            checked={hasWorldClocks}
+            onChange={toggleWorldClocks}
           />
-        </div>
-        {(settings.worldClockTimezones || []).length > 0 && (
+        </SettingRow>
+        {hasWorldClocks && (
           <>
-            {(settings.worldClockTimezones || []).map((tz, i) => (
+            {worldClockTimezones.map((tz: string, i: number) => (
               <div key={tz} className="setting-row">
-                <select
-                  className="setting-select"
+                <SettingSelect
                   value={tz}
-                  onChange={(e) => {
-                    const list = [...settings.worldClockTimezones]
-                    list[i] = e.target.value
-                    update('worldClockTimezones', list)
-                  }}
-                >
-                  {Intl.supportedValuesOf('timeZone').map((tzOption) => {
+                  onChange={(val) => handleWorldClockChange(i, val)}
+                  options={SUPPORTED_TIMEZONES.map((tzOption: string) => {
                     const parts = tzOption.split('/')
                     const label = parts.length > 1 ? parts[parts.length - 1].replace(/_/g, ' ') : tzOption
-                    return <option key={tzOption} value={tzOption}>{label}</option>
+                    return { value: tzOption, label }
                   })}
-                </select>
+                />
                 <button
                   className="wc-remove-btn"
-                  onClick={() => {
-                    const list = [...settings.worldClockTimezones]
-                    list.splice(i, 1)
-                    update('worldClockTimezones', list)
-                  }}
+                  onClick={() => handleRemoveWorldClock(i)}
                 >✕</button>
               </div>
             ))}
             <div className="setting-row">
               <button
                 className="wc-add-btn"
-                onClick={() => {
-                  const list = [...(settings.worldClockTimezones || [])]
-                  if (!list.includes('America/New_York')) list.push('America/New_York')
-                  else if (!list.includes('Europe/London')) list.push('Europe/London')
-                  else if (!list.includes('Asia/Tokyo')) list.push('Asia/Tokyo')
-                  else list.push(Intl.supportedValuesOf('timeZone')[0])
-                  update('worldClockTimezones', list)
-                }}
+                onClick={handleAddWorldClock}
               >{t('addWorldClock')}</button>
             </div>
           </>
         )}
-        <div className="setting-row">
-          <span className="setting-label">{t('clockSize')}</span>
+        <SettingRow label={t('clockSize')}>
           <div className="range-control">
             <input
               type="range"
@@ -112,52 +210,36 @@ export default function ClockSettings() {
               max="200"
               step="5"
               value={settings.clockSize}
-              onChange={(e) => update('clockSize', Number(e.target.value))}
+              onChange={handleClockSizeChange}
               className="slider"
             />
             <span className="range-value">{settings.clockSize}%</span>
           </div>
-        </div>
-        <div className="setting-row">
-          <span className="setting-label">{t('timeZone')}</span>
-          <select
-            className="setting-select"
+        </SettingRow>
+        <SettingRow label={t('timeZone')}>
+          <SettingSelect
             value={settings.timeZone}
-            onChange={(e) => update('timeZone', e.target.value)}
-          >
-            <option value="local">{t('local')}</option>
-            {Intl.supportedValuesOf('timeZone').map((tz) => {
-              const parts = tz.split('/')
-              const label = parts.length > 1 ? parts[parts.length - 1].replace(/_/g, ' ') : tz
-              return <option key={tz} value={tz}>{label}</option>
-            })}
-          </select>
-        </div>
-        <div className="setting-row">
-          <span className="setting-label">{t('dateFormat')}</span>
-          <select
-            className="setting-select"
+            onChange={handleTimeZoneChange}
+            options={timeZoneOptions}
+          />
+        </SettingRow>
+        <SettingRow label={t('dateFormat')}>
+          <SettingSelect
             value={settings.dateFormat}
-            onChange={(e) => update('dateFormat', e.target.value)}
-          >
-            <option value="DD/MM/YYYY">{t('dayMonthYear')}</option>
-            <option value="MM/DD/YYYY">{t('monthDayYear')}</option>
-            <option value="YYYY-MM-DD">{t('yearMonthDay')}</option>
-          </select>
-        </div>
-        <div className="setting-row">
-          <span className="setting-label">{t('show')}</span>
-          <select
-            className="setting-select"
+            onChange={handleDateFormatChange}
+            options={dateFormatOptions}
+          />
+        </SettingRow>
+        <SettingRow label={t('show')}>
+          <SettingSelect
             value={settings.showClockDate}
-            onChange={(e) => update('showClockDate', e.target.value)}
-          >
-            <option value="both">{t('clockAndDate')}</option>
-            <option value="clock">{t('clockOnly')}</option>
-            <option value="date">{t('dateOnly')}</option>
-          </select>
-        </div>
+            onChange={handleShowChange}
+            options={showOptions}
+          />
+        </SettingRow>
       </>)}
     </div>
   )
 }
+
+export default memo(ClockSettings)

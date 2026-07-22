@@ -1,9 +1,16 @@
-// @ts-nocheck
+/**
+ * @fileoverview Pomodoro timer widget for productivity.
+ */
+
 import { useState, useEffect, useCallback, useRef, memo } from 'react'
 import { useTranslation } from '../hooks/useTranslation'
 import { useSettings } from '../hooks/useSettings'
 
-function loadState() {
+/**
+ * Load pomodoro state from localStorage.
+ * @returns Saved state or empty object
+ */
+function loadState(): { phase?: string; timeLeft?: number; cycles?: number } {
   try {
     return JSON.parse(localStorage.getItem('newtab_pomodoro') || '{}')
   } catch {
@@ -11,30 +18,47 @@ function loadState() {
   }
 }
 
-function saveState(state) {
+/**
+ * Save pomodoro state to localStorage.
+ * @param state - Pomodoro state to save
+ */
+function saveState(state: { phase: string; timeLeft: number; cycles: number }): void {
   try {
     localStorage.setItem('newtab_pomodoro', JSON.stringify(state))
   } catch {}
 }
 
-function formatTime(seconds) {
+/**
+ * Format seconds to MM:SS string.
+ * @param seconds - Time in seconds
+ * @returns Formatted time string
+ */
+function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60)
   const s = seconds % 60
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
 }
 
+/** Pomodoro timer phases */
+type PomodoroPhase = 'work' | 'short_break' | 'long_break'
+
+/**
+ * Pomodoro timer widget with work/break cycles.
+ * 
+ * @example <Pomodoro />
+ */
 function Pomodoro() {
   const { t } = useTranslation()
   const { settings } = useSettings()
-  const durations = {
+  const durations: Record<PomodoroPhase, number> = {
     work: settings.pomodoroWork * 60,
     short_break: settings.pomodoroShort * 60,
     long_break: settings.pomodoroLong * 60,
   }
 
   const saved = loadState()
-  const [phase, setPhase] = useState(saved.phase || 'work')
-  const [timeLeft, setTimeLeft] = useState(saved.timeLeft ?? durations.work)
+  const [phase, setPhase] = useState<PomodoroPhase>((saved.phase as PomodoroPhase) || 'work')
+  const [timeLeft, setTimeLeft] = useState<number>(saved.timeLeft ?? durations.work)
   const [running, setRunning] = useState(false)
   const [cycles, setCycles] = useState(saved.cycles || 0)
   const phaseRef = useRef(phase)
@@ -52,12 +76,12 @@ function Pomodoro() {
   useEffect(() => {
     if (!running) return
     const id = setInterval(() => {
-      setTimeLeft((prev) => {
+      setTimeLeft((prev: number) => {
         if (prev <= 1) {
           const p = phaseRef.current
           const c = cyclesRef.current
           const d = durationsRef.current
-          let next
+          let next: PomodoroPhase
           if (p === 'work') {
             const newCycles = c + 1
             setCycles(newCycles)
@@ -74,7 +98,7 @@ function Pomodoro() {
     return () => clearInterval(id)
   }, [running, settings.pomodoroCycles])
 
-  const switchTo = useCallback((p) => {
+  const switchTo = useCallback((p: PomodoroPhase) => {
     setPhase(p)
     setTimeLeft(durationsRef.current[p])
     setRunning(false)
@@ -82,7 +106,7 @@ function Pomodoro() {
 
   const toggle = useCallback(() => setRunning((r) => !r), [])
   const reset = useCallback(() => {
-    setTimeLeft(durationsRef.current[phaseRef.current])
+    setTimeLeft(durationsRef.current[phaseRef.current as PomodoroPhase])
     setRunning(false)
   }, [])
 
@@ -99,7 +123,7 @@ function Pomodoro() {
           <button
             key={tab.id}
             className={`pomo-tab${phase === tab.id ? ' active' : ''}`}
-            onClick={() => switchTo(tab.id)}
+            onClick={() => switchTo(tab.id as PomodoroPhase)}
           >
             {tab.label}
           </button>
