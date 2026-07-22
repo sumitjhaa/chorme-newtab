@@ -2,14 +2,22 @@
 import { useState, useRef, useEffect } from 'react'
 import ListItem from './ListItem'
 import './list.css'
+import type { TodoList, TodoItem } from '../../types/list'
 
-function generateId() {
+function generateId(): string {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 6)
 }
 
-function ListGroup({ list, index, onChange, onDelete }) {
+interface ListGroupProps {
+  list: TodoList
+  index: number
+  onChange: (updated: TodoList) => void
+  onDelete: () => void
+}
+
+function ListGroup({ list, index, onChange, onDelete }: ListGroupProps) {
   const [editingTitle, setEditingTitle] = useState(false)
-  const titleRef = useRef(null)
+  const titleRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (editingTitle && titleRef.current) {
@@ -29,22 +37,22 @@ function ListGroup({ list, index, onChange, onDelete }) {
     setEditingTitle(false)
   }
 
-  function handleTitleKeyDown(e) {
+  function handleTitleKeyDown(e: React.KeyboardEvent) {
     if (e.key === 'Enter') { e.preventDefault(); titleRef.current?.blur() }
     if (e.key === 'Escape') { setEditingTitle(false) }
   }
 
   function addItem() {
     if (list.items.length >= 50) return
-    onChange({ ...list, items: [...list.items, { id: generateId(), url: '', title: '' }] })
+    onChange({ ...list, items: [...list.items, { id: generateId(), url: '', title: '', completed: false, createdAt: Date.now() }] })
   }
 
-  function updateItem(i, item) {
+  function updateItem(i: number, item: TodoItem) {
     const items = list.items.map((it, idx) => idx === i ? item : it)
     onChange({ ...list, items })
   }
 
-  function removeItem(i) {
+  function removeItem(i: number) {
     onChange({ ...list, items: list.items.filter((_, idx) => idx !== i) })
   }
 
@@ -101,7 +109,14 @@ function ListGroup({ list, index, onChange, onDelete }) {
   )
 }
 
-export default function ListWidget({ lists, onUpdate, onRemove }) {
+interface ListWidgetProps {
+  lists: TodoList[]
+  onUpdate: (index: number, list: TodoList) => void
+  onRemove: (index: number) => void
+  onAdd: () => void
+}
+
+export default function ListWidget({ lists, onUpdate, onRemove }: ListWidgetProps) {
   return (
     <div className="list-widget">
       {lists.map((list, i) => (
