@@ -5,7 +5,11 @@ import { useCanvas } from './hooks/useCanvas'
 import Toolbar from './Toolbar'
 import './whiteboard.css'
 
-function Whiteboard({ onDelete }) {
+interface WhiteboardProps {
+  onDelete: () => void
+}
+
+function Whiteboard({ onDelete }: WhiteboardProps) {
   const { activeTool, color, tool, lineWidth, selectTool, selectColor, selectLineWidth } = useTools()
   const {
     canvasRef,
