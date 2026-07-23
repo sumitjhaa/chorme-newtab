@@ -30,7 +30,6 @@ export default {
     collection: 'Samling',
     collectionId: 'Samlings-ID',
     frequency: 'Frekvens',
-    texture: 'Textur',
     blur: 'Suddighet',
     brightness: 'Ljusstyrka',
     images: 'Bilder',

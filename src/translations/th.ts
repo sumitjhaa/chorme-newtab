@@ -30,7 +30,6 @@ export default {
     collection: 'คอลเลกชัน',
     collectionId: 'ID คอลเลกชัน',
     frequency: 'ความถี่',
-    texture: 'พื้นผิว',
     blur: 'เบลอ',
     brightness: 'ความสว่าง',
     images: 'รูปภาพ',

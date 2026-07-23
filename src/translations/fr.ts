@@ -30,7 +30,6 @@ export default {
     collection: 'Collection',
     collectionId: 'ID de collection',
     frequency: 'Fréquence',
-    texture: 'Texture',
     blur: 'Flou',
     brightness: 'Luminosité',
     images: 'Images',

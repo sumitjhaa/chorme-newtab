@@ -30,7 +30,6 @@ export default {
     collection: 'Koleksi',
     collectionId: 'ID Koleksi',
     frequency: 'Frekuensi',
-    texture: 'Tekstur',
     blur: 'Buram',
     brightness: 'Kecerahan',
     images: 'Gambar',

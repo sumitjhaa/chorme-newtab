@@ -30,7 +30,6 @@ export default {
     collection: 'コレクション',
     collectionId: 'コレクションID',
     frequency: '頻度',
-    texture: 'テクスチャ',
     blur: 'ぼかし',
     brightness: '明るさ',
     images: '画像',

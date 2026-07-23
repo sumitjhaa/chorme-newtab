@@ -30,7 +30,6 @@ export default {
     collection: '收藏集',
     collectionId: '收藏集ID',
     frequency: '频率',
-    texture: '纹理',
     blur: '模糊',
     brightness: '亮度',
     images: '图片',

@@ -30,7 +30,6 @@ export default {
     collection: 'Bộ sưu tập',
     collectionId: 'ID bộ sưu tập',
     frequency: 'Tần suất',
-    texture: 'Kết cấu',
     blur: 'Làm mờ',
     brightness: 'Độ sáng',
     images: 'Hình ảnh',

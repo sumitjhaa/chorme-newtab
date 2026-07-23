@@ -30,7 +30,6 @@ export default {
     collection: 'Колекція',
     collectionId: 'ID колекції',
     frequency: 'Частота',
-    texture: 'Текстура',
     blur: 'Розмиття',
     brightness: 'Яскравість',
     images: 'Зображення',

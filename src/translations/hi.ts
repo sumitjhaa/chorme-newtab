@@ -30,7 +30,6 @@ export default {
     collection: 'संग्रह',
     collectionId: 'संग्रह ID',
     frequency: 'आवृत्ति',
-    texture: 'बनावट',
     blur: 'ब्लर',
     brightness: 'चमक',
     images: 'चित्र',

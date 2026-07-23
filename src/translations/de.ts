@@ -30,7 +30,6 @@ export default {
     collection: 'Sammlung',
     collectionId: 'Sammlungs-ID',
     frequency: 'Häufigkeit',
-    texture: 'Textur',
     blur: 'Unschärfe',
     brightness: 'Helligkeit',
     images: 'Bilder',

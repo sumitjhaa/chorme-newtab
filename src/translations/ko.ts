@@ -30,7 +30,6 @@ export default {
     collection: '컬렉션',
     collectionId: '컬렉션 ID',
     frequency: '빈도',
-    texture: '텍스처',
     blur: '흐림',
     brightness: '밝기',
     images: '이미지',

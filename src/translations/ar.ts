@@ -30,7 +30,6 @@ export default {
     collection: 'المجموعة',
     collectionId: 'معرف المجموعة',
     frequency: 'التكرار',
-    texture: 'الملمس',
     blur: 'الضبابية',
     brightness: 'السطوع',
     images: 'صور',

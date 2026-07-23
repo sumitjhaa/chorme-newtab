@@ -30,7 +30,6 @@ export default {
     collection: 'Koleksiyon',
     collectionId: 'Koleksiyon ID',
     frequency: 'Sıklık',
-    texture: 'Doku',
     blur: 'Bulanıklık',
     brightness: 'Parlaklık',
     images: 'Görseller',
