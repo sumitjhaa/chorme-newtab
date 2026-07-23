@@ -179,7 +179,6 @@ export default memo(function Draggable({ id, col, onDrop, numColumns, maxCol, sp
                 const rect = colEl.getBoundingClientRect()
                 if (clientX >= rect.left && clientX <= rect.right) {
                     targetCol = span > 1 ? Math.min(i, numColumns - span) : i
-                    targetCol = i
                     const inner = colEl.querySelector('.kanban-column-inner')
                     if (!inner) return
                     const kids = Array.from(inner.children).filter(

@@ -4,7 +4,6 @@
 
 const API_ENDPOINTS: Record<string, string> = {
     wallhaven: 'https://wallhaven.cc/api/v1/search',
-    pixabay: 'https://pixabay.com/api/',
 }
 
 /** Wallpaper API response format */
@@ -58,37 +57,6 @@ async function fetchWallhaven(): Promise<WallpaperResponse> {
 }
 
 /**
-  * Fetch random wallpaper from Pixabay.
-  * @returns Wallpaper response data
-  */
-async function fetchPixabay(): Promise<WallpaperResponse> {
-    const response = await fetch(
-        `${API_ENDPOINTS.pixabay}?image_type=photo&orientation=horizontal&min_width=1920&per_page=200`
-    )
-
-    if (!response.ok) {
-        throw new Error(`Pixabay failed: ${response.status}`)
-    }
-
-    const data = await response.json()
-    if (!data.hits || data.hits.length === 0) {
-        throw new Error('No wallpapers found')
-    }
-
-    const randomIndex = Math.floor(Math.random() * data.hits.length)
-    const wallpaper = data.hits[randomIndex]
-
-    return {
-        url: wallpaper.largeImageURL,
-        thumb: wallpaper.webformatURL,
-        source: 'pixabay',
-        id: wallpaper.id,
-        resolution: `${wallpaper.imageWidth}x${wallpaper.imageHeight}`,
-        author: wallpaper.user,
-    }
-}
-
-/**
   * Fetch random wallpaper from Picsum.
   * @returns Wallpaper response data
   */
@@ -112,38 +80,10 @@ async function fetchPicsum(): Promise<WallpaperResponse> {
     }
 }
 
-/**
-  * Fetch random wallpaper from Catbox.
-  * @returns Wallpaper response data
-  */
-async function fetchCatbox(): Promise<WallpaperResponse> {
-    const response = await fetch('https://catbox.moe/user/api.php?req=get&cats=风景&width=1920&height=1080')
-    
-    if (!response.ok) {
-        throw new Error(`Catbox failed: ${response.status}`)
-    }
-
-    const data = await response.json()
-    
-    if (!data || !data.url) {
-        throw new Error('No image found')
-    }
-
-    return {
-        url: data.url,
-        thumb: data.url,
-        source: 'catbox',
-        id: data.id || Date.now(),
-        resolution: '1920x1080',
-    }
-}
-
 /** Map of source names to fetcher functions */
 const fetchers: Record<string, () => Promise<WallpaperResponse>> = {
     wallhaven: fetchWallhaven,
-    pixabay: fetchPixabay,
     picsum: fetchPicsum,
-    catbox: fetchCatbox,
 }
 
 /**

@@ -126,7 +126,7 @@ function WeatherSettings() {
                                 { value: 'description_icon', label: t('descAndIcon') },
                                 { value: 'description', label: t('description') },
                                 { value: 'icon', label: t('icon') },
-                                { value: 'nothing', label: t('nothing') },
+                                { value: 'none', label: t('nothing') },
                             ]}
                         />
                     </SettingRow>

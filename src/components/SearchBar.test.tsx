@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { render, screen, fireEvent, act } from '@testing-library/react'
 import { SettingsProvider } from '../context/SettingsContext'
 import SearchBar from './SearchBar'
 import type { ReactElement } from 'react'
@@ -10,8 +10,13 @@ function renderWithProvider(ui: ReactElement, options?: Omit<RenderOptions, 'wra
 }
 
 beforeEach(() => {
+    vi.useFakeTimers()
     localStorage.clear()
     vi.restoreAllMocks()
+})
+
+afterEach(() => {
+    vi.useRealTimers()
 })
 
 const openDropdown = (container: HTMLElement) => {
@@ -60,6 +65,7 @@ describe('SearchBar', () => {
         const { container } = renderWithProvider(<SearchBar />)
         openDropdown(container)
         fireEvent.click(screen.getByTitle('Brave'))
+        act(() => { vi.advanceTimersByTime(200) })
 
         const saved = JSON.parse(localStorage.getItem('newtab_settings') || '{}')
         expect(saved.searchEngine).toBe('BRAVE')

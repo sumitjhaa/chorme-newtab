@@ -53,7 +53,7 @@ async function fetchCoords(geolocation: string, manualLocation: string): Promise
         }
         return null
     }
-    if (geolocation !== 'never') {
+    if (geolocation !== 'disabled') {
         try {
             const pos = await new Promise<GeolocationPosition>((resolve, reject) =>
                 navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000, enableHighAccuracy: geolocation === 'precise' })
@@ -201,8 +201,8 @@ function Weather() {
             <div className="weather-title">{t('weather')}</div>
             {location && <div className="weather-location">{location}</div>}
             <div className="weather-main">
-                {settings.weatherShow !== 'description' && <span className="weather-icon">{info.icon}</span>}
-                {settings.weatherShow !== 'icon' && <span className="weather-desc">{info.label}</span>}
+                {settings.weatherShow !== 'description' && settings.weatherShow !== 'none' && <span className="weather-icon">{info.icon}</span>}
+                {settings.weatherShow !== 'icon' && settings.weatherShow !== 'none' && <span className="weather-desc">{info.label}</span>}
             </div>
             <div className="weather-temp">{tempStr}</div>
             <div className="weather-hilo">

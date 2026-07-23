@@ -34,6 +34,15 @@ function complementTape(rgba: string): string {
   * @param md - Markdown string
   * @returns HTML string
   */
+function isSafeUrl(url: string): boolean {
+    try {
+        const parsed = new URL(url, 'https://dummy.com')
+        return parsed.protocol === 'https:' || parsed.protocol === 'http:' || parsed.protocol === 'mailto:'
+    } catch {
+        return url.startsWith('/') || url.startsWith('#')
+    }
+}
+
 function parseMd(md: string): string {
     if (!md) return ''
     let html = md
@@ -47,7 +56,10 @@ function parseMd(md: string): string {
     html = html.replace(/\*(.+?)\*/g, '<em>$1</em>')
     html = html.replace(/~~(.+?)~~/g, '<del>$1</del>')
     html = html.replace(/`(.+?)`/g, '<code>$1</code>')
-    html = html.replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+    html = html.replace(/\[(.+?)\]\((.+?)\)/g, (_, text, href) => {
+        if (!isSafeUrl(href)) return text
+        return `<a href="${href}" target="_blank" rel="noopener noreferrer">${text}</a>`
+    })
     const lines = html.split('\n')
     let inList = false
     const processed = []

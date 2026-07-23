@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { render, screen, fireEvent, act } from '@testing-library/react'
 import { SettingsProvider } from '../context/SettingsContext'
 import Settings from './Settings'
 import type { ReactElement } from 'react'
@@ -18,11 +18,20 @@ function selectDropdown(triggerText: string, optionText: string) {
     fireEvent.click(option)
 }
 
+function flushDebounces() {
+    act(() => { vi.advanceTimersByTime(200) })
+}
+
 beforeEach(() => {
+    vi.useFakeTimers()
     localStorage.clear()
     vi.clearAllMocks()
     ;(chrome.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation((_keys: unknown) => Promise.resolve({}))
     ;(chrome.storage.local.set as ReturnType<typeof vi.fn>).mockImplementation(() => Promise.resolve())
+})
+
+afterEach(() => {
+    vi.useRealTimers()
 })
 
 describe('Settings', () => {
@@ -68,6 +77,7 @@ describe('Settings', () => {
     it('changes language and saves to localStorage', () => {
         renderWithProvider(<Settings isOpen={true} onClose={vi.fn()} />)
         selectDropdown('English', '日本語')
+        flushDebounces()
         const stored = JSON.parse(localStorage.getItem('newtab_settings') || '{}')
         expect(stored.language).toBe('ja')
     })
@@ -75,6 +85,7 @@ describe('Settings', () => {
     it('toggles dark mode', () => {
         renderWithProvider(<Settings isOpen={true} onClose={vi.fn()} />)
         fireEvent.click(screen.getByText('Dark'))
+        flushDebounces()
         const stored = JSON.parse(localStorage.getItem('newtab_settings') || '{}')
         expect(stored.darkMode).toBe('dark')
     })
@@ -83,6 +94,7 @@ describe('Settings', () => {
         renderWithProvider(<Settings isOpen={true} onClose={vi.fn()} />)
         const input = screen.getByDisplayValue('New Tab')
         fireEvent.change(input, { target: { value: 'My Tab' } })
+        flushDebounces()
         const stored = JSON.parse(localStorage.getItem('newtab_settings') || '{}')
         expect(stored.tabTitle).toBe('My Tab')
     })

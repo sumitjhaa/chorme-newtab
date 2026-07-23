@@ -19,22 +19,57 @@ function readAllSettings(): Settings {
     return { ...SETTINGS_DEFAULTS, ...stored }
 }
 
+const STORAGE_FLUSH_MS = 150
+
 export function SettingsProvider({ children }: { children: ReactNode }) {
     const [settings, setSettings] = useState(readAllSettings)
     const bcRef = useRef<BroadcastChannel | null>(null)
+    const pendingRef = useRef<Record<string, unknown>>({})
+    const storageTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+    const channelTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+    const lastChannelRef = useRef<{ key: string; value: unknown } | null>(null)
 
     if (!bcRef.current && typeof BroadcastChannel !== 'undefined') {
         bcRef.current = new BroadcastChannel('newtab-settings')
     }
 
-    const update = useCallback((key: SettingsKey, value: Settings[SettingsKey]) => {
-        setSettings(prev => {
-            const next = { ...prev, [key]: value }
-            saveSettingsSync({ [key]: value })
-            bcRef.current?.postMessage({ key, value })
-            return next
-        })
+    const flushStorage = useCallback(() => {
+        if (Object.keys(pendingRef.current).length === 0) return
+        saveSettingsSync(pendingRef.current as Partial<Settings>)
+        pendingRef.current = {}
     }, [])
+
+    const flushChannel = useCallback(() => {
+        if (lastChannelRef.current) {
+            bcRef.current?.postMessage(lastChannelRef.current)
+            lastChannelRef.current = null
+        }
+    }, [])
+
+    useEffect(() => () => {
+        flushStorage()
+        flushChannel()
+        if (storageTimerRef.current) clearTimeout(storageTimerRef.current)
+        if (channelTimerRef.current) clearTimeout(channelTimerRef.current)
+    }, [flushStorage, flushChannel])
+
+    const update = useCallback((key: SettingsKey, value: Settings[SettingsKey]) => {
+        setSettings(prev => ({ ...prev, [key]: value }))
+
+        pendingRef.current[key] = value
+        if (storageTimerRef.current) clearTimeout(storageTimerRef.current)
+        storageTimerRef.current = setTimeout(() => {
+            flushStorage()
+            storageTimerRef.current = null
+        }, STORAGE_FLUSH_MS)
+
+        lastChannelRef.current = { key, value }
+        if (channelTimerRef.current) clearTimeout(channelTimerRef.current)
+        channelTimerRef.current = setTimeout(() => {
+            flushChannel()
+            channelTimerRef.current = null
+        }, STORAGE_FLUSH_MS)
+    }, [flushStorage, flushChannel])
 
     useEffect(() => {
         const bc = bcRef.current
@@ -48,11 +83,19 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     }, [])
 
     useEffect(() => {
+        let debounceTimer: ReturnType<typeof setTimeout> | null = null
         function handleStorage() {
-            setSettings(readAllSettings())
+            if (debounceTimer) clearTimeout(debounceTimer)
+            debounceTimer = setTimeout(() => {
+                setSettings(readAllSettings())
+                debounceTimer = null
+            }, STORAGE_FLUSH_MS)
         }
         window.addEventListener('storage', handleStorage)
-        return () => window.removeEventListener('storage', handleStorage)
+        return () => {
+            window.removeEventListener('storage', handleStorage)
+            if (debounceTimer) clearTimeout(debounceTimer)
+        }
     }, [])
 
     const value = useMemo(() => ({ settings, update }), [settings, update])
