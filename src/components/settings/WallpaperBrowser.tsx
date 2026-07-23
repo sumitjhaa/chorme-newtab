@@ -7,7 +7,7 @@ import {
 import { setSearchPool, clearSearchPool } from '../../helpers/wallpaperStore'
 import { SettingSelect } from '../ui/SettingSelect'
 
-const PER_PAGE = 15
+const PER_PAGE = 18
 
 interface FilterProps {
     label: string
