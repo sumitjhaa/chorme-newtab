@@ -221,7 +221,11 @@ export default function App() {
                                     className="kanban-column"
                                     key={colIndex}
                                     data-col={colIndex}
-                                    style={{ gridColumn: colIndex + 1, gridRow: '2 / -1' }}
+                                    style={{
+                                        gridColumn: colIndex + 1,
+                                        gridRow: '1 / -1',
+                                        paddingTop: covered ? '4rem' : undefined,
+                                    }}
                                 >
                                     <div className="kanban-column-inner">
                                         {colWidgets.map(w => (
