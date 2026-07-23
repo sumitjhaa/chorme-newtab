@@ -8,6 +8,7 @@ import { useTranslation } from '../../hooks/useTranslation'
 import { SEARCH_ENGINES } from '../../constants'
 import { SettingRow } from '../ui/SettingRow'
 import { SettingInput } from '../ui/SettingInput'
+import { SettingRange } from '../ui/SettingRange'
 import { ToggleSwitch } from '../ui/ToggleSwitch'
 import type { SearchEngineKey } from '../../types'
 
@@ -40,8 +41,8 @@ function SearchSettings() {
         update('searchEngine', key)
     }, [update])
 
-    const handleSearchBlurChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        update('searchBlur', Number(e.target.value))
+    const handleSearchBlurChange = useCallback((v: number) => {
+        update('searchBlur', v)
     }, [update])
 
     return (
@@ -79,19 +80,8 @@ function SearchSettings() {
                         />
                     </SettingRow>
 
-                    <SettingRow label={t('searchBlur')}>
-                        <div className="range-control">
-                            <input
-                                type="range"
-                                min="0"
-                                max="50"
-                                value={settings.searchBlur}
-                                onChange={handleSearchBlurChange}
-                                className="slider"
-                            />
-                            <span className="range-value">{settings.searchBlur}px</span>
-                        </div>
-                    </SettingRow>
+                    <SettingRange label={t('searchBlur')} value={settings.searchBlur} min={0} max={50} unit="px"
+                        onChange={handleSearchBlurChange} />
 
                     <div className="setting-row" style={{ alignItems: 'flex-start' }}>
                         <span className="setting-label">{t('searchEngine')}</span>
