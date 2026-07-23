@@ -8,6 +8,5 @@ export function useBackgroundCSSVariables() {
         const root = document.documentElement
         root.style.setProperty('--bg-blur', `${settings.bgBlur}px`)
         root.style.setProperty('--bg-brightness', `${settings.bgBrightness}%`)
-        root.style.setProperty('--wallpaper-fade-time', `${settings.bgFadeTime}ms`)
-    }, [settings.bgBlur, settings.bgBrightness, settings.bgFadeTime])
+    }, [settings.bgBlur, settings.bgBrightness])
 }
