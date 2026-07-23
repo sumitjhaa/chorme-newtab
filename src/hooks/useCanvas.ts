@@ -200,8 +200,11 @@ export function useCanvas(tool: ToolDef, color: string) {
 }
 
 function drawShapeOnCtx(ctx: CanvasRenderingContext2D, from: Point, to: Point, tool: ToolDef, color: string): void {
-  ctx.strokeStyle = color
-  ctx.fillStyle = color
+  ctx.save()
+  ctx.globalAlpha = tool.opacity
+  ctx.globalCompositeOperation = tool.compositeOp as GlobalCompositeOperation
+  ctx.strokeStyle = tool.id === 'whitebrush' ? '#ffffff' : color
+  ctx.fillStyle = tool.id === 'whitebrush' ? '#ffffff' : color
   ctx.lineWidth = tool.lineWidth
   ctx.lineCap = 'round'
   ctx.lineJoin = 'round'
