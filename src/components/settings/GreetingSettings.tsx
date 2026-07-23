@@ -1,6 +1,6 @@
 /**
-  * @fileoverview Greeting widget settings panel.
-  */
+ * @fileoverview Greeting widget settings panel.
+ */
 
 import { useCallback, memo } from 'react'
 import { useSettings } from '../../hooks/useSettings'
@@ -10,10 +10,8 @@ import { SettingInput } from '../ui/SettingInput'
 import { ToggleSwitch } from '../ui/ToggleSwitch'
 
 /**
-  * Greeting widget settings with enable toggle and name input.
-  * 
-  * @example <GreetingSettings />
-  */
+ * Greeting widget settings with enable toggle and name input.
+ */
 function GreetingSettings() {
     const { settings, update } = useSettings()
     const { t } = useTranslation()

@@ -1,27 +1,48 @@
 /**
-  * @fileoverview Wallpaper display component with loading state.
-  */
+ * @fileoverview Wallpaper display component with loading state.
+ */
 
-import { memo } from 'react'
+import { useState, useCallback, useMemo } from 'react'
+import { useSettings } from '../hooks/useSettings'
+import { buildWallpaperFilter } from '../helpers/wallpaper/filter'
+import { getTextureBackgroundImage, isSVGTexture } from '../helpers/textures'
 import type { WallpaperImage } from '../types/wallpaper'
 
-/** Props for the Wallpaper component */
 interface WallpaperProps {
-    /** Current wallpaper image data */
     wallpaper: WallpaperImage | null
-    /** Whether wallpaper is loading */
     isLoading: boolean
 }
 
-/**
-  * Full-screen wallpaper display with loading overlay.
-  * 
-  * @param props - WallpaperProps
-  * @example <Wallpaper wallpaper={wp} isLoading={false} />
-  */
 function Wallpaper({ wallpaper, isLoading }: WallpaperProps) {
+    const [imgLoaded, setImgLoaded] = useState(false)
+    const { settings } = useSettings()
+
+    const handleImgLoad = useCallback(() => setImgLoaded(true), [])
+
+    const filterStyle = useMemo(
+        () => ({ filter: buildWallpaperFilter(settings.bgBlur, settings.bgBrightness) }),
+        [settings.bgBlur, settings.bgBrightness],
+    )
+
+    const textureStyle = useMemo(() => {
+        const { bgTexture, bgTextureOpacity, bgTextureSize, bgTextureColor } = settings
+        if (bgTexture === 'None') return undefined
+
+        const style: React.CSSProperties = {
+            '--texture-opacity': bgTextureOpacity,
+            '--texture-size': `${bgTextureSize}px`,
+            '--texture-color': bgTextureColor,
+        } as React.CSSProperties
+
+        if (isSVGTexture(bgTexture)) {
+            style.backgroundImage = getTextureBackgroundImage(bgTexture, bgTextureOpacity, bgTextureSize)
+        }
+
+        return style
+    }, [settings.bgTexture, settings.bgTextureOpacity, settings.bgTextureSize, settings.bgTextureColor])
+
     return (
-        <div className="wallpaper-container" style={{ filter: 'var(--wallpaper-filter, none)' }}>
+        <div className="wallpaper-container" style={filterStyle}>
             {isLoading && (
                 <div className="loading-overlay">
                     <div className="spinner" />
@@ -36,10 +57,11 @@ function Wallpaper({ wallpaper, isLoading }: WallpaperProps) {
                     <img
                         src={wallpaper.url}
                         alt=""
-                        className={`wallpaper-img${isLoading ? ' loading' : ''}`}
+                        className={`wallpaper-img${isLoading ? ' loading' : ''}${imgLoaded ? ' loaded' : ''}`}
                         width={wallpaper.width}
                         height={wallpaper.height}
                         decoding="async"
+                        onLoad={handleImgLoad}
                         onError={(e) => {
                             const target = e.target as HTMLImageElement
                             target.style.display = 'none'
@@ -50,9 +72,14 @@ function Wallpaper({ wallpaper, isLoading }: WallpaperProps) {
                 <div className="default-background" />
             )}
 
+            <div
+                className="wallpaper-texture"
+                data-texture={settings.bgTexture !== 'None' ? settings.bgTexture : undefined}
+                style={textureStyle}
+            />
             <div className="wallpaper-overlay" />
         </div>
     )
 }
 
-export default memo(Wallpaper)
+export default Wallpaper

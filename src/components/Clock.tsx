@@ -143,7 +143,7 @@ function Clock() {
     const secs = getSeconds(time, settings)
 
     return (
-        <div className="clock" style={{ opacity: settings.uiOpacity / 100, transform: `scale(${scale})` }}>
+        <div className="clock" style={{ transform: `scale(${scale})` }}>
             {showClock && (
                 settings.analogClock ? (
                     <AnalogClock date={time} timeZone={settings.timeZone} />

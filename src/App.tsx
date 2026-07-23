@@ -18,18 +18,19 @@ const SearchBar = lazy(() => import('./components/SearchBar'))
 const Settings = lazy(() => import('./components/Settings'))
 import { AppErrorBoundary, WidgetErrorBoundary } from './components/errors'
 import { fetchRandomWallpaper } from './api/index'
-import { getCurrentWallpaper, setCurrentWallpaper, getWallpaperSource } from './utils/storage'
-import { API_SOURCES } from './constants'
+import { getCurrentWallpaper, setCurrentWallpaper } from './utils/storage'
 import { useSettings } from './hooks/useSettings'
 import { useTranslation } from './hooks/useTranslation'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
-import { useFontCSSVariables, useBackgroundCSSVariables } from './hooks/useCSSVariables'
+import { useBackgroundCSSVariables } from './hooks/useCSSVariables'
 import { useWallpaperRefresh } from './hooks/useWallpaperRefresh'
 import { extractDominantColor } from './lib/canvas'
 import { loadLayout, saveLayout } from './helpers/layout'
 import { applyDarkMode } from './helpers/darkMode'
+import { getRefreshInterval } from './helpers/wallpaper/refresh'
+import { getRandomFromSearch } from './helpers/wallpaperStore'
 import type { WallpaperImage } from './types/wallpaper'
-import type { WidgetId, WallpaperSource } from './types'
+import type { WidgetId } from './types'
 
 const NUM_COLUMNS = 6
 
@@ -60,15 +61,17 @@ export default function App() {
     const { t } = useTranslation()
     const { settings } = useSettings()
     const [wallpaper, setWallpaper] = useState<WallpaperImage | null>(null)
-    const [source, setSource] = useState<string>(API_SOURCES.WALLHAVEN)
     const [isLoading, setIsLoading] = useState(false)
     const [isSettingsOpen, setIsSettingsOpen] = useState(false)
     const [layout, setLayout] = useState(loadLayout)
 
-    const loadWallpaper = useCallback(async (selectedSource?: string) => {
+    const loadWallpaper = useCallback(async () => {
         setIsLoading(true)
         try {
-            const newWallpaper = await fetchRandomWallpaper((selectedSource || source) as WallpaperSource)
+            const searchHit = getRandomFromSearch()
+            const newWallpaper = searchHit
+                ? { url: searchHit.path, thumbnail: searchHit.thumbs.large, source: 'wallhaven' as const, width: searchHit.resolution ? parseInt(searchHit.resolution.split('x')[0]) : 1920, height: searchHit.resolution ? parseInt(searchHit.resolution.split('x')[1]) : 1080 }
+                : await fetchRandomWallpaper()
             setWallpaper(newWallpaper)
             await setCurrentWallpaper(newWallpaper)
             if (newWallpaper?.url) applyWallpaperColors(newWallpaper.url)
@@ -77,7 +80,7 @@ export default function App() {
         } finally {
             setIsLoading(false)
         }
-    }, [source])
+    }, [])
 
     /**
       * Handle keyboard shortcuts for the application.
@@ -88,9 +91,30 @@ export default function App() {
         r: () => loadWallpaper(),
     }, [loadWallpaper])
 
-    useFontCSSVariables()
+    // Listen for wallpaper selection from the browser
+    useEffect(() => {
+        function handleSetWallpaper(e: Event) {
+            const detail = (e as CustomEvent).detail
+            if (!detail?.url) return
+            const wp: WallpaperImage = {
+                url: detail.url,
+                thumbnail: detail.thumbnail || detail.url,
+                source: 'wallhaven',
+                width: detail.width || 1920,
+                height: detail.height || 1080,
+            }
+            setWallpaper(wp)
+            setCurrentWallpaper(wp)
+            if (wp.url) applyWallpaperColors(wp.url)
+        }
+        window.addEventListener('set-wallpaper', handleSetWallpaper)
+        return () => window.removeEventListener('set-wallpaper', handleSetWallpaper)
+    }, [])
+
     useBackgroundCSSVariables()
-    useWallpaperRefresh(() => loadWallpaper())
+
+    const refreshInterval = useMemo(() => getRefreshInterval(settings.bgFrequency), [settings.bgFrequency])
+    useWallpaperRefresh(() => loadWallpaper(), refreshInterval)
 
     useEffect(() => {
         applyDarkMode(settings.darkMode)
@@ -102,18 +126,21 @@ export default function App() {
 
     /**
       * Initialize wallpaper from storage or fetch a new one.
+      * When bgFrequency is 'every_tab', always fetch a fresh wallpaper.
       */
     useEffect(() => {
         async function init() {
+            if (settings.bgFrequency === 'every_tab') {
+                await loadWallpaper()
+                return
+            }
             const savedWallpaper = await getCurrentWallpaper()
-            const savedSource = await getWallpaperSource()
-            if (savedSource) setSource(savedSource as WallpaperSource)
             if (savedWallpaper) {
                 const wp = savedWallpaper as WallpaperImage
                 setWallpaper(wp)
                 if (wp.url) applyWallpaperColors(wp.url)
             } else {
-                await loadWallpaper(savedSource || API_SOURCES.WALLHAVEN)
+                await loadWallpaper()
             }
         }
         init()

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { SettingsProvider } from '../context/SettingsContext'
 import Settings from './Settings'
 import type { ReactElement } from 'react'
@@ -7,6 +7,15 @@ import type { RenderOptions } from '@testing-library/react'
 
 function renderWithProvider(ui: ReactElement, options?: Omit<RenderOptions, 'wrapper'>) {
     return render(<SettingsProvider>{ui}</SettingsProvider>, options)
+}
+
+function selectDropdown(triggerText: string, optionText: string) {
+    const trigger = screen.getAllByText(triggerText).find(el => el.closest('.dd-trigger'))
+    if (!trigger) throw new Error(`Dropdown trigger "${triggerText}" not found`)
+    fireEvent.click(trigger.closest('.dd-trigger')!)
+    const option = screen.getAllByText(optionText).find(el => el.closest('.dd-item'))
+    if (!option) throw new Error(`Dropdown option "${optionText}" not found`)
+    fireEvent.click(option)
 }
 
 beforeEach(() => {
@@ -41,28 +50,24 @@ describe('Settings', () => {
         expect(onClose).toHaveBeenCalledOnce()
     })
 
-    it('loads language setting from chrome.storage on mount', async () => {
-        ;(chrome.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(() => Promise.resolve({ language: 'fr' }))
-        renderWithProvider(<Settings isOpen={true} onClose={vi.fn()} />)
-        await waitFor(() => {
-            expect(screen.getByDisplayValue('Français')).toBeInTheDocument()
-        })
+    it('loads language setting from localStorage on mount', () => {
+        localStorage.setItem('newtab_settings', JSON.stringify({ language: 'fr' }))
+        const { container } = renderWithProvider(<Settings isOpen={true} onClose={vi.fn()} />)
+        const triggers = container.querySelectorAll('.dd-trigger-label')
+        const langTrigger = Array.from(triggers).find(el => el.textContent === 'Français')
+        expect(langTrigger).toBeInTheDocument()
     })
 
-    it('falls back to localStorage when chrome.storage fails', async () => {
-        localStorage.setItem('newtab_settings', JSON.stringify({ language: 'de' }))
-        ;(chrome.storage.local.get as ReturnType<typeof vi.fn>).mockImplementation(() => {
-            throw new Error('Not available')
-        })
-        renderWithProvider(<Settings isOpen={true} onClose={vi.fn()} />)
-        await waitFor(() => {
-            expect(screen.getByDisplayValue('Deutsch')).toBeInTheDocument()
-        })
+    it('falls back to defaults when localStorage is empty', () => {
+        const { container } = renderWithProvider(<Settings isOpen={true} onClose={vi.fn()} />)
+        const triggers = container.querySelectorAll('.dd-trigger-label')
+        const langTrigger = Array.from(triggers).find(el => el.textContent === 'English')
+        expect(langTrigger).toBeInTheDocument()
     })
 
     it('changes language and saves to localStorage', () => {
         renderWithProvider(<Settings isOpen={true} onClose={vi.fn()} />)
-        fireEvent.change(screen.getByDisplayValue('English'), { target: { value: 'ja' } })
+        selectDropdown('English', '日本語')
         const stored = JSON.parse(localStorage.getItem('newtab_settings') || '{}')
         expect(stored.language).toBe('ja')
     })

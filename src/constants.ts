@@ -7,10 +7,6 @@ import type { WallpaperSource, SearchEngineKey, BgType, BgFrequency } from './ty
 /** API source identifiers */
 export const API_SOURCES = {
     WALLHAVEN: 'wallhaven' as const,
-    UNSPLASH: 'unsplash' as const,
-    PIXABAY: 'pixabay' as const,
-    PICSUM: 'picsum' as const,
-    CATBOX: 'catbox' as const,
 } satisfies Record<string, WallpaperSource>
 
 /** localStorage and chrome.storage keys */
@@ -58,10 +54,11 @@ export const FREQUENCIES = [
 
 /** Available texture overlay options */
 export const TEXTURES = [
-    'Grain', 'Vector grain', 'Diagonal dots', 'Vertical dots',
-    'Topographic', 'Aztec', 'Checkerboard', 'Isometric',
-    'Circuit board', 'Tic-tac-toe', 'Endless clouds', 'Waves',
-    'Honeycomb', 'Grid', 'Vertical lines', 'Horizontal lines',
-    'Diagonal lines', 'Vertical stripes', 'Horizontal stripes',
-    'Diagonal stripes', 'None',
+    'Grain', 'Vector grain', 'Grid',
+    'Vertical lines', 'Horizontal lines', 'Diagonal lines',
+    'Vertical stripes', 'Horizontal stripes', 'Diagonal stripes',
+    'Diagonal dots', 'Vertical dots',
+    'Topographic', 'Honeycomb', 'Isometric',
+    'Circuit board', 'Checkerboard',
+    'None',
 ] as const

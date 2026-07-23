@@ -6,10 +6,7 @@ import type { Settings } from '../types'
 import { API_SOURCES } from '../constants'
 
 export const SETTINGS_DEFAULTS: Settings = {
-    clockPosition: 'center',
-    uiOpacity: 80,
     hideSettingsIcons: false,
-    showAllSettings: true,
     tabTitle: 'New Tab',
     darkMode: 'system',
     language: 'en',
@@ -31,24 +28,18 @@ export const SETTINGS_DEFAULTS: Settings = {
 
     enableGreeting: true,
     greetingName: '',
-    greetingSize: 32,
 
-    wallpaperSource: API_SOURCES.WALLHAVEN,
-    autoRefresh: true,
     bgType: 'images',
     bgProvider: API_SOURCES.WALLHAVEN,
     bgCollection: '',
     bgFrequency: 'every_tab',
     bgTexture: 'None',
+    bgTextureOpacity: 0.15,
+    bgTextureSize: 200,
+    bgTextureColor: '#ffffff',
     bgBlur: 0,
     bgBrightness: 100,
     bgFadeTime: 500,
-
-    fontFamily: 'Inter',
-    fontWeight: 400,
-    fontColor: '#ffffff',
-    fontSize: 100,
-    fontShadow: 0,
 
     clockFormat: '12h',
     showAmPm: true,

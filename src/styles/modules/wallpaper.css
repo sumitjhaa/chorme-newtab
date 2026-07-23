@@ -5,7 +5,6 @@
   width: 100%;
   height: 100%;
   z-index: 0;
-  contain: layout style paint;
 }
 
 .wallpaper-container picture {
@@ -14,7 +13,15 @@
   height: 100%;
 }
 
-.wallpaper-img { width: 100%; height: 100%; object-fit: cover; }
+.wallpaper-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity var(--wallpaper-fade-time, 500ms) ease;
+}
+
+.wallpaper-img.loaded { opacity: 1; }
 
 .default-background {
   width: 100%;
@@ -22,11 +29,149 @@
   background: var(--gradient-default);
 }
 
+/* ── Texture overlay base ── */
+.wallpaper-texture {
+  position: absolute;
+  inset: 0;
+  background-repeat: repeat;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+  opacity: var(--texture-opacity, 0);
+}
+
+/* ── SVG textures (grain, vector grain): background-image set inline ── */
+.wallpaper-texture[data-texture="Grain"],
+.wallpaper-texture[data-texture="Vector grain"] {
+  background-size: var(--texture-size, 200px) var(--texture-size, 200px);
+}
+
+/* ── Grid ── */
+.wallpaper-texture[data-texture="Grid"] {
+  background-image:
+    linear-gradient(var(--texture-color, #fff) 1px, transparent 1px),
+    linear-gradient(90deg, var(--texture-color, #fff) 1px, transparent 1px);
+  background-size: var(--texture-size, 30px) var(--texture-size, 30px);
+}
+
+/* ── Vertical lines ── */
+.wallpaper-texture[data-texture="Vertical lines"] {
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--texture-color, #fff) 0px,
+    var(--texture-color, #fff) 1px,
+    transparent 1px,
+    transparent var(--texture-size, 24px)
+  );
+}
+
+/* ── Horizontal lines ── */
+.wallpaper-texture[data-texture="Horizontal lines"] {
+  background-image: repeating-linear-gradient(
+    0deg,
+    var(--texture-color, #fff) 0px,
+    var(--texture-color, #fff) 1px,
+    transparent 1px,
+    transparent var(--texture-size, 24px)
+  );
+}
+
+/* ── Diagonal lines ── */
+.wallpaper-texture[data-texture="Diagonal lines"] {
+  background-image: repeating-linear-gradient(
+    45deg,
+    var(--texture-color, #fff) 0px,
+    var(--texture-color, #fff) 1px,
+    transparent 1px,
+    transparent var(--texture-size, 16px)
+  );
+}
+
+/* ── Vertical stripes ── */
+.wallpaper-texture[data-texture="Vertical stripes"] {
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--texture-color, #fff) 0px,
+    var(--texture-color, #fff) 4px,
+    transparent 4px,
+    transparent var(--texture-size, 20px)
+  );
+}
+
+/* ── Horizontal stripes ── */
+.wallpaper-texture[data-texture="Horizontal stripes"] {
+  background-image: repeating-linear-gradient(
+    0deg,
+    var(--texture-color, #fff) 0px,
+    var(--texture-color, #fff) 4px,
+    transparent 4px,
+    transparent var(--texture-size, 20px)
+  );
+}
+
+/* ── Diagonal stripes ── */
+.wallpaper-texture[data-texture="Diagonal stripes"] {
+  background-image: repeating-linear-gradient(
+    45deg,
+    var(--texture-color, #fff) 0px,
+    var(--texture-color, #fff) 4px,
+    transparent 4px,
+    transparent var(--texture-size, 20px)
+  );
+}
+
+/* ── Diagonal dots ── */
+.wallpaper-texture[data-texture="Diagonal dots"] {
+  background-image: radial-gradient(circle, var(--texture-color, #fff) 1px, transparent 1px);
+  background-size: var(--texture-size, 24px) var(--texture-size, 24px);
+}
+
+/* ── Vertical dots ── */
+.wallpaper-texture[data-texture="Vertical dots"] {
+  background-image: radial-gradient(circle, var(--texture-color, #fff) 1px, transparent 1px);
+  background-size: 1px var(--texture-size, 24px), var(--texture-size, 24px) 1px;
+}
+
+/* ── Topographic ── */
+.wallpaper-texture[data-texture="Topographic"] {
+  background-image: url("data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M60 10 Q85 25 60 60 Q35 95 60 110' fill='none' stroke='var(--texture-color, %23fff)' stroke-width='1'/%3E%3Cpath d='M20 30 Q45 45 20 80' fill='none' stroke='var(--texture-color, %23fff)' stroke-width='0.5' opacity='0.5'/%3E%3Cpath d='M100 30 Q75 60 100 90' fill='none' stroke='var(--texture-color, %23fff)' stroke-width='0.5' opacity='0.5'/%3E%3C/svg%3E");
+  background-size: var(--texture-size, 400px) var(--texture-size, 400px);
+}
+
+/* ── Honeycomb ── */
+.wallpaper-texture[data-texture="Honeycomb"] {
+  background-image: url("data:image/svg+xml,%3Csvg width='56' height='100' viewBox='0 0 56 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M28 66L0 50L0 16L28 0L56 16L56 50L28 66L28 100' fill='none' stroke='var(--texture-color, %23fff)' stroke-width='1'/%3E%3C/svg%3E");
+  background-size: var(--texture-size, 60px) auto;
+}
+
+/* ── Isometric ── */
+.wallpaper-texture[data-texture="Isometric"] {
+  background-image:
+    repeating-linear-gradient(30deg, var(--texture-color, #fff) 0px, var(--texture-color, #fff) 1px, transparent 1px, transparent var(--texture-size, 24px)),
+    repeating-linear-gradient(150deg, var(--texture-color, #fff) 0px, var(--texture-color, #fff) 1px, transparent 1px, transparent var(--texture-size, 24px));
+}
+
+/* ── Circuit board ── */
+.wallpaper-texture[data-texture="Circuit board"] {
+  background-image:
+    repeating-linear-gradient(0deg, var(--texture-color, #fff) 0px, var(--texture-color, #fff) 1px, transparent 1px, transparent var(--texture-size, 40px)),
+    repeating-linear-gradient(90deg, var(--texture-color, #fff) 0px, var(--texture-color, #fff) 1px, transparent 1px, transparent var(--texture-size, 40px));
+}
+
+/* ── Checkerboard ── */
+.wallpaper-texture[data-texture="Checkerboard"] {
+  background-image: conic-gradient(
+    var(--texture-color, #fff) 25%,
+    transparent 25%,
+    transparent 75%,
+    var(--texture-color, #fff) 75%
+  );
+  background-size: var(--texture-size, 24px) var(--texture-size, 24px);
+}
+
 .wallpaper-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.4));
-  contain: layout style paint;
+  pointer-events: none;
 }
 
 .loading-overlay {

@@ -23,8 +23,6 @@ export type LayoutPosition = {
 /** Mapping of widget IDs to their layout positions */
 export type LayoutMap = Record<WidgetId, LayoutPosition>
 
-/** Clock display position on the page */
-export type ClockPosition = 'left' | 'center' | 'right'
 /** Clock time format preference */
 export type ClockFormat = '12h' | '24h'
 /** Date display format preference */
@@ -37,7 +35,7 @@ export type BgType = 'images' | 'videos' | 'local' | 'url' | 'solid'
 /** How often to refresh the background */
 export type BgFrequency = 'every_tab' | 'every_hour' | 'every_day' | 'daylight' | 'locked'
 /** Wallpaper image source provider */
-export type WallpaperSource = 'wallhaven' | 'unsplash' | 'pixabay' | 'picsum' | 'catbox'
+export type WallpaperSource = 'wallhaven'
 
 /** Dark mode preference */
 export type DarkMode = 'system' | 'light' | 'dark'
@@ -74,14 +72,8 @@ export type WeatherShow = 'description_icon' | 'description' | 'icon' | 'none'
   */
 export interface Settings {
     // General
-    /** Clock display position */
-    clockPosition: ClockPosition
-    /** UI element opacity (0-1) */
-    uiOpacity: number
     /** Hide settings icons in the UI */
     hideSettingsIcons: boolean
-    /** Show all settings panels */
-    showAllSettings: boolean
     /** Custom browser tab title */
     tabTitle: string
     /** Dark mode preference */
@@ -124,14 +116,8 @@ export interface Settings {
     enableGreeting: boolean
     /** Name to display in greeting */
     greetingName: string
-    /** Greeting text size (rem) */
-    greetingSize: number
 
     // Background
-    /** Wallpaper image source provider */
-    wallpaperSource: WallpaperSource
-    /** Auto-refresh wallpaper on new tab */
-    autoRefresh: boolean
     /** Background content type */
     bgType: BgType
     /** Background image provider */
@@ -142,24 +128,18 @@ export interface Settings {
     bgFrequency: BgFrequency
     /** Background texture overlay */
     bgTexture: string
+    /** Texture opacity (0-1) */
+    bgTextureOpacity: number
+    /** Texture pattern size (px) */
+    bgTextureSize: number
+    /** Texture color (hex) for applicable patterns */
+    bgTextureColor: string
     /** Background blur amount (px) */
     bgBlur: number
     /** Background brightness (0-200) */
     bgBrightness: number
     /** Background fade transition time (ms) */
     bgFadeTime: number
-
-    // Typography
-    /** Font family for text elements */
-    fontFamily: string
-    /** Font weight (100-900) */
-    fontWeight: number
-    /** Font color (CSS color value) */
-    fontColor: string
-    /** Font size (rem) */
-    fontSize: number
-    /** Text shadow amount (px) */
-    fontShadow: number
 
     // Clock
     /** Clock time format */

@@ -67,7 +67,7 @@ function WeatherSettings() {
                             options={[
                                 { value: 'approximate', label: t('approximate') },
                                 { value: 'manual', label: t('manual') },
-                                { value: 'precise', label: t('precise') },
+                                { value: 'disabled', label: t('disabled') },
                             ]}
                         />
                     </SettingRow>
@@ -100,8 +100,8 @@ function WeatherSettings() {
                             onChange={handleForecastChange}
                             options={[
                                 { value: 'automatic', label: t('automatic') },
-                                { value: 'always', label: t('always') },
-                                { value: 'never', label: t('never') },
+                                { value: 'hourly', label: t('hourly') },
+                                { value: 'daily', label: t('daily') },
                             ]}
                         />
                     </SettingRow>

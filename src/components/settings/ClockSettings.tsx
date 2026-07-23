@@ -19,8 +19,8 @@ const DATE_FORMAT_OPTIONS = [
 /** Display options */
 const SHOW_OPTIONS = [
     { value: 'both', labelKey: 'clockAndDate' },
-    { value: 'clock', labelKey: 'clockOnly' },
-    { value: 'date', labelKey: 'dateOnly' },
+    { value: 'date_only', labelKey: 'dateOnly' },
+    { value: 'none', labelKey: 'clockOnly' },
 ]
 
 /**

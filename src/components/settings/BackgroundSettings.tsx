@@ -1,210 +1,105 @@
-/**
-  * @fileoverview Background and wallpaper settings panel.
-  */
-
-import { useCallback, useMemo, memo } from 'react'
+import { useCallback, memo } from 'react'
 import { useSettings } from '../../hooks/useSettings'
 import { useTranslation } from '../../hooks/useTranslation'
-import { API_SOURCES, TEXTURES } from '../../constants'
+import { TEXTURES, FREQUENCIES } from '../../constants'
+import { TEXTURE_CONFIGS } from '../../helpers/textures/config'
 import { SettingRow } from '../ui/SettingRow'
 import { SettingSelect } from '../ui/SettingSelect'
-import { SettingInput } from '../ui/SettingInput'
+import { SettingRange } from '../ui/SettingRange'
+import { SettingColor } from '../ui/SettingColor'
+import WallpaperBrowser from './WallpaperBrowser'
+import type { WallhavenWallpaper } from '../../helpers/wallhaven'
 
-/** Texture key to translation key mapping */
-const TEXTURE_KEYS: Record<string, string> = {
-    'Grain': 'grain',
-    'Vector grain': 'vectorGrain',
-    'Diagonal dots': 'diagonalDots',
-    'Vertical dots': 'verticalDots',
-    'Topographic': 'topographic',
-    'Aztec': 'aztec',
-    'Checkerboard': 'checkerboard',
-    'Isometric': 'isometric',
-    'Circuit board': 'circuitBoard',
-    'Tic-tac-toe': 'ticTacToe',
-    'Endless clouds': 'endlessClouds',
-    'Waves': 'waves',
-    'Honeycomb': 'honeycomb',
-    'Grid': 'grid',
-    'Vertical lines': 'verticalLines',
-    'Horizontal lines': 'horizontalLines',
-    'Diagonal lines': 'diagonalLines',
-    'Vertical stripes': 'verticalStripes',
-    'Horizontal stripes': 'horizontalStripes',
-    'Diagonal stripes': 'diagonalStripes',
+const TEXTURE_LABELS: Record<string, string> = {
+    'Grain': 'grain', 'Vector grain': 'vectorGrain',
+    'Grid': 'grid', 'Vertical lines': 'verticalLines',
+    'Horizontal lines': 'horizontalLines', 'Diagonal lines': 'diagonalLines',
+    'Vertical stripes': 'verticalStripes', 'Horizontal stripes': 'horizontalStripes',
+    'Diagonal stripes': 'diagonalStripes', 'Diagonal dots': 'diagonalDots',
+    'Vertical dots': 'verticalDots', 'Topographic': 'topographic',
+    'Honeycomb': 'honeycomb', 'Isometric': 'isometric',
+    'Circuit board': 'circuitBoard', 'Checkerboard': 'checkerboard',
     'None': 'none',
 }
 
-/** API source display labels */
-const SOURCE_LABELS: Record<string, string> = {
-    [API_SOURCES.UNSPLASH]: 'Unsplash',
-    [API_SOURCES.WALLHAVEN]: 'Wallhaven',
-    [API_SOURCES.PIXABAY]: 'Pixabay',
-    [API_SOURCES.PICSUM]: 'Picsum',
-    [API_SOURCES.CATBOX]: 'Catbox',
-}
-
-/** Available image providers */
-const IMAGE_PROVIDERS = [API_SOURCES.UNSPLASH, API_SOURCES.WALLHAVEN, API_SOURCES.PIXABAY, API_SOURCES.PICSUM, API_SOURCES.CATBOX]
-
-/**
-  * Background settings with provider, frequency, texture, blur, and brightness controls.
-  * 
-  * @example <BackgroundSettings />
-  */
 function BackgroundSettings() {
     const { settings, update } = useSettings()
     const { t } = useTranslation()
 
-    const bgTypes = useMemo(() => [
-        { value: 'images', label: t('images') },
-        { value: 'videos', label: t('videos') },
-        { value: 'local', label: t('localFiles') },
-        { value: 'url', label: t('urls') },
-        { value: 'solid', label: t('solidColor') },
-    ], [t])
+    const texConfig = TEXTURE_CONFIGS[settings.bgTexture]
+    const showTex = settings.bgTexture !== 'None' && texConfig
 
-    const freqOptions = useMemo(() => [
-        { value: 'every_tab', label: t('everyTab') },
-        { value: 'every_hour', label: t('everyHour') },
-        { value: 'every_day', label: t('everyDay') },
-        { value: 'daylight', label: t('daylight') },
-        { value: 'locked', label: t('locked') },
-    ], [t])
-
-    const texOptions = useMemo(() =>
-        TEXTURES.map(tex => ({ value: tex, label: t(TEXTURE_KEYS[tex]) })),
-        [t]
-    )
-
-    const providerOptions = useMemo(() =>
-        IMAGE_PROVIDERS.map((p) => ({ value: p, label: SOURCE_LABELS[p] || p })),
-        []
-    )
-
-    const handleBgTypeChange = useCallback((val: string) => {
-        update('bgType', val)
+    const updateTextureDefaults = useCallback((name: string) => {
+        const cfg = TEXTURE_CONFIGS[name]
+        if (!cfg) return
+        update('bgTextureOpacity', cfg.opacity.default)
+        update('bgTextureSize', cfg.size.default)
+        if (cfg.hasColor) update('bgTextureColor', '#ffffff')
     }, [update])
 
-    const handleBgProviderChange = useCallback((val: string) => {
-        update('bgProvider', val)
+    const handleWallpaperSelect = useCallback((wp: WallhavenWallpaper) => {
+        update('bgType', 'images')
+        window.dispatchEvent(new CustomEvent('set-wallpaper', {
+            detail: {
+                id: wp.id,
+                url: wp.path,
+                thumbnail: wp.thumbs.large,
+                width: parseInt(wp.resolution.split('x')[0]),
+                height: parseInt(wp.resolution.split('x')[1]),
+            },
+        }))
     }, [update])
 
-    const handleBgCollectionChange = useCallback((val: string) => {
-        update('bgCollection', val)
-    }, [update])
-
-    const handleBgFrequencyChange = useCallback((val: string) => {
-        update('bgFrequency', val)
-    }, [update])
-
-    const handleBgTextureChange = useCallback((val: string) => {
-        update('bgTexture', val)
-    }, [update])
-
-    const handleBgBlurChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        update('bgBlur', Number(e.target.value))
-    }, [update])
-
-    const handleBgBrightnessChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        update('bgBrightness', Number(e.target.value))
-    }, [update])
-
-    const handleBgFadeTimeChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        update('bgFadeTime', Number(e.target.value))
-    }, [update])
-
-    const showCollection = settings.bgProvider === API_SOURCES.WALLHAVEN || settings.bgProvider === API_SOURCES.UNSPLASH
+    const texOpts = TEXTURES.map(tex => ({ value: tex, label: t(TEXTURE_LABELS[tex]) }))
 
     return (
-        <div className="settings-group">
-            <div className="settings-group-title">{t('general')}</div>
+        <div className="settings-groups">
+            <div className="settings-group">
+                <div className="settings-group-title">{t('general')}</div>
 
-            <SettingRow label={t('backgroundType')}>
-                <SettingSelect
-                    value={settings.bgType}
-                    onChange={handleBgTypeChange}
-                    options={bgTypes}
-                />
-            </SettingRow>
+                <SettingRange label={t('blur')} value={settings.bgBlur} min={0} max={50} unit="px"
+                    onChange={(v) => update('bgBlur', v)} />
 
-            <SettingRow label={t('provider')}>
-                <SettingSelect
-                    value={settings.bgProvider}
-                    onChange={handleBgProviderChange}
-                    options={providerOptions}
-                />
-            </SettingRow>
+                <SettingRange label={t('brightness')} value={settings.bgBrightness} min={10} max={200} unit="%"
+                    onChange={(v) => update('bgBrightness', v)} />
 
-            {showCollection && (
-                <SettingRow label={t('collection')}>
-                    <SettingInput
-                        type="text"
-                        value={settings.bgCollection}
-                        onChange={handleBgCollectionChange}
-                        placeholder={t('collectionId')}
-                    />
+                <SettingRange label={t('fadeInTime')} value={settings.bgFadeTime} min={0} max={5000} step={250}
+                    format={(v) => v >= 1000 ? `${(v / 1000).toFixed(1)}s` : `${v}ms`}
+                    onChange={(v) => update('bgFadeTime', v)} />
+
+                <SettingRow label={t('frequency')}>
+                    <SettingSelect value={settings.bgFrequency}
+                        options={FREQUENCIES.map(f => ({ ...f, label: t(f.label.toLowerCase().replace(/\s/g, '')) }))}
+                        onChange={(v) => update('bgFrequency', v)} />
                 </SettingRow>
-            )}
 
-            <SettingRow label={t('frequency')}>
-                <SettingSelect
-                    value={settings.bgFrequency}
-                    onChange={handleBgFrequencyChange}
-                    options={freqOptions}
-                />
-            </SettingRow>
+                <SettingRow label={t('texture')}>
+                    <SettingSelect value={settings.bgTexture} options={texOpts}
+                        onChange={(v) => { update('bgTexture', v); updateTextureDefaults(v) }} />
+                </SettingRow>
 
-            <SettingRow label={t('texture')}>
-                <SettingSelect
-                    value={settings.bgTexture}
-                    onChange={handleBgTextureChange}
-                    options={texOptions}
-                />
-            </SettingRow>
+                {showTex && (
+                    <>
+                        <SettingRange label={t('textureOpacity')} value={settings.bgTextureOpacity}
+                            min={texConfig.opacity.min} max={texConfig.opacity.max} step={texConfig.opacity.step}
+                            onChange={(v) => update('bgTextureOpacity', v)} />
 
-            <SettingRow label={t('blur')}>
-                <div className="range-control">
-                    <input
-                        type="range"
-                        min="0"
-                        max="50"
-                        value={settings.bgBlur}
-                        onChange={handleBgBlurChange}
-                        className="slider"
-                    />
-                    <span className="range-value">{settings.bgBlur}px</span>
-                </div>
-            </SettingRow>
+                        <SettingRange label={t('textureSize')} value={settings.bgTextureSize} unit="px"
+                            min={texConfig.size.min} max={texConfig.size.max} step={texConfig.size.step}
+                            onChange={(v) => update('bgTextureSize', v)} />
 
-            <SettingRow label={t('brightness')}>
-                <div className="range-control">
-                    <input
-                        type="range"
-                        min="10"
-                        max="200"
-                        value={settings.bgBrightness}
-                        onChange={handleBgBrightnessChange}
-                        className="slider"
-                    />
-                    <span className="range-value">{settings.bgBrightness}%</span>
-                </div>
-            </SettingRow>
+                        {texConfig.hasColor && (
+                            <SettingColor label={t('textureColor')} value={settings.bgTextureColor}
+                                onChange={(v) => update('bgTextureColor', v)} />
+                        )}
+                    </>
+                )}
+            </div>
 
-            <SettingRow label={t('fadeInTime')}>
-                <div className="range-control">
-                    <input
-                        type="range"
-                        min="100"
-                        max="3000"
-                        step="100"
-                        value={settings.bgFadeTime}
-                        onChange={handleBgFadeTimeChange}
-                        className="slider"
-                    />
-                    <span className="range-value">{settings.bgFadeTime}ms</span>
-                </div>
-            </SettingRow>
+            <div className="settings-group settings-group-scroll">
+                <div className="settings-group-title">Wallpaper Search</div>
+                <WallpaperBrowser onSelect={handleWallpaperSelect} />
+            </div>
         </div>
     )
 }

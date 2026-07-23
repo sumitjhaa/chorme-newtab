@@ -40,6 +40,10 @@ function SearchSettings() {
         update('searchEngine', key)
     }, [update])
 
+    const handleSearchBlurChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        update('searchBlur', Number(e.target.value))
+    }, [update])
+
     return (
         <div className="settings-group">
             <div className="settings-group-title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -73,6 +77,20 @@ function SearchSettings() {
                             onChange={handleSearchPlaceholderChange}
                             placeholder={t('defaultPlaceholder')}
                         />
+                    </SettingRow>
+
+                    <SettingRow label={t('searchBlur')}>
+                        <div className="range-control">
+                            <input
+                                type="range"
+                                min="0"
+                                max="50"
+                                value={settings.searchBlur}
+                                onChange={handleSearchBlurChange}
+                                className="slider"
+                            />
+                            <span className="range-value">{settings.searchBlur}px</span>
+                        </div>
                     </SettingRow>
 
                     <div className="setting-row" style={{ alignItems: 'flex-start' }}>

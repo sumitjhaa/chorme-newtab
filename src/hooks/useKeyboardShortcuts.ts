@@ -25,6 +25,7 @@ export function useKeyboardShortcuts(shortcuts: ShortcutMap, deps: any[] = []): 
             if (target.closest('input, textarea, select')) {
                 return
             }
+            if (e.ctrlKey || e.metaKey || e.altKey) return
 
             const fn = shortcutsRef.current[e.key]
             if (fn) {

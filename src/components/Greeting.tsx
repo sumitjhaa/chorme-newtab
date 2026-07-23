@@ -91,13 +91,7 @@ function Greeting() {
     const name = settings.greetingName
 
     return (
-        <div className="greeting-widget" style={{
-            fontSize: `${settings.greetingSize}px`,
-            fontFamily: `'${settings.fontFamily}', sans-serif`,
-            fontWeight: settings.fontWeight,
-            color: settings.fontColor,
-            textShadow: settings.fontShadow > 0 ? `0 0 ${settings.fontShadow}px rgba(0,0,0,0.8)` : 'none',
-        }}>
+        <div className="greeting-widget">
             <div className="greeting-row">
                 <Icon />
                 <span className="greeting-text">{text}</span>

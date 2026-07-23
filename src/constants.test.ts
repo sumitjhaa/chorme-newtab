@@ -7,18 +7,12 @@ import {
 } from './constants'
 
 describe('API_SOURCES', () => {
-    it('has all wallpaper sources', () => {
-        expect(API_SOURCES).toEqual({
-            WALLHAVEN: 'wallhaven',
-            UNSPLASH: 'unsplash',
-            PIXABAY: 'pixabay',
-            PICSUM: 'picsum',
-            CATBOX: 'catbox',
-        })
+    it('has wallhaven source', () => {
+        expect(API_SOURCES.WALLHAVEN).toBe('wallhaven')
     })
 
-    it('has exactly 5 sources', () => {
-        expect(Object.keys(API_SOURCES)).toHaveLength(5)
+    it('has exactly 1 source', () => {
+        expect(Object.keys(API_SOURCES)).toHaveLength(1)
     })
 })
 

@@ -1,19 +1,16 @@
 /**
-  * @fileoverview Pomodoro timer settings panel.
-  */
+ * @fileoverview Pomodoro timer settings panel.
+ */
 
 import { useCallback, memo } from 'react'
 import { useSettings } from '../../hooks/useSettings'
 import { useTranslation } from '../../hooks/useTranslation'
 import { SettingRow } from '../ui/SettingRow'
-import { SettingInput } from '../ui/SettingInput'
 import { ToggleSwitch } from '../ui/ToggleSwitch'
 
 /**
-  * Pomodoro timer settings with work/break duration controls.
-  * 
-  * @example <PomodoroSettings />
-  */
+ * Pomodoro timer settings with work/break duration controls.
+ */
 function PomodoroSettings() {
     const { settings, update } = useSettings()
     const { t } = useTranslation()
@@ -22,20 +19,20 @@ function PomodoroSettings() {
         update('showPomodoroWidget', !settings.showPomodoroWidget)
     }, [settings.showPomodoroWidget, update])
 
-    const handleWorkChange = useCallback((val: string) => {
-        update('pomodoroWork', Number(val))
+    const handleWorkChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        update('pomodoroWork', Number(e.target.value))
     }, [update])
 
-    const handleShortBreakChange = useCallback((val: string) => {
-        update('pomodoroShort', Number(val))
+    const handleShortBreakChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        update('pomodoroShort', Number(e.target.value))
     }, [update])
 
-    const handleLongBreakChange = useCallback((val: string) => {
-        update('pomodoroLong', Number(val))
+    const handleLongBreakChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        update('pomodoroLong', Number(e.target.value))
     }, [update])
 
-    const handleCyclesChange = useCallback((val: string) => {
-        update('pomodoroCycles', Number(val))
+    const handleCyclesChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        update('pomodoroCycles', Number(e.target.value))
     }, [update])
 
     return (
@@ -49,40 +46,56 @@ function PomodoroSettings() {
             </SettingRow>
             {settings.showPomodoroWidget && (<>
                 <SettingRow label={t('workMin')}>
-                    <SettingInput
-                        type="number"
-                        min={1}
-                        max={120}
-                        value={String(settings.pomodoroWork ?? 25)}
-                        onChange={handleWorkChange}
-                    />
+                    <div className="range-control">
+                        <input
+                            type="range"
+                            min="1"
+                            max="120"
+                            value={settings.pomodoroWork ?? 25}
+                            onChange={handleWorkChange}
+                            className="slider"
+                        />
+                        <span className="range-value">{settings.pomodoroWork ?? 25}m</span>
+                    </div>
                 </SettingRow>
                 <SettingRow label={t('shortBreakMin')}>
-                    <SettingInput
-                        type="number"
-                        min={1}
-                        max={30}
-                        value={String(settings.pomodoroShort ?? 5)}
-                        onChange={handleShortBreakChange}
-                    />
+                    <div className="range-control">
+                        <input
+                            type="range"
+                            min="1"
+                            max="30"
+                            value={settings.pomodoroShort ?? 5}
+                            onChange={handleShortBreakChange}
+                            className="slider"
+                        />
+                        <span className="range-value">{settings.pomodoroShort ?? 5}m</span>
+                    </div>
                 </SettingRow>
                 <SettingRow label={t('longBreakMin')}>
-                    <SettingInput
-                        type="number"
-                        min={1}
-                        max={60}
-                        value={String(settings.pomodoroLong ?? 15)}
-                        onChange={handleLongBreakChange}
-                    />
+                    <div className="range-control">
+                        <input
+                            type="range"
+                            min="1"
+                            max="60"
+                            value={settings.pomodoroLong ?? 15}
+                            onChange={handleLongBreakChange}
+                            className="slider"
+                        />
+                        <span className="range-value">{settings.pomodoroLong ?? 15}m</span>
+                    </div>
                 </SettingRow>
                 <SettingRow label={t('longBreakAfter')}>
-                    <SettingInput
-                        type="number"
-                        min={1}
-                        max={10}
-                        value={String(settings.pomodoroCycles ?? 4)}
-                        onChange={handleCyclesChange}
-                    />
+                    <div className="range-control">
+                        <input
+                            type="range"
+                            min="1"
+                            max="10"
+                            value={settings.pomodoroCycles ?? 4}
+                            onChange={handleCyclesChange}
+                            className="slider"
+                        />
+                        <span className="range-value">{settings.pomodoroCycles ?? 4}</span>
+                    </div>
                 </SettingRow>
             </>)}
         </div>
