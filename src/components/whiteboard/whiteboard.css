@@ -137,6 +137,11 @@
   color: rgba(220, 60, 60, 0.9);
 }
 
+.wb-confirm-clear {
+  background: rgba(220, 50, 50, 0.25) !important;
+  color: rgba(220, 60, 60, 0.9) !important;
+}
+
 .wb-color-swatch {
   width: 18px;
   height: 18px;

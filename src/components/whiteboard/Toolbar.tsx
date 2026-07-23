@@ -2,7 +2,7 @@
   * @fileoverview Whiteboard toolbar with tool selection and actions.
   */
 
-import React, { memo } from 'react'
+import React, { useState, useEffect, useRef, memo } from 'react'
 import { TOOLS } from './tools'
 import ColorPicker from './ColorPicker'
 
@@ -79,6 +79,21 @@ export default memo(function Toolbar({ activeTool, color, lineWidth, onSelectToo
     const isEraser = activeTool === 'eraser'
     const minSize = isEraser ? 8 : 1
     const maxSize = isEraser ? 40 : 20
+    const [confirmClear, setConfirmClear] = useState(false)
+    const confirmTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+    useEffect(() => { return () => { if (confirmTimerRef.current) clearTimeout(confirmTimerRef.current) } }, [])
+
+    function handleClear() {
+        if (confirmClear) {
+            if (confirmTimerRef.current) clearTimeout(confirmTimerRef.current)
+            setConfirmClear(false)
+            onClear()
+        } else {
+            setConfirmClear(true)
+            confirmTimerRef.current = setTimeout(() => setConfirmClear(false), 3000)
+        }
+    }
 
     return (
         <div className="wb-toolbar">
@@ -133,7 +148,7 @@ export default memo(function Toolbar({ activeTool, color, lineWidth, onSelectToo
                         <line x1="12" y1="15" x2="12" y2="3"/>
                     </svg>
                 </button>
-                <button className="wb-action-btn" onClick={onClear} title="Clear board">
+                <button className={`wb-action-btn${confirmClear ? ' wb-confirm-clear' : ''}`} onClick={handleClear} title={confirmClear ? 'Click to confirm clear' : 'Clear board'}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2Z"/>
                         <line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/>
