@@ -81,8 +81,14 @@ function Calendar() {
                 <div className="cal-header-center">
                     <span className="cal-month-label">{monthLabel}</span>
                     {!atCurrentMonth && (
-                        <button className="cal-today-btn" onClick={() => setViewMonth(new Date())}>
-                            {t('today') || 'Today'}
+                        <button className="cal-today-btn" onClick={() => setViewMonth(new Date())} title={t('today')}>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <circle cx="12" cy="12" r="10" />
+                                <line x1="12" y1="2" x2="12" y2="6" />
+                                <line x1="12" y1="18" x2="12" y2="22" />
+                                <line x1="2" y1="12" x2="6" y2="12" />
+                                <line x1="18" y1="12" x2="22" y2="12" />
+                            </svg>
                         </button>
                     )}
                 </div>
