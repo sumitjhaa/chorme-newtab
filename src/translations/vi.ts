@@ -33,7 +33,6 @@ export default {
     texture: 'Kết cấu',
     blur: 'Làm mờ',
     brightness: 'Độ sáng',
-    fadeInTime: 'Thời gian xuất hiện',
     images: 'Hình ảnh',
     videos: 'Video',
     localFiles: 'Tệp cục bộ',

@@ -37,10 +37,6 @@ export const DEFAULT_REFRESH_INTERVAL = 30 * 60 * 1000
 /** Background type options */
 export const BACKGROUND_TYPES = [
     { value: 'images' as const, label: 'Images' },
-    { value: 'videos' as const, label: 'Videos' },
-    { value: 'local' as const, label: 'Local Files' },
-    { value: 'url' as const, label: 'URLs' },
-    { value: 'solid' as const, label: 'Solid Color' },
 ] satisfies { value: BgType; label: string }[]
 
 /** Wallpaper refresh frequency options */
@@ -52,13 +48,4 @@ export const FREQUENCIES = [
     { value: 'locked' as const, label: 'Locked' },
 ] satisfies { value: BgFrequency; label: string }[]
 
-/** Available texture overlay options */
-export const TEXTURES = [
-    'Grain', 'Vector grain', 'Grid',
-    'Vertical lines', 'Horizontal lines', 'Diagonal lines',
-    'Vertical stripes', 'Horizontal stripes', 'Diagonal stripes',
-    'Diagonal dots', 'Vertical dots',
-    'Topographic', 'Honeycomb', 'Isometric',
-    'Circuit board', 'Checkerboard',
-    'None',
-] as const
+

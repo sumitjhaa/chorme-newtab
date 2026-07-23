@@ -33,7 +33,6 @@ export default {
     texture: 'Trama',
     blur: 'Sfocatura',
     brightness: 'Luminosità',
-    fadeInTime: 'Tempo di dissolvenza',
     images: 'Immagini',
     videos: 'Video',
     localFiles: 'File locali',

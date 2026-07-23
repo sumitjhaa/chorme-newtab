@@ -33,7 +33,6 @@ export default {
     texture: 'الملمس',
     blur: 'الضبابية',
     brightness: 'السطوع',
-    fadeInTime: 'وقت الظهور',
     images: 'صور',
     videos: 'فيديوهات',
     localFiles: 'ملفات محلية',

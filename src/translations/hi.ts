@@ -33,7 +33,6 @@ export default {
     texture: 'बनावट',
     blur: 'ब्लर',
     brightness: 'चमक',
-    fadeInTime: 'फेड इन समय',
     images: 'चित्र',
     videos: 'वीडियो',
     localFiles: 'स्थानीय फ़ाइलें',

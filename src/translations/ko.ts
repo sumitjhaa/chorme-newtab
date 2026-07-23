@@ -33,7 +33,6 @@ export default {
     texture: '텍스처',
     blur: '흐림',
     brightness: '밝기',
-    fadeInTime: '페이드인 시간',
     images: '이미지',
     videos: '동영상',
     localFiles: '로컬 파일',

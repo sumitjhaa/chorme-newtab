@@ -31,7 +31,7 @@ export type DateFormat = 'DD/MM/YYYY' | 'MM/DD/YYYY' | 'YYYY-MM-DD'
 export type ShowClockDate = 'both' | 'date_only' | 'none'
 
 /** Background content type */
-export type BgType = 'images' | 'videos' | 'local' | 'url' | 'solid'
+export type BgType = 'images'
 /** How often to refresh the background */
 export type BgFrequency = 'every_tab' | 'every_hour' | 'every_day' | 'daylight' | 'locked'
 /** Wallpaper image source provider */
@@ -126,20 +126,10 @@ export interface Settings {
     bgCollection: string
     /** Background refresh frequency */
     bgFrequency: BgFrequency
-    /** Background texture overlay */
-    bgTexture: string
-    /** Texture opacity (0-1) */
-    bgTextureOpacity: number
-    /** Texture pattern size (px) */
-    bgTextureSize: number
-    /** Texture color (hex) for applicable patterns */
-    bgTextureColor: string
     /** Background blur amount (px) */
     bgBlur: number
     /** Background brightness (0-200) */
     bgBrightness: number
-    /** Background fade transition time (ms) */
-    bgFadeTime: number
 
     // Clock
     /** Clock time format */

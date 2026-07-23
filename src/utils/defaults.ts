@@ -33,13 +33,8 @@ export const SETTINGS_DEFAULTS: Settings = {
     bgProvider: API_SOURCES.WALLHAVEN,
     bgCollection: '',
     bgFrequency: 'every_tab',
-    bgTexture: 'None',
-    bgTextureOpacity: 0.15,
-    bgTextureSize: 200,
-    bgTextureColor: '#ffffff',
     bgBlur: 0,
     bgBrightness: 100,
-    bgFadeTime: 500,
 
     clockFormat: '12h',
     showAmPm: true,

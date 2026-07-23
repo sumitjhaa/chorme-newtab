@@ -797,19 +797,6 @@
 .color-input::-webkit-color-swatch { border: none; border-radius: 3px; }
 .color-input::-moz-color-swatch { border: none; border-radius: 3px; }
 
-/* ─── Texture Grid ─── */
-
-.texture-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.2rem;
-}
-
-.texture-grid .setting-option {
-  font-size: var(--small-size);
-  padding: 0.3rem 0.4rem;
-}
-
 .shortcut-list {
   display: flex;
   flex-direction: column;

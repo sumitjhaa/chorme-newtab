@@ -33,7 +33,6 @@ export default {
     texture: '纹理',
     blur: '模糊',
     brightness: '亮度',
-    fadeInTime: '淡入时间',
     images: '图片',
     videos: '视频',
     localFiles: '本地文件',

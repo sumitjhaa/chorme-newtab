@@ -33,7 +33,6 @@ export default {
     texture: 'Tekstur',
     blur: 'Buram',
     brightness: 'Kecerahan',
-    fadeInTime: 'Waktu fade in',
     images: 'Gambar',
     videos: 'Video',
     localFiles: 'File lokal',

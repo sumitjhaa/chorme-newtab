@@ -33,7 +33,6 @@ export default {
     texture: 'Текстура',
     blur: 'Розмиття',
     brightness: 'Яскравість',
-    fadeInTime: 'Час появи',
     images: 'Зображення',
     videos: 'Відео',
     localFiles: 'Локальні файли',

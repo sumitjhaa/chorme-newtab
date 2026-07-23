@@ -33,7 +33,6 @@ export default {
     texture: 'テクスチャ',
     blur: 'ぼかし',
     brightness: '明るさ',
-    fadeInTime: 'フェードイン時間',
     images: '画像',
     videos: '動画',
     localFiles: 'ローカルファイル',

@@ -33,7 +33,6 @@ export default {
     texture: 'Doku',
     blur: 'Bulanıklık',
     brightness: 'Parlaklık',
-    fadeInTime: 'Solma süresi',
     images: 'Görseller',
     videos: 'Videolar',
     localFiles: 'Yerel dosyalar',
