@@ -148,4 +148,8 @@ export default {
     lists: 'Lists',
     writeSomething: 'Write something...',
     today: 'Today',
+    delete: 'Delete',
+    confirmDelete: 'Click to confirm delete',
+    addNote: 'Add note',
+    color: 'Change color',
 }

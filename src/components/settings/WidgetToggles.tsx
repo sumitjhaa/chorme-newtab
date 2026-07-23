@@ -9,6 +9,8 @@ import { ToggleSwitch } from '../ui/ToggleSwitch'
 
 /** Sticky note item type */
 interface StickyNoteItem {
+    /** Unique ID */
+    id: string
     /** HTML content */
     html: string
     /** Color index */
@@ -87,7 +89,7 @@ function WidgetToggles() {
     const handleAddNote = useCallback(() => {
         if (notes.length >= 10) return
         if (notes.some((n: StickyNoteItem) => !n.html.replace(/<[^>]+>/g, '').trim())) return
-        const updated = [...notes, { html: '', colorIdx: notes.length % 6 }]
+        const updated = [...notes, { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), html: '', colorIdx: notes.length % 6 }]
         setNotes(updated)
         localStorage.setItem('newtab_sticky', JSON.stringify(updated))
         window.dispatchEvent(new Event('sticky-update'))
