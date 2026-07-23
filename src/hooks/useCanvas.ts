@@ -56,10 +56,22 @@ export function useCanvas(tool: ToolDef, color: string) {
   const drawing = useRef(false)
   const originPos = useRef<Point | null>(null)
   const offscreenRef = useRef<HTMLCanvasElement | null>(null)
+  const historyRef = useRef<ImageData[]>([])
+  const redoRef = useRef<ImageData[]>([])
 
   const getCtx = useCallback(() => {
     return canvasRef.current?.getContext('2d') || null
   }, [])
+
+  const pushHistory = useCallback(() => {
+    const canvas = canvasRef.current
+    const ctx = getCtx()
+    if (!canvas || !ctx) return
+    const snap = ctx.getImageData(0, 0, canvas.width, canvas.height)
+    historyRef.current.push(snap)
+    if (historyRef.current.length > 50) historyRef.current.shift()
+    redoRef.current = []
+  }, [getCtx])
 
   const ensureOffscreen = useCallback(() => {
     const canvas = canvasRef.current
@@ -80,6 +92,7 @@ export function useCanvas(tool: ToolDef, color: string) {
     const ctx = getCtx()
     if (!ctx) return
     drawing.current = true
+    pushHistory()
     const pos = getCssPointerPos(canvas, e)
     originPos.current = pos
     if (isShapeTool(tool.id)) {
@@ -165,6 +178,28 @@ export function useCanvas(tool: ToolDef, color: string) {
     link.click()
   }, [])
 
+  const handleUndo = useCallback(() => {
+    const canvas = canvasRef.current
+    const ctx = getCtx()
+    if (!canvas || !ctx || historyRef.current.length === 0) return
+    const current = ctx.getImageData(0, 0, canvas.width, canvas.height)
+    redoRef.current.push(current)
+    const prev = historyRef.current.pop()!
+    ctx.putImageData(prev, 0, 0)
+    saveCanvasImage(canvas)
+  }, [getCtx])
+
+  const handleRedo = useCallback(() => {
+    const canvas = canvasRef.current
+    const ctx = getCtx()
+    if (!canvas || !ctx || redoRef.current.length === 0) return
+    const current = ctx.getImageData(0, 0, canvas.width, canvas.height)
+    historyRef.current.push(current)
+    const next = redoRef.current.pop()!
+    ctx.putImageData(next, 0, 0)
+    saveCanvasImage(canvas)
+  }, [getCtx])
+
   useEffect(() => {
     const container = containerRef.current
     const canvas = canvasRef.current
@@ -196,6 +231,8 @@ export function useCanvas(tool: ToolDef, color: string) {
     handlePointerUp,
     handleClear,
     handleSave,
+    handleUndo,
+    handleRedo,
   }
 }
 

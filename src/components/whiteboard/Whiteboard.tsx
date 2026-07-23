@@ -30,6 +30,8 @@ function Whiteboard({ onDelete }: WhiteboardProps) {
         handlePointerUp,
         handleClear,
         handleSave,
+        handleUndo,
+        handleRedo,
     } = useCanvas(tool, color)
 
     return (
@@ -44,6 +46,8 @@ function Whiteboard({ onDelete }: WhiteboardProps) {
                 onClear={handleClear}
                 onDelete={onDelete}
                 onSave={handleSave}
+                onUndo={handleUndo}
+                onRedo={handleRedo}
             />
             <div className="wb-canvas-container" ref={containerRef}>
                 <canvas

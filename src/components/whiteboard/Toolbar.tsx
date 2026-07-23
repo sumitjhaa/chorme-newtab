@@ -56,24 +56,17 @@ const TOOL_ICONS: Record<string, React.ReactElement> = {
 
 /** Props for the Toolbar component */
 interface ToolbarProps {
-    /** Currently active tool ID */
     activeTool: string
-    /** Current drawing color */
     color: string
-    /** Current line width */
     lineWidth: number
-    /** Callback to select a tool */
     onSelectTool: (id: string) => void
-    /** Callback to select a color */
     onSelectColor: (color: string) => void
-    /** Callback to select line width */
     onSelectLineWidth: (width: number) => void
-    /** Callback to clear canvas */
     onClear: () => void
-    /** Callback to delete whiteboard widget */
     onDelete: () => void
-    /** Callback to save canvas as PNG */
     onSave: () => void
+    onUndo: () => void
+    onRedo: () => void
 }
 
 /**
@@ -82,7 +75,7 @@ interface ToolbarProps {
   * @param props - ToolbarProps
   * @example <Toolbar activeTool="pencil" color="#000" lineWidth={2} onSelectTool={setTool} onSelectColor={setColor} onSelectLineWidth={setWidth} onClear={clear} onDelete={del} onSave={save} />
   */
-export default memo(function Toolbar({ activeTool, color, lineWidth, onSelectTool, onSelectColor, onSelectLineWidth, onClear, onDelete, onSave }: ToolbarProps) {
+export default memo(function Toolbar({ activeTool, color, lineWidth, onSelectTool, onSelectColor, onSelectLineWidth, onClear, onDelete, onSave, onUndo, onRedo }: ToolbarProps) {
     const isEraser = activeTool === 'eraser'
     const minSize = isEraser ? 8 : 1
     const maxSize = isEraser ? 40 : 20
@@ -116,6 +109,16 @@ export default memo(function Toolbar({ activeTool, color, lineWidth, onSelectToo
                 <div className="wb-separator" />
                 <ColorPicker color={color} onSelect={onSelectColor} />
                 <div className="wb-toolbar-spacer" />
+                <button className="wb-action-btn" onClick={onUndo} title="Undo (Ctrl+Z)">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/>
+                    </svg>
+                </button>
+                <button className="wb-action-btn" onClick={onRedo} title="Redo (Ctrl+Shift+Z)">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"/>
+                    </svg>
+                </button>
                 <button
                     className={`wb-tool-btn ${activeTool === 'eraser' ? 'active' : ''}`}
                     onClick={() => onSelectTool('eraser')}
