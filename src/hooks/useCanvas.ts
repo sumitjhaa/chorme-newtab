@@ -3,7 +3,7 @@
  */
 
 import { useRef, useCallback, useEffect } from 'react'
-import { getPointerPos, drawSegment, drawDot, clearCanvas, saveCanvasImage, loadCanvasImage } from '../components/whiteboard/canvas'
+import { drawSegment, drawDot, clearCanvas, saveCanvasImage, loadCanvasImage } from '../components/whiteboard/canvas'
 import { isShapeTool } from '../components/whiteboard/tools'
 import type { ToolDef } from '../components/whiteboard/tools'
 
@@ -80,9 +80,9 @@ export function useCanvas(tool: ToolDef, color: string) {
     const ctx = getCtx()
     if (!ctx) return
     drawing.current = true
+    const pos = getCssPointerPos(canvas, e)
+    originPos.current = pos
     if (isShapeTool(tool.id)) {
-      const pos = getCssPointerPos(canvas, e)
-      originPos.current = pos
       const off = ensureOffscreen()
       if (off) {
         const offCtx = off.getContext('2d')!
@@ -93,8 +93,6 @@ export function useCanvas(tool: ToolDef, color: string) {
         offCtx.restore()
       }
     } else {
-      const pos = getPointerPos(canvas, e)
-      originPos.current = pos
       drawDot(ctx, pos, tool, color)
     }
   }, [tool, color, getCtx, ensureOffscreen])
@@ -106,8 +104,8 @@ export function useCanvas(tool: ToolDef, color: string) {
     if (!canvas) return
     const ctx = getCtx()
     if (!ctx) return
+    const pos = getCssPointerPos(canvas, e)
     if (isShapeTool(tool.id)) {
-      const pos = getCssPointerPos(canvas, e)
       const off = ensureOffscreen()
       if (off && originPos.current) {
         const offCtx = off.getContext('2d')!
@@ -116,14 +114,9 @@ export function useCanvas(tool: ToolDef, color: string) {
         offCtx.setTransform(1, 0, 0, 1, 0, 0)
         offCtx.drawImage(canvas, 0, 0)
         offCtx.restore()
-        const dpr = window.devicePixelRatio || 1
-        offCtx.save()
-        offCtx.scale(dpr, dpr)
         drawShapeOnCtx(offCtx, originPos.current, pos, tool, color)
-        offCtx.restore()
       }
     } else {
-      const pos = getPointerPos(canvas, e)
       if (originPos.current) {
         drawSegment(ctx, originPos.current, pos, tool, color)
       }
@@ -136,10 +129,13 @@ export function useCanvas(tool: ToolDef, color: string) {
       const canvas = canvasRef.current
       const ctx = getCtx()
       if (isShapeTool(tool.id) && ctx && canvas && offscreenRef.current) {
+        const dpr = window.devicePixelRatio || 1
+        const cssW = canvas.width / dpr
+        const cssH = canvas.height / dpr
         ctx.save()
         ctx.setTransform(1, 0, 0, 1, 0, 0)
         ctx.clearRect(0, 0, canvas.width, canvas.height)
-        ctx.drawImage(offscreenRef.current, 0, 0)
+        ctx.drawImage(offscreenRef.current, 0, 0, offscreenRef.current.width, offscreenRef.current.height, 0, 0, cssW, cssH)
         ctx.restore()
       }
       drawing.current = false
