@@ -204,17 +204,37 @@ export function useCanvas(tool: ToolDef, color: string) {
     const container = containerRef.current
     const canvas = canvasRef.current
     if (!container || !canvas) return
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-    const dpr = window.devicePixelRatio || 1
-    const w = container.clientWidth
-    const h = container.clientHeight
-    canvas.width = w * dpr
-    canvas.height = h * dpr
-    canvas.style.width = w + 'px'
-    canvas.style.height = h + 'px'
-    ctx.scale(dpr, dpr)
-    loadCanvasImage(ctx, canvas)
+
+    function initCanvas() {
+      const ctx = canvas!.getContext('2d')
+      if (!ctx) return
+      const dpr = window.devicePixelRatio || 1
+      const w = container!.clientWidth
+      const h = container!.clientHeight
+      if (canvas!.width === w * dpr && canvas!.height === h * dpr) return
+      const prev = ctx.getImageData(0, 0, canvas!.width, canvas!.height)
+      const prevW = canvas!.width
+      const prevH = canvas!.height
+      canvas!.width = w * dpr
+      canvas!.height = h * dpr
+      canvas!.style.width = w + 'px'
+      canvas!.style.height = h + 'px'
+      ctx.scale(dpr, dpr)
+      if (prevW > 0 && prevH > 0) {
+        const tmp = document.createElement('canvas')
+        tmp.width = prevW
+        tmp.height = prevH
+        tmp.getContext('2d')!.putImageData(prev, 0, 0)
+        ctx.drawImage(tmp, 0, 0, prevW, prevH, 0, 0, w, h)
+      } else {
+        loadCanvasImage(ctx, canvas!)
+      }
+    }
+
+    initCanvas()
+    const ro = new ResizeObserver(initCanvas)
+    ro.observe(container)
+    return () => ro.disconnect()
   }, [])
 
   useEffect(() => {
