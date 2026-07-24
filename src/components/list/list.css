@@ -1,76 +1,91 @@
+/* ─── List Widget ─── */
+
+.lists-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .list-widget {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-}
-
-.list-group {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  gap: 2px;
+  background: var(--wallpaper-color);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border-radius: var(--radius-lg);
-  overflow: hidden;
-}
-
-.list-group-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 12px 6px;
-}
-
-.list-group-num {
-  width: 20px;
-  height: 20px;
-  border-radius: 6px;
-  background: var(--color-surface);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--font-size-xs);
-  font-weight: 700;
-  color: var(--text-tertiary);
-  flex-shrink: 0;
-  font-family: 'SF Mono', 'Fira Code', monospace;
-}
-
-.list-group-title {
-  flex: 1;
-  font-size: 13px;
-  font-weight: 600;
+  padding: 1rem;
+  width: 100%;
+  font-family: var(--font-family);
   color: var(--text-primary);
-  cursor: default;
+  contain: layout style;
+}
+
+/* ─── Header ─── */
+
+.list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 8px 2px;
+}
+
+.list-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.list-widget:hover .list-header-actions {
+  opacity: 1;
+}
+
+.list-title {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+  cursor: text;
   min-height: 20px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.02em;
 }
 
-.list-group-title-edit {
+.list-title-edit {
   outline: none;
   background: rgba(255, 255, 255, 0.06);
   border-radius: 4px;
   padding: 2px 8px;
   cursor: text;
+  color: var(--accent);
 }
 
-.list-group-placeholder {
-  color: var(--text-tertiary);
+.list-title-placeholder {
+  color: var(--accent);
+  opacity: 0.5;
   font-style: italic;
   font-weight: 400;
 }
 
+/* ─── Items ─── */
+
 .list-items {
   display: flex;
   flex-direction: column;
-  padding: 0 4px;
 }
+
+/* ─── List Item ─── */
 
 .list-item {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 5px 8px;
+  padding: 3px 8px;
   border-radius: 6px;
   transition: background 0.12s ease;
 }
@@ -140,6 +155,8 @@
   color: var(--text-tertiary);
 }
 
+/* ─── Buttons ─── */
+
 .list-item-delete {
   width: 20px;
   height: 20px;
@@ -157,8 +174,7 @@
   flex-shrink: 0;
 }
 
-.list-item:hover .list-item-delete,
-.list-group-header .list-item-delete {
+.list-item:hover .list-item-delete {
   opacity: 1;
 }
 
@@ -167,11 +183,33 @@
   color: rgba(220, 60, 60, 0.9);
 }
 
+.list-action-btn {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  transition: all 0.12s ease;
+}
+
+.list-action-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+}
+
+/* ─── Add URL (small, right side, hover-reveal) ─── */
+
 .list-add-item {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  margin: 4px 8px 8px;
   padding: 4px 10px;
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.06);
@@ -192,4 +230,28 @@
 .list-add-item:disabled {
   opacity: 0.25;
   cursor: default;
+}
+
+/* ─── Footer ─── */
+
+.list-footer {
+  display: none;
+  justify-content: flex-end;
+  padding-top: 2px;
+}
+
+.list-widget:hover .list-footer {
+  display: flex;
+}
+
+/* ─── Delete list button (in header) ─── */
+
+.list-delete-btn:hover {
+  background: rgba(220, 50, 50, 0.15);
+  color: rgba(220, 60, 60, 0.9);
+}
+
+.list-delete-btn.confirm {
+  background: rgba(220, 50, 50, 0.2);
+  color: rgba(220, 60, 60, 0.95);
 }

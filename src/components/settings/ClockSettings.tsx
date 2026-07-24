@@ -8,6 +8,7 @@ import { useTranslation } from '../../hooks/useTranslation'
 import { SettingRow } from '../ui/SettingRow'
 import { SettingSelect } from '../ui/SettingSelect'
 import { ToggleSwitch } from '../ui/ToggleSwitch'
+import type { DateFormat, ShowClockDate } from '../../types'
 
 /** Date format options */
 const DATE_FORMAT_OPTIONS = [
@@ -113,11 +114,11 @@ function ClockSettings() {
     }, [update])
 
     const handleDateFormatChange = useCallback((val: string) => {
-        update('dateFormat', val)
+        update('dateFormat', val as DateFormat)
     }, [update])
 
     const handleShowChange = useCallback((val: string) => {
-        update('showClockDate', val)
+        update('showClockDate', val as ShowClockDate)
     }, [update])
 
     const handleWorldClockChange = useCallback((i: number, val: string) => {

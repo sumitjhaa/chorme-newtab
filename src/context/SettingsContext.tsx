@@ -9,7 +9,7 @@ import type { Settings, SettingsKey } from '../types'
 
 interface SettingsContextValue {
     settings: Settings
-    update: (key: SettingsKey, value: Settings[SettingsKey]) => void
+    update: <K extends SettingsKey>(key: K, value: Settings[K]) => void
 }
 
 export const SettingsContext = createContext<SettingsContextValue | null>(null)
@@ -27,7 +27,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     const pendingRef = useRef<Record<string, unknown>>({})
     const storageTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
     const channelTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-    const lastChannelRef = useRef<{ key: string; value: unknown } | null>(null)
+    const pendingChannelRef = useRef<Record<string, unknown>>({})
 
     useEffect(() => {
         if (typeof BroadcastChannel !== 'undefined') {
@@ -46,9 +46,10 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     }, [])
 
     const flushChannel = useCallback(() => {
-        if (lastChannelRef.current) {
-            bcRef.current?.postMessage(lastChannelRef.current)
-            lastChannelRef.current = null
+        const pending = { ...pendingChannelRef.current }
+        pendingChannelRef.current = {}
+        if (Object.keys(pending).length > 0) {
+            bcRef.current?.postMessage(pending)
         }
     }, [])
 
@@ -59,7 +60,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         if (channelTimerRef.current) clearTimeout(channelTimerRef.current)
     }, [flushStorage, flushChannel])
 
-    const update = useCallback((key: SettingsKey, value: Settings[SettingsKey]) => {
+    const update = useCallback(<K extends SettingsKey>(key: K, value: Settings[K]) => {
         setSettings(prev => ({ ...prev, [key]: value }))
 
         pendingRef.current[key] = value
@@ -69,7 +70,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
             storageTimerRef.current = null
         }, STORAGE_FLUSH_MS)
 
-        lastChannelRef.current = { key, value }
+        pendingChannelRef.current[key] = value
         if (channelTimerRef.current) clearTimeout(channelTimerRef.current)
         channelTimerRef.current = setTimeout(() => {
             flushChannel()
@@ -81,8 +82,8 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         const bc = bcRef.current
         if (!bc) return
         bc.onmessage = (e: MessageEvent) => {
-            if (e.data?.key) {
-                setSettings(prev => ({ ...prev, [e.data.key]: e.data.value } as Settings))
+            if (e.data && typeof e.data === 'object') {
+                setSettings(prev => ({ ...prev, ...e.data } as Settings))
             }
         }
         return () => { bc.onmessage = null }

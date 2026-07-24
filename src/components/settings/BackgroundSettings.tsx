@@ -8,6 +8,7 @@ import { SettingRange } from '../ui/SettingRange'
 import WallpaperBrowser from './WallpaperBrowser'
 import { wallhavenToImage } from '../../helpers/wallhaven'
 import type { WallhavenWallpaper } from '../../helpers/wallhaven'
+import type { BgFrequency } from '../../types'
 
 function BackgroundSettings() {
     const { settings, update } = useSettings()
@@ -33,7 +34,7 @@ function BackgroundSettings() {
                 <SettingRow label={t('frequency')}>
                     <SettingSelect value={settings.bgFrequency}
                         options={FREQUENCIES.map(f => ({ ...f, label: t(f.label.toLowerCase().replace(/\s/g, '')) }))}
-                        onChange={(v) => update('bgFrequency', v)} />
+                        onChange={(v) => update('bgFrequency', v as BgFrequency)} />
                 </SettingRow>
             </div>
 

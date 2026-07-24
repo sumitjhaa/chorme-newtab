@@ -38,10 +38,12 @@ export function SegmentedControl<As extends React.ElementType = 'div'>({
     ...props
 }: SegmentedControlProps<As>) {
     return (
-        <Box className={`segmented-control ${className}`} {...props}>
+        <Box className={`segmented-control ${className}`} role="radiogroup" {...props}>
             {options.map((opt) => (
                 <button
                     key={opt.value}
+                    role="radio"
+                    aria-checked={value === opt.value}
                     className={`segmented-option ${value === opt.value ? 'active' : ''}`}
                     onClick={() => onChange(opt.value)}
                 >

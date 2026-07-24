@@ -10,6 +10,7 @@ import { SettingSelect } from '../ui/SettingSelect'
 import { SettingInput } from '../ui/SettingInput'
 import { SegmentedControl } from '../ui/SegmentedControl'
 import { ToggleSwitch } from '../ui/ToggleSwitch'
+import type { DarkMode } from '../../types'
 
 /** Available language options */
 const LANGUAGES = [
@@ -53,7 +54,7 @@ function GeneralSettings() {
     }, [update])
 
     const handleDarkModeChange = useCallback((val: string) => {
-        update('darkMode', val)
+        update('darkMode', val as DarkMode)
     }, [update])
 
     const handleTabTitleChange = useCallback((val: string) => {

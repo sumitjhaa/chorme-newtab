@@ -103,7 +103,7 @@ export default function SearchBar() {
     }, [settings])
 
     const handleEngineSelect = useCallback((name: string) => {
-        update('searchEngine', name)
+        update('searchEngine', name as SearchEngineKey)
         setIsOpen(false)
     }, [update])
 

@@ -151,6 +151,16 @@
   margin-bottom: 0.125rem;
 }
 
+.settings-group-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.setting-row-top {
+  align-items: flex-start;
+}
+
 .settings-group-inline {
   background: var(--group-bg);
   border-radius: var(--group-radius);
@@ -163,6 +173,16 @@
 
 .settings-group-inline-title {
   margin-bottom: 0;
+}
+
+.widget-inline-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sticky-add-label {
+  font-size: 12px;
 }
 
 .setting-dashed-btn {

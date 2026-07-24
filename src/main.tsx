@@ -17,6 +17,7 @@ import './styles/modules/controls.css'
 import './styles/modules/settings.css'
 import './components/whiteboard/whiteboard.css'
 import './components/list/list.css'
+import './styles/modules/toast.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>

@@ -19,6 +19,7 @@
     "https://pixabay.com/*",
     "https://picsum.photos/*",
     "https://catbox.moe/*",
-    "https://suggestqueries.google.com/*"
+    "https://suggestqueries.google.com/*",
+    "<all_urls>"
   ]
 }

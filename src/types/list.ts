@@ -6,12 +6,12 @@
 export interface TodoItem {
     /** Unique identifier */
     id: string
-    /** Task description */
-    text: string
-    /** Associated URL (optional) */
+    /** URL of the bookmark */
     url: string
-    /** Link title (optional) */
-    title: string
+    /** Custom title set by user (overrides fetched title) */
+    customTitle: string
+    /** Auto-fetched page title */
+    fetchedTitle: string
     /** Completion status */
     completed: boolean
     /** Creation timestamp */
@@ -30,12 +30,4 @@ export interface TodoList {
     createdAt: number
     /** Last update timestamp */
     updatedAt: number
-}
-
-/** State management for todo lists */
-export interface ListsState {
-    /** Array of all todo lists */
-    lists: TodoList[]
-    /** Currently active/selected list ID */
-    activeListId: string | null
 }

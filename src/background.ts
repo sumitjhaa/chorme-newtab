@@ -59,7 +59,7 @@ const fetchers: Record<string, () => Promise<WallpaperResponse>> = {
   * Supports FETCH_WALLPAPER and FETCH_SUGGESTIONS message types.
   */
 chrome.runtime.onMessage.addListener((message: unknown, _sender: unknown, sendResponse: (response: unknown) => void) => {
-    const msg = message as { type: string; source?: string; query?: string }
+    const msg = message as { type: string; source?: string; query?: string; url?: string }
     if (msg.type === 'FETCH_WALLPAPER') {
         const source = msg.source || 'wallhaven'
         const fetcher = fetchers[source]
@@ -88,6 +88,19 @@ chrome.runtime.onMessage.addListener((message: unknown, _sender: unknown, sendRe
                 sendResponse({ suggestions: arr[1] || [] })
             })
             .catch(() => sendResponse({ suggestions: [] }))
+        return true
+    }
+
+    if (msg.type === 'FETCH_TITLE') {
+        const url = msg.url as string
+        if (!url) { sendResponse({ title: '' }); return false }
+        fetch(url, { signal: AbortSignal.timeout(5000) })
+            .then(res => res.text())
+            .then(html => {
+                const match = html.match(/<title[^>]*>([^<]*)<\/title>/i)
+                sendResponse({ title: match ? match[1].trim() : '' })
+            })
+            .catch(() => sendResponse({ title: '' }))
         return true
     }
 })

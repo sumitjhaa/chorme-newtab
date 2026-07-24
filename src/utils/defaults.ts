@@ -17,6 +17,7 @@ export const SETTINGS_DEFAULTS: Settings = {
     showStickyNote: false,
     showWhiteboard: false,
     showList: false,
+    listIds: [],
 
     enableSearchBar: true,
     searchEngine: 'GOOGLE',
@@ -65,5 +66,4 @@ export const LAYOUT_DEFAULTS = {
     weather:       { col: 2, order: 0 },
     'sticky-note': { col: 3, order: 0 },
     whiteboard:    { col: 4, order: 0 },
-    list:          { col: 5, order: 0 },
 } satisfies Record<string, { col: number; order: number }>

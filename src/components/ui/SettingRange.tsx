@@ -1,8 +1,7 @@
 import { useEffect, useRef } from 'react'
-import { Box, BoxProps } from './Box'
+import { SettingRow, type SettingRowProps } from './SettingRow'
 
-export interface SettingRangeProps<As extends React.ElementType = 'div'> extends BoxProps<As> {
-    label: string
+export interface SettingRangeProps<As extends React.ElementType = 'div'> extends Omit<SettingRowProps<As>, 'children'> {
     value: number
     min: number
     max: number
@@ -36,8 +35,7 @@ export function SettingRange<As extends React.ElementType = 'div'>({
     }, [value, min, max])
 
     return (
-        <Box className={`setting-row ${className}`} {...props}>
-            <span className="setting-label">{label}</span>
+        <SettingRow label={label} className={className} {...props}>
             <div className="range-control">
                 <input
                     ref={inputRef}
@@ -51,6 +49,6 @@ export function SettingRange<As extends React.ElementType = 'div'>({
                 />
                 <span className="range-value">{display}</span>
             </div>
-        </Box>
+        </SettingRow>
     )
 }

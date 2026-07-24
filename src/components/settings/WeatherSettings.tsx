@@ -10,6 +10,7 @@ import { SettingSelect } from '../ui/SettingSelect'
 import { SettingInput } from '../ui/SettingInput'
 import { SegmentedControl } from '../ui/SegmentedControl'
 import { ToggleSwitch } from '../ui/ToggleSwitch'
+import type { GeolocationMode, TempUnit, ForecastMode, TempDisplay, WeatherShow } from '../../types'
 
 /**
   * Weather widget settings with geolocation and display options.
@@ -25,7 +26,7 @@ function WeatherSettings() {
     }, [settings.showWeatherWidget, update])
 
     const handleGeolocationChange = useCallback((val: string) => {
-        update('geolocation', val)
+        update('geolocation', val as GeolocationMode)
     }, [update])
 
     const handleManualLocationChange = useCallback((val: string) => {
@@ -33,19 +34,19 @@ function WeatherSettings() {
     }, [update])
 
     const handleTempUnitChange = useCallback((val: string) => {
-        update('tempUnit', val)
+        update('tempUnit', val as TempUnit)
     }, [update])
 
     const handleForecastChange = useCallback((val: string) => {
-        update('forecast', val)
+        update('forecast', val as ForecastMode)
     }, [update])
 
     const handleTempDisplayChange = useCallback((val: string) => {
-        update('tempDisplay', val)
+        update('tempDisplay', val as TempDisplay)
     }, [update])
 
     const handleWeatherShowChange = useCallback((val: string) => {
-        update('weatherShow', val)
+        update('weatherShow', val as WeatherShow)
     }, [update])
 
     return (

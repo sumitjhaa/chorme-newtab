@@ -10,7 +10,7 @@ export interface ToggleSwitchProps {
     /** Whether the toggle is on. */
     checked: boolean
     /** Callback fired when the toggle state changes. */
-    onChange: (...args: any[]) => void
+    onChange: React.ChangeEventHandler<HTMLInputElement>
     /** Optional label displayed beside the toggle. */
     label?: string
     /** Unique id linking the label to the input. */

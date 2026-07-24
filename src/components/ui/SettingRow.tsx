@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useId } from 'react'
 import { Box, BoxProps } from './Box'
 
 /**
@@ -22,9 +22,12 @@ export function SettingRow<As extends React.ElementType = 'div'>({
     className = '',
     ...props
 }: SettingRowProps<As>) {
+    const generatedId = useId()
+    const labelId = `${generatedId}-label`
+
     return (
         <Box className={`setting-row ${className}`} {...props}>
-            <span className="setting-label">{label}</span>
+            <span className="setting-label" id={labelId}>{label}</span>
             {children}
         </Box>
     )

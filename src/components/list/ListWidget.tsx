@@ -1,33 +1,36 @@
 /**
-  * @fileoverview Todo list widget with multiple list groups.
+  * @fileoverview Single flat list widget — URLs only, no nesting.
   */
 
 import { useState, useRef, useEffect, memo } from 'react'
 import ListItem from './ListItem'
-import './list.css'
 import type { TodoList, TodoItem } from '../../types/list'
 import { generateId } from '../../lib'
+import { showToast } from '../../lib/toast'
 
-/** Props for the ListGroup component */
-interface ListGroupProps {
-    /** Todo list data */
+/** Props for the ListWidget component */
+interface ListWidgetProps {
+    /** The single todo list */
     list: TodoList
-    /** List index for display */
-    index: number
     /** Callback when list is updated */
-    onChange: (updated: TodoList) => void
-    /** Callback when list is deleted */
-    onDelete: () => void
+    onUpdate: (updated: TodoList) => void
+    /** Callback to remove this list widget from the board entirely */
+    onRemoveWidget: () => void
 }
 
 /**
-  * Single list group with items and editing capabilities.
-  * 
-  * @param props - ListGroupProps
+  * Flat list of URLs. One list, no groups, no nesting.
   */
-const ListGroup = memo(function ListGroup({ list, index, onChange, onDelete }: ListGroupProps) {
+const ListWidget = memo(function ListWidget({ list, onUpdate, onRemoveWidget }: ListWidgetProps) {
     const [editingTitle, setEditingTitle] = useState(false)
+    const [confirmDelete, setConfirmDelete] = useState(false)
     const titleRef = useRef<HTMLDivElement>(null)
+    const confirmTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+    // Cleanup confirm timer on unmount
+    useEffect(() => {
+        return () => { if (confirmTimer.current) clearTimeout(confirmTimer.current) }
+    }, [])
 
     useEffect(() => {
         if (editingTitle && titleRef.current) {
@@ -44,8 +47,8 @@ const ListGroup = memo(function ListGroup({ list, index, onChange, onDelete }: L
 
     function handleTitleBlur() {
         if (!titleRef.current) return
-        const t = titleRef.current.textContent.trim()
-        onChange({ ...list, title: t })
+        const t = titleRef.current.textContent?.trim() || ''
+        onUpdate({ ...list, title: t, updatedAt: Date.now() })
         setEditingTitle(false)
     }
 
@@ -54,30 +57,81 @@ const ListGroup = memo(function ListGroup({ list, index, onChange, onDelete }: L
         if (e.key === 'Escape') { setEditingTitle(false) }
     }
 
-    function addItem() {
+    function updateItem(id: string, item: TodoItem) {
+        // Duplicate URL check: only when URL is being set for the first time
+        const existing = list.items.find(it => it.id === id)
+        if (item.url && (!existing || !existing.url)) {
+            const normalized = item.url.trim().toLowerCase()
+            const isDuplicate = list.items.some(it => it.id !== id && it.url && it.url.trim().toLowerCase() === normalized)
+            if (isDuplicate) {
+                showToast('Link already present', 'warning')
+                // Remove the empty placeholder item that was created
+                onUpdate({ ...list, items: list.items.filter(it => it.id !== id), updatedAt: Date.now() })
+                return
+            }
+        }
+        const items = list.items.map(it => it.id === id ? item : it)
+        onUpdate({ ...list, items, updatedAt: Date.now() })
+    }
+
+    function removeItem(id: string) {
+        onUpdate({ ...list, items: list.items.filter(it => it.id !== id), updatedAt: Date.now() })
+    }
+
+    function handleAddWithDuplicateCheck() {
         if (list.items.length >= 50) return
-        onChange({ ...list, items: [...list.items, { id: generateId(), text: '', url: '', title: '', completed: false, createdAt: Date.now() }] })
+        const newItem = {
+            id: generateId(),
+            url: '',
+            customTitle: '',
+            fetchedTitle: '',
+            completed: false,
+            createdAt: Date.now(),
+        }
+        // Check for duplicate empty-placeholder items (already adding)
+        const hasEmpty = list.items.some(it => !it.url)
+        if (hasEmpty) return
+        onUpdate({
+            ...list,
+            items: [...list.items, newItem],
+            updatedAt: Date.now(),
+        })
     }
 
-    function updateItem(i: number, item: TodoItem) {
-        const items = list.items.map((it, idx) => idx === i ? item : it)
-        onChange({ ...list, items })
+    function openAllLinks() {
+        const count = list.items.filter(it => it.url).length
+        if (count === 0) return
+        if (!window.confirm(`Open ${count} ${count === 1 ? 'link' : 'links'}?`)) return
+        list.items.forEach(it => {
+            if (it.url) {
+                try { window.open(it.url, '_blank') } catch {}
+            }
+        })
     }
 
-    function removeItem(i: number) {
-        onChange({ ...list, items: list.items.filter((_, idx) => idx !== i) })
+    function handleDelete() {
+        if (confirmDelete) {
+            if (confirmTimer.current) clearTimeout(confirmTimer.current)
+            setConfirmDelete(false)
+            onRemoveWidget()
+            return
+        }
+        setConfirmDelete(true)
+        confirmTimer.current = setTimeout(() => {
+            setConfirmDelete(false)
+            confirmTimer.current = null
+        }, 3000)
     }
 
-    const hasEmptyItem = list.items.some(it => !it.url)
+    const hasEmptyUrl = list.items.some(it => !it.url)
 
     return (
-        <div className="list-group">
-            <div className="list-group-header">
-                <span className="list-group-num">{index + 1}</span>
+        <div className="list-widget">
+            <div className="list-header">
                 {editingTitle ? (
                     <div
                         ref={titleRef}
-                        className="list-group-title list-group-title-edit"
+                        className="list-title list-title-edit"
                         contentEditable
                         suppressContentEditableWarning
                         spellCheck={false}
@@ -85,72 +139,53 @@ const ListGroup = memo(function ListGroup({ list, index, onChange, onDelete }: L
                         onKeyDown={handleTitleKeyDown}
                     />
                 ) : (
-                    <div className="list-group-title" onDoubleClick={() => setEditingTitle(true)}>
-                        {list.title || <span className="list-group-placeholder">Untitled list</span>}
+                    <div
+                        className="list-title"
+                        onDoubleClick={() => setEditingTitle(true)}
+                    >
+                        {list.title || <span className="list-title-placeholder">Lists</span>}
                     </div>
                 )}
-                <button className="list-item-delete" onClick={() => list.items.forEach(it => { if (it.url) window.open(it.url, '_blank') })} title="Open all links" style={{ opacity: list.items.length ? undefined : 0 }}>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+                <div className="list-header-actions">
+                    {list.items.length > 0 && (
+                        <button className="list-action-btn" onClick={openAllLinks} title="Open all links">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+                            </svg>
+                        </button>
+                    )}
+                    <button
+                        className={`list-action-btn list-delete-btn${confirmDelete ? ' confirm' : ''}`}
+                        onClick={handleDelete}
+                        title={confirmDelete ? 'Click again to delete' : 'Delete list'}
+                    >
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            {list.items.length > 0 && (
+                <div className="list-items">
+                    {list.items.map(item => (
+                        <ListItem
+                            key={item.id}
+                            item={item}
+                            onChange={(updated) => updateItem(item.id, updated)}
+                            onDelete={() => removeItem(item.id)}
+                            onAddBelow={handleAddWithDuplicateCheck}
+                        />
+                    ))}
+                </div>
+            )}
+            <div className="list-footer">
+                <button className="list-add-item" onClick={handleAddWithDuplicateCheck} disabled={hasEmptyUrl} title="Add URL">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
                     </svg>
-                </button>
-                <button className="list-item-delete" onClick={onDelete} title="Delete list">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                    </svg>
+                    <span>Add URL</span>
                 </button>
             </div>
-            <div className="list-items">
-                {list.items.map((item, i) => (
-                    <ListItem
-                        key={item.id}
-                        item={item}
-                        onChange={(updated) => updateItem(i, updated)}
-                        onDelete={() => removeItem(i)}
-                        onAddBelow={addItem}
-                    />
-                ))}
-            </div>
-            <button className="list-add-item" onClick={addItem} disabled={hasEmptyItem} title="Add URL">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-                </svg>
-                <span>Add URL</span>
-            </button>
-        </div>
-    )
-})
-
-/** Props for the ListWidget component */
-interface ListWidgetProps {
-    /** Array of todo lists */
-    lists: TodoList[]
-    /** Callback to update a list */
-    onUpdate: (index: number, list: TodoList) => void
-    /** Callback to remove a list */
-    onRemove: (index: number) => void
-    /** Callback to add a new list */
-    onAdd: () => void
-}
-
-/**
-  * Todo list widget displaying multiple list groups.
-  * 
-  * @param props - ListWidgetProps
-  * @example <ListWidget lists={lists} onUpdate={set} onRemove={del} onAdd={add} />
-  */
-const ListWidget = memo(function ListWidget({ lists, onUpdate, onRemove }: ListWidgetProps) {
-    return (
-        <div className="list-widget">
-            {lists.map((list, i) => (
-                <ListGroup
-                    key={list.id}
-                    list={list}
-                    index={i}
-                    onChange={(updated) => onUpdate(i, updated)}
-                    onDelete={() => onRemove(i)}
-                />
-            ))}
         </div>
     )
 })

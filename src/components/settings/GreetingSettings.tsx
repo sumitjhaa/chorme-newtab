@@ -26,9 +26,10 @@ function GreetingSettings() {
 
     return (
         <div className="settings-group">
-            <div className="settings-group-title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div className="settings-group-title settings-group-title-row">
                 <span>{t('greeting')}</span>
                 <ToggleSwitch
+                    id="greeting-toggle"
                     checked={settings.enableGreeting}
                     onChange={toggleEnableGreeting}
                 />

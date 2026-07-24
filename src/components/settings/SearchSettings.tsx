@@ -47,9 +47,10 @@ function SearchSettings() {
 
     return (
         <div className="settings-group">
-            <div className="settings-group-title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div className="settings-group-title settings-group-title-row">
                 <span>{t('searchBar')}</span>
                 <ToggleSwitch
+                    id="search-bar-toggle"
                     checked={settings.enableSearchBar}
                     onChange={toggleEnableSearchBar}
                 />
@@ -83,8 +84,7 @@ function SearchSettings() {
                     <SettingRange label={t('searchBlur')} value={settings.searchBlur} min={0} max={50} unit="px"
                         onChange={handleSearchBlurChange} />
 
-                    <div className="setting-row" style={{ alignItems: 'flex-start' }}>
-                        <span className="setting-label">{t('searchEngine')}</span>
+                    <SettingRow label={t('searchEngine')} className="setting-row-top">
                         <div className="engine-icon-grid">
                             {(Object.keys(SEARCH_ENGINES) as SearchEngineKey[]).map((key) => (
                                 <button
@@ -96,11 +96,12 @@ function SearchSettings() {
                                     <img
                                         src={`icons/engines/${key.toLowerCase()}.png`}
                                         alt={SEARCH_ENGINES[key].name}
+                                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
                                     />
                                 </button>
                             ))}
                         </div>
-                    </div>
+                    </SettingRow>
                 </>
             )}
         </div>

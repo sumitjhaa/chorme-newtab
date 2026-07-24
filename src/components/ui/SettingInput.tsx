@@ -1,10 +1,9 @@
-import React from 'react'
 import { Box, BoxProps } from './Box'
 
 /**
   * Props for the polymorphic SettingInput component.
   */
-export interface SettingInputProps<As extends React.ElementType = 'input'> extends BoxProps<As> {
+export interface SettingInputProps extends BoxProps<'div'> {
     /** Current input value. */
     value: string
     /** Callback fired when the input value changes. */
@@ -19,17 +18,17 @@ export interface SettingInputProps<As extends React.ElementType = 'input'> exten
     max?: number
     /** Step increment for numeric inputs. */
     step?: number
+    /** Unique id for the underlying input. */
+    id?: string
 }
 
 /**
-  * Polymorphic text/number input for settings panels.
-  * Renders as `<input>` by default.
+  * Wrapper around a native input for settings panels.
+  * Renders as a `<div>` containing an `<input>`, matching the other Setting* components.
   *
   * @example <SettingInput value={val} onChange={setVal} placeholder="Enter…" />
-  * @example <SettingInput as="textarea" value={val} onChange={setVal} />
   */
-export function SettingInput<As extends React.ElementType = 'input'>({
-    as,
+export function SettingInput({
     value,
     onChange,
     placeholder,
@@ -37,21 +36,23 @@ export function SettingInput<As extends React.ElementType = 'input'>({
     min,
     max,
     step,
+    id,
     className = '',
     ...props
-}: SettingInputProps<As>) {
+}: SettingInputProps) {
     return (
-        <Box
-            as={as || 'input'}
-            type={type}
-            className={`setting-input ${className}`}
-            value={value}
-            onChange={(e: Event) => onChange((e.target as HTMLInputElement).value)}
-            placeholder={placeholder}
-            min={min}
-            max={max}
-            step={step}
-            {...props}
-        />
+        <Box className={`setting-input-wrapper ${className}`} {...props}>
+            <input
+                id={id}
+                type={type}
+                className="setting-input"
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                placeholder={placeholder}
+                min={min}
+                max={max}
+                step={step}
+            />
+        </Box>
     )
 }

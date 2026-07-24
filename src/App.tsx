@@ -12,7 +12,7 @@ const Pomodoro = lazy(() => import('./components/Pomodoro'))
 const Weather = lazy(() => import('./components/Weather'))
 const Greeting = lazy(() => import('./components/Greeting'))
 const StickyNote = lazy(() => import('./components/StickyNote'))
-const Lists = lazy(() => import('./components/list/Lists'))
+const ListWidget = lazy(() => import('./components/list/ListWidget'))
 const Whiteboard = lazy(() => import('./components/whiteboard/Whiteboard'))
 const SearchBar = lazy(() => import('./components/SearchBar'))
 const Settings = lazy(() => import('./components/Settings'))
@@ -20,6 +20,7 @@ import { AppErrorBoundary, WidgetErrorBoundary } from './components/errors'
 import { fetchRandomWallpaper } from './api/index'
 import { getCurrentWallpaper, setCurrentWallpaper } from './utils/storage'
 import { useSettings } from './hooks/useSettings'
+import { useLists } from './hooks/useLists'
 import { useTranslation } from './hooks/useTranslation'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { useBackgroundCSSVariables } from './hooks/useCSSVariables'
@@ -30,7 +31,7 @@ import { applyDarkMode } from './helpers/darkMode'
 import { getRefreshInterval } from './helpers/wallpaper/refresh'
 import { getRandomFromSearch, clearSearchPool } from './helpers/wallpaperStore'
 import type { WallpaperImage } from './types/wallpaper'
-import type { WidgetId } from './types'
+import { generateId } from './lib'
 
 /** Typed detail for the set-wallpaper CustomEvent */
 interface SetWallpaperDetail {
@@ -54,21 +55,21 @@ async function applyWallpaperColors(imgUrl: string) {
     document.documentElement.style.setProperty('--wallpaper-color-light', `rgba(${avg.r}, ${avg.g}, ${avg.b}, 0.25)`)
 }
 
-const WIDGET_NAME_MAP: Record<WidgetId, string> = {
+const WIDGET_NAME_MAP: Record<string, string> = {
     'clock': 'Clock',
     'calendar': 'Calendar',
     'pomodoro': 'Pomodoro',
     'weather': 'Weather',
     'sticky-note': 'Sticky Note',
     'whiteboard': 'Whiteboard',
-    'list': 'Lists',
     'greeting': 'Greeting',
     'search-bar': 'Search Bar',
 }
 
 export default function App() {
     const { t } = useTranslation()
-    const { settings } = useSettings()
+    const { settings, update } = useSettings()
+    const { lists, addList, updateList, removeList } = useLists()
     const [wallpaper, setWallpaper] = useState<WallpaperImage | null>(null)
     const [isLoading, setIsLoading] = useState(false)
     const [isSettingsOpen, setIsSettingsOpen] = useState(false)
@@ -163,6 +164,17 @@ export default function App() {
         init()
     }, [])
 
+    // Migration: if showList was on but listIds is empty, create first list
+    useEffect(() => {
+        if (settings.showList && settings.listIds.length === 0 && lists.length > 0) {
+            update('listIds', [lists[0].id])
+        } else if (settings.showList && settings.listIds.length === 0 && lists.length === 0) {
+            const id = generateId()
+            addList(id)
+            update('listIds', [id])
+        }
+    }, [])
+
     /**
       * Handle widget drop events for reordering.
       * @param widgetId - ID of the widget being dropped
@@ -177,45 +189,63 @@ export default function App() {
                 .sort((a, b) => a[1].order - b[1].order)
             affectedInTarget.forEach(([id, pos], i) => {
                 if (i >= targetOrder) {
-                    next[id as WidgetId] = { ...pos, order: i + 1 }
+                    next[id] = { ...pos, order: i + 1 }
                 } else {
-                    next[id as WidgetId] = pos
+                    next[id] = pos
                 }
             })
-            next[widgetId as WidgetId] = { col: targetCol, order: targetOrder }
+            next[widgetId] = { col: targetCol, order: targetOrder }
             saveLayout(next)
             return next
         })
     }, [])
 
     const handleDeleteWhiteboard = useCallback(() => {
-        const data = JSON.parse(localStorage.getItem('newtab_settings') || '{}')
-        data.showWhiteboard = false
-        localStorage.setItem('newtab_settings', JSON.stringify(data))
-        try { chrome.storage.local.set({ showWhiteboard: false }) } catch {}
-        window.dispatchEvent(new Event('storage'))
-    }, [])
+        update('showWhiteboard', false)
+    }, [update])
 
     const handleRefresh = useCallback(() => loadWallpaper(), [loadWallpaper])
 
+    const handleRemoveList = useCallback((listId: string) => {
+        removeList(listId)
+        const nextIds = settings.listIds.filter(id => id !== listId)
+        update('listIds', nextIds)
+        if (nextIds.length === 0) update('showList', false)
+        // Clean up layout entry
+        setLayout(prev => {
+            const next = { ...prev }
+            delete next[`list-${listId}`]
+            saveLayout(next)
+            return next
+        })
+    }, [removeList, settings.listIds, update])
+
     // Build visible widgets
     const visibleWidgets = useMemo(() => {
-        const widgets: { id: WidgetId; component: React.ReactNode }[] = []
+        const widgets: { id: string; component: React.ReactNode }[] = []
         if (settings.showClockWidget)    widgets.push({ id: 'clock', component: <Clock /> })
         if (settings.showCalendarWidget) widgets.push({ id: 'calendar', component: <Calendar /> })
         if (settings.showPomodoroWidget) widgets.push({ id: 'pomodoro', component: <Pomodoro /> })
         if (settings.showWeatherWidget)  widgets.push({ id: 'weather', component: <Weather /> })
         if (settings.showStickyNote)     widgets.push({ id: 'sticky-note', component: <StickyNote /> })
         if (settings.showWhiteboard)     widgets.push({ id: 'whiteboard', component: <Whiteboard onDelete={handleDeleteWhiteboard} /> })
-        if (settings.showList)           widgets.push({ id: 'list', component: <Lists /> })
+        for (const listId of settings.listIds) {
+            const listData = lists.find(l => l.id === listId)
+            if (listData) {
+                widgets.push({
+                    id: `list-${listId}`,
+                    component: <ListWidget list={listData} onUpdate={(updated) => updateList(listId, updated)} onRemoveWidget={() => handleRemoveList(listId)} />,
+                })
+            }
+        }
         if (settings.enableGreeting)     widgets.push({ id: 'greeting', component: <Greeting /> })
         if (settings.enableSearchBar)    widgets.push({ id: 'search-bar', component: <SearchBar /> })
         return widgets
-    }, [settings.showClockWidget, settings.showCalendarWidget, settings.showPomodoroWidget, settings.showWeatherWidget, settings.showStickyNote, settings.showWhiteboard, settings.showList, settings.enableGreeting, settings.enableSearchBar, handleDeleteWhiteboard])
+    }, [settings.showClockWidget, settings.showCalendarWidget, settings.showPomodoroWidget, settings.showWeatherWidget, settings.showStickyNote, settings.showWhiteboard, settings.listIds, settings.enableGreeting, settings.enableSearchBar, handleDeleteWhiteboard, lists, updateList, handleRemoveList])
 
     // Distribute widgets into columns
     const columns = useMemo(() => {
-        const cols: { id: WidgetId; component: React.ReactNode; order: number }[][] =
+        const cols: { id: string; component: React.ReactNode; order: number }[][] =
             Array.from({ length: NUM_COLUMNS }, () => [])
         visibleWidgets.forEach(w => {
             if (w.id === 'search-bar') return
@@ -315,7 +345,7 @@ export default function App() {
                 </div>
 
                 <Suspense fallback={null}>
-                    <Settings isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(prev => !prev)} />
+                    <Settings isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
                 </Suspense>
             </div>
         </AppErrorBoundary>

@@ -2,7 +2,7 @@
   * @fileoverview Widget layout management utilities for column-based positioning.
   */
 
-import type { WidgetId, LayoutMap } from '../types'
+import type { LayoutMap } from '../types'
 import { LAYOUT_DEFAULTS } from '../utils/defaults'
 
 const LAYOUT_KEY = 'newtab_layout'
@@ -32,15 +32,15 @@ export function saveLayout(layout: LayoutMap): void {
 
 /** Calculate which widgets go in which columns based on settings and layout */
 export function calculateColumns(
-    visibleWidgets: { id: WidgetId; component: React.ReactNode }[],
+    visibleWidgets: { id: string; component: React.ReactNode }[],
     layout: LayoutMap,
     numColumns: number = NUM_COLUMNS
 ): {
-    columns: { id: WidgetId; component: React.ReactNode; order: number }[][]
-    searchBarWidget: { id: WidgetId; component: React.ReactNode } | undefined
+    columns: { id: string; component: React.ReactNode; order: number }[][]
+    searchBarWidget: { id: string; component: React.ReactNode } | undefined
     sbCol: number
 } {
-    const columns: { id: WidgetId; component: React.ReactNode; order: number }[][] = Array.from(
+    const columns: { id: string; component: React.ReactNode; order: number }[][] = Array.from(
         { length: numColumns },
         () => []
     )
@@ -76,13 +76,13 @@ export function reorderAfterDrop(
 
     affectedInTarget.forEach(([id, pos], i) => {
         if (i >= targetOrder) {
-            next[id as WidgetId] = { ...pos, order: i + 1 }
+            next[id] = { ...pos, order: i + 1 }
         } else {
-            next[id as WidgetId] = pos
+            next[id] = pos
         }
     })
 
-    next[widgetId as WidgetId] = { col: targetCol, order: targetOrder }
+    next[widgetId] = { col: targetCol, order: targetOrder }
     saveLayout(next)
     return next
 }

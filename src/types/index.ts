@@ -20,8 +20,8 @@ export type LayoutPosition = {
     order: number
 }
 
-/** Mapping of widget IDs to their layout positions */
-export type LayoutMap = Record<WidgetId, LayoutPosition>
+/** Mapping of widget IDs to their layout positions (fixed widgets + dynamic list IDs) */
+export type LayoutMap = Record<string, LayoutPosition>
 
 /** Clock time format preference */
 export type ClockFormat = '12h' | '24h'
@@ -94,6 +94,8 @@ export interface Settings {
     showWhiteboard: boolean
     /** Show todo list widget */
     showList: boolean
+    /** IDs of individual list widgets on the board */
+    listIds: string[]
 
     // Search bar
     /** Enable search bar widget */

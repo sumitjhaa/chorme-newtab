@@ -11,7 +11,7 @@ interface UseSettingsReturn {
     /** Current application settings */
     settings: Settings
     /** Function to update a setting */
-    update: (key: SettingsKey, value: any) => void
+    update: <K extends SettingsKey>(key: K, value: Settings[K]) => void
 }
 
 /**
