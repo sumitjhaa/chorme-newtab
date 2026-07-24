@@ -2,7 +2,7 @@
   * @fileoverview Color picker component for the whiteboard.
   */
 
-import { useState, useRef, useEffect, memo } from 'react'
+import { useState, useRef, useEffect, useLayoutEffect, memo } from 'react'
 import { createPortal } from 'react-dom'
 import { PRESET_COLORS } from './tools'
 
@@ -27,10 +27,19 @@ export default memo(function ColorPicker({ color, onSelect }: ColorPickerProps) 
     const panelRef = useRef<HTMLDivElement>(null)
     const [pos, setPos] = useState({ top: 0, left: 0 })
 
-    useEffect(() => {
-        if (!open || !btnRef.current) return
+    useLayoutEffect(() => {
+        if (!open || !btnRef.current || !panelRef.current) return
         const rect = btnRef.current.getBoundingClientRect()
-        setPos({ top: rect.bottom + 4, left: rect.left })
+        const panelW = panelRef.current.offsetWidth
+        const panelH = panelRef.current.offsetHeight
+        const gap = 4
+        let top = rect.bottom + gap
+        let left = rect.left
+        if (top + panelH > window.innerHeight) top = rect.top - panelH - gap
+        if (top < 0) top = 4
+        if (left + panelW > window.innerWidth) left = window.innerWidth - panelW - 4
+        if (left < 0) left = 4
+        setPos({ top, left })
     }, [open])
 
     useEffect(() => {

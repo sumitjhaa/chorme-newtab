@@ -75,7 +75,13 @@
   height: 4px;
   -webkit-appearance: none;
   appearance: none;
-  background: rgba(255, 255, 255, 0.12);
+  background: linear-gradient(
+    to right,
+    var(--text-primary) 0%,
+    var(--text-primary) var(--slider-fill, 50%),
+    rgba(255, 255, 255, 0.12) var(--slider-fill, 50%),
+    rgba(255, 255, 255, 0.12) 100%
+  );
   border-radius: 2px;
   outline: none;
   cursor: pointer;
@@ -98,6 +104,12 @@
   background: var(--text-primary);
   border: none;
   cursor: pointer;
+}
+
+.wb-stroke-slider::-moz-range-progress {
+  background: var(--text-primary);
+  height: 4px;
+  border-radius: 2px;
 }
 
 .wb-stroke-label {
