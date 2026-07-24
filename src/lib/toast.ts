@@ -45,12 +45,13 @@ export function showToast(message: string, flavour: ToastFlavour = 'info', durat
 
     toastEl.innerHTML = `
         <span class="toast-icon">${ICONS[flavour]}</span>
-        <span class="toast-message">${message}</span>
+        <span class="toast-message"></span>
         <button class="toast-close" aria-label="Dismiss">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
         <div class="toast-timer" style="animation-duration: ${ms}ms"></div>
     `
+    toastEl.querySelector('.toast-message')!.textContent = message
 
     // Dismiss on close click
     toastEl.querySelector('.toast-close')!.addEventListener('click', () => dismiss(toastEl))

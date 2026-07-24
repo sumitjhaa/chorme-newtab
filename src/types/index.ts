@@ -12,7 +12,6 @@ export type WidgetId =
     | 'weather'
     | 'sticky-note'
     | 'whiteboard'
-    | 'list'
 
 /** Column and order position for a widget in the layout */
 export type LayoutPosition = {

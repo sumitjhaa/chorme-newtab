@@ -64,6 +64,12 @@ const WIDGET_NAME_MAP: Record<string, string> = {
     'whiteboard': 'Whiteboard',
     'greeting': 'Greeting',
     'search-bar': 'Search Bar',
+    'list': 'List',
+}
+
+function getWidgetName(id: string): string {
+    if (id.startsWith('list-')) return 'List'
+    return WIDGET_NAME_MAP[id] ?? id
 }
 
 export default function App() {
@@ -140,7 +146,7 @@ export default function App() {
 
     useEffect(() => {
         document.title = settings.tabTitle || t('newTab')
-    }, [settings.tabTitle])
+    }, [settings.tabTitle, t])
 
     /**
       * Initialize wallpaper from storage or fetch a new one.
@@ -166,14 +172,16 @@ export default function App() {
 
     // Migration: if showList was on but listIds is empty, create first list
     useEffect(() => {
-        if (settings.showList && settings.listIds.length === 0 && lists.length > 0) {
+        if (!settings.showList) return
+        if (settings.listIds.length > 0) return
+        if (lists.length > 0) {
             update('listIds', [lists[0].id])
-        } else if (settings.showList && settings.listIds.length === 0 && lists.length === 0) {
+        } else {
             const id = generateId()
             addList(id)
             update('listIds', [id])
         }
-    }, [])
+    }, [settings.showList, settings.listIds.length, lists.length])
 
     /**
       * Handle widget drop events for reordering.
@@ -195,10 +203,14 @@ export default function App() {
                 }
             })
             next[widgetId] = { col: targetCol, order: targetOrder }
-            saveLayout(next)
             return next
         })
     }, [])
+
+    // Persist layout after state update (outside the updater to avoid side effects)
+    useEffect(() => {
+        saveLayout(layout)
+    }, [layout])
 
     const handleDeleteWhiteboard = useCallback(() => {
         update('showWhiteboard', false)
@@ -211,14 +223,16 @@ export default function App() {
         const nextIds = settings.listIds.filter(id => id !== listId)
         update('listIds', nextIds)
         if (nextIds.length === 0) update('showList', false)
-        // Clean up layout entry
         setLayout(prev => {
             const next = { ...prev }
             delete next[`list-${listId}`]
-            saveLayout(next)
             return next
         })
     }, [removeList, settings.listIds, update])
+
+    const handleUpdateList = useCallback((listId: string, updated: import('./types/list').TodoList) => {
+        updateList(listId, updated)
+    }, [updateList])
 
     // Build visible widgets
     const visibleWidgets = useMemo(() => {
@@ -234,14 +248,14 @@ export default function App() {
             if (listData) {
                 widgets.push({
                     id: `list-${listId}`,
-                    component: <ListWidget list={listData} onUpdate={(updated) => updateList(listId, updated)} onRemoveWidget={() => handleRemoveList(listId)} />,
+                    component: <ListWidget list={listData} onUpdate={(updated) => handleUpdateList(listId, updated)} onRemoveWidget={() => handleRemoveList(listId)} />,
                 })
             }
         }
         if (settings.enableGreeting)     widgets.push({ id: 'greeting', component: <Greeting /> })
         if (settings.enableSearchBar)    widgets.push({ id: 'search-bar', component: <SearchBar /> })
         return widgets
-    }, [settings.showClockWidget, settings.showCalendarWidget, settings.showPomodoroWidget, settings.showWeatherWidget, settings.showStickyNote, settings.showWhiteboard, settings.listIds, settings.enableGreeting, settings.enableSearchBar, handleDeleteWhiteboard, lists, updateList, handleRemoveList])
+    }, [settings.showClockWidget, settings.showCalendarWidget, settings.showPomodoroWidget, settings.showWeatherWidget, settings.showStickyNote, settings.showWhiteboard, settings.listIds, settings.enableGreeting, settings.enableSearchBar, handleDeleteWhiteboard, lists, handleUpdateList, handleRemoveList])
 
     // Distribute widgets into columns
     const columns = useMemo(() => {
@@ -303,7 +317,7 @@ export default function App() {
                                 >
                                     <div className="kanban-column-inner">
                                         {colWidgets.map(w => (
-                                            <WidgetErrorBoundary key={w.id} widgetName={WIDGET_NAME_MAP[w.id]}>
+                                            <WidgetErrorBoundary key={w.id} widgetName={getWidgetName(w.id)}>
                                                 <Draggable
                                                     id={w.id}
                                                     col={colIndex}

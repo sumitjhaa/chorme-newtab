@@ -67,7 +67,7 @@ export default memo(function ListItem({ item, onChange, onDelete, onAddBelow }: 
                 }
             })
         }
-    }, [item.url, item.customTitle, item.fetchedTitle])
+    }, [item.url, item.customTitle, item.fetchedTitle, item, onChange])
 
     // Focus management + pre-fill contentEditable with current title
     useEffect(() => {

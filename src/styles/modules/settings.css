@@ -792,6 +792,37 @@
   text-align: right;
 }
 
+/* ─── Pomodoro Grid ─── */
+
+.pomodoro-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.pomodoro-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.pomodoro-field .setting-label {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pomodoro-field .setting-input {
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
+}
+
 /* ─── Color Picker ─── */
 
 .color-control {

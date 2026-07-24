@@ -22,7 +22,7 @@ export function useStorageSync<T>(
 } {
     const [data, setDataState] = useState<T>(() => {
         const raw = localStorage.getItem(key)
-        if (raw === null) return undefined as T
+        if (raw === null) return (Array.isArray(undefined) ? [] : {}) as T
         return parser ? parser(raw) : JSON.parse(raw)
     })
 
@@ -32,7 +32,7 @@ export function useStorageSync<T>(
     const reload = useCallback(() => {
         const raw = localStorage.getItem(key)
         if (raw === null) {
-            setDataState(undefined as T)
+            setDataState((Array.isArray(undefined) ? [] : {}) as T)
         } else {
             setDataState(parserRef.current ? parserRef.current(raw) : JSON.parse(raw))
         }

@@ -99,14 +99,23 @@ const ListWidget = memo(function ListWidget({ list, onUpdate, onRemoveWidget }: 
     }
 
     function openAllLinks() {
-        const count = list.items.filter(it => it.url).length
-        if (count === 0) return
-        if (!window.confirm(`Open ${count} ${count === 1 ? 'link' : 'links'}?`)) return
-        list.items.forEach(it => {
-            if (it.url) {
-                try { window.open(it.url, '_blank') } catch {}
+        const urls = list.items.filter(it => it.url).map(it => it.url!)
+        if (urls.length === 0) return
+        if (!window.confirm(`Open ${urls.length} ${urls.length === 1 ? 'link' : 'links'}?`)) return
+        // Open first in same tab, rest in new tabs to avoid popup blocker
+        if (urls.length === 1) {
+            window.open(urls[0], '_blank')
+            return
+        }
+        const w = window.open(urls[0], '_blank')
+        if (w) {
+            for (let i = 1; i < urls.length; i++) {
+                window.open(urls[i], '_blank')
             }
-        })
+        } else {
+            // Popup blocked — fallback to navigating current tab
+            window.location.href = urls[0]
+        }
     }
 
     function handleDelete() {

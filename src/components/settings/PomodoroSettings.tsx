@@ -5,7 +5,6 @@
 import { useCallback, memo } from 'react'
 import { useSettings } from '../../hooks/useSettings'
 import { useTranslation } from '../../hooks/useTranslation'
-import { SettingRow } from '../ui/SettingRow'
 import { ToggleSwitch } from '../ui/ToggleSwitch'
 
 /**
@@ -20,84 +19,82 @@ function PomodoroSettings() {
     }, [settings.showPomodoroWidget, update])
 
     const handleWorkChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        update('pomodoroWork', Number(e.target.value))
+        update('pomodoroWork', Math.min(120, Math.max(1, Number(e.target.value) || 1)))
     }, [update])
 
     const handleShortBreakChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        update('pomodoroShort', Number(e.target.value))
+        update('pomodoroShort', Math.min(30, Math.max(1, Number(e.target.value) || 1)))
     }, [update])
 
     const handleLongBreakChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        update('pomodoroLong', Number(e.target.value))
+        update('pomodoroLong', Math.min(60, Math.max(1, Number(e.target.value) || 1)))
     }, [update])
 
     const handleCyclesChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        update('pomodoroCycles', Number(e.target.value))
+        update('pomodoroCycles', Math.min(10, Math.max(1, Number(e.target.value) || 1)))
     }, [update])
 
     return (
         <div className="settings-group">
-            <div className="settings-group-title">{t('pomodoro')}</div>
-            <SettingRow label={t('showPomodoro')}>
+            <div className="settings-group-title settings-group-title-row">
+                <span>{t('pomodoro')}</span>
                 <ToggleSwitch
                     checked={settings.showPomodoroWidget}
                     onChange={toggleShowPomodoroWidget}
                 />
-            </SettingRow>
-            {settings.showPomodoroWidget && (<>
-                <SettingRow label={t('workMin')}>
-                    <div className="range-control">
+            </div>
+            {settings.showPomodoroWidget && (
+                <div className="pomodoro-grid">
+                    <div className="pomodoro-field">
+                        <label className="setting-label">{t('workMin')}</label>
                         <input
-                            type="range"
-                            min="1"
-                            max="120"
+                            type="number"
+                            min={1}
+                            max={120}
+                            step={1}
                             value={settings.pomodoroWork ?? 25}
                             onChange={handleWorkChange}
-                            className="slider"
+                            className="setting-input"
                         />
-                        <span className="range-value">{settings.pomodoroWork ?? 25}m</span>
                     </div>
-                </SettingRow>
-                <SettingRow label={t('shortBreakMin')}>
-                    <div className="range-control">
+                    <div className="pomodoro-field">
+                        <label className="setting-label">{t('shortBreakMin')}</label>
                         <input
-                            type="range"
-                            min="1"
-                            max="30"
+                            type="number"
+                            min={1}
+                            max={30}
+                            step={1}
                             value={settings.pomodoroShort ?? 5}
                             onChange={handleShortBreakChange}
-                            className="slider"
+                            className="setting-input"
                         />
-                        <span className="range-value">{settings.pomodoroShort ?? 5}m</span>
                     </div>
-                </SettingRow>
-                <SettingRow label={t('longBreakMin')}>
-                    <div className="range-control">
+                    <div className="pomodoro-field">
+                        <label className="setting-label">{t('longBreakMin')}</label>
                         <input
-                            type="range"
-                            min="1"
-                            max="60"
+                            type="number"
+                            min={1}
+                            max={60}
+                            step={1}
                             value={settings.pomodoroLong ?? 15}
                             onChange={handleLongBreakChange}
-                            className="slider"
+                            className="setting-input"
                         />
-                        <span className="range-value">{settings.pomodoroLong ?? 15}m</span>
                     </div>
-                </SettingRow>
-                <SettingRow label={t('longBreakAfter')}>
-                    <div className="range-control">
+                    <div className="pomodoro-field">
+                        <label className="setting-label">{t('longBreakAfter')}</label>
                         <input
-                            type="range"
-                            min="1"
-                            max="10"
+                            type="number"
+                            min={1}
+                            max={10}
+                            step={1}
                             value={settings.pomodoroCycles ?? 4}
                             onChange={handleCyclesChange}
-                            className="slider"
+                            className="setting-input"
                         />
-                        <span className="range-value">{settings.pomodoroCycles ?? 4}</span>
                     </div>
-                </SettingRow>
-            </>)}
+                </div>
+            )}
         </div>
     )
 }
