@@ -2,7 +2,7 @@
   * @fileoverview Main application component that orchestrates the new tab page.
   */
 
-import { useState, useEffect, useCallback, useMemo, lazy, Suspense } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef, lazy, Suspense } from 'react'
 import Wallpaper from './components/Wallpaper'
 import Draggable from './components/Draggable'
 
@@ -28,9 +28,18 @@ import { extractDominantColor } from './lib/canvas'
 import { loadLayout, saveLayout } from './helpers/layout'
 import { applyDarkMode } from './helpers/darkMode'
 import { getRefreshInterval } from './helpers/wallpaper/refresh'
-import { getRandomFromSearch } from './helpers/wallpaperStore'
+import { getRandomFromSearch, clearSearchPool } from './helpers/wallpaperStore'
 import type { WallpaperImage } from './types/wallpaper'
 import type { WidgetId } from './types'
+
+/** Typed detail for the set-wallpaper CustomEvent */
+interface SetWallpaperDetail {
+    url: string
+    thumbnail?: string
+    source?: string
+    width?: number
+    height?: number
+}
 
 const NUM_COLUMNS = 6
 
@@ -64,8 +73,11 @@ export default function App() {
     const [isLoading, setIsLoading] = useState(false)
     const [isSettingsOpen, setIsSettingsOpen] = useState(false)
     const [layout, setLayout] = useState(loadLayout)
+    const loadingRef = useRef(false)
 
     const loadWallpaper = useCallback(async () => {
+        if (loadingRef.current) return
+        loadingRef.current = true
         setIsLoading(true)
         try {
             const searchHit = getRandomFromSearch()
@@ -79,6 +91,7 @@ export default function App() {
             console.error(err)
         } finally {
             setIsLoading(false)
+            loadingRef.current = false
         }
     }, [])
 
@@ -94,7 +107,7 @@ export default function App() {
     // Listen for wallpaper selection from the browser
     useEffect(() => {
         function handleSetWallpaper(e: Event) {
-            const detail = (e as CustomEvent).detail
+            const detail = (e as CustomEvent<SetWallpaperDetail>).detail
             if (!detail?.url) return
             const wp: WallpaperImage = {
                 url: detail.url,
@@ -115,6 +128,10 @@ export default function App() {
 
     const refreshInterval = useMemo(() => getRefreshInterval(settings.bgFrequency), [settings.bgFrequency])
     useWallpaperRefresh(() => loadWallpaper(), refreshInterval)
+
+    useEffect(() => {
+        if (settings.bgFrequency === 'every_tab') clearSearchPool()
+    }, [settings.bgFrequency])
 
     useEffect(() => {
         applyDarkMode(settings.darkMode)

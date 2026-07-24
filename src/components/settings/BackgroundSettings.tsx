@@ -6,6 +6,7 @@ import { SettingRow } from '../ui/SettingRow'
 import { SettingSelect } from '../ui/SettingSelect'
 import { SettingRange } from '../ui/SettingRange'
 import WallpaperBrowser from './WallpaperBrowser'
+import { wallhavenToImage } from '../../helpers/wallhaven'
 import type { WallhavenWallpaper } from '../../helpers/wallhaven'
 
 function BackgroundSettings() {
@@ -13,17 +14,10 @@ function BackgroundSettings() {
     const { t } = useTranslation()
 
     const handleWallpaperSelect = useCallback((wp: WallhavenWallpaper) => {
-        update('bgType', 'images')
         window.dispatchEvent(new CustomEvent('set-wallpaper', {
-            detail: {
-                id: wp.id,
-                url: wp.path,
-                thumbnail: wp.thumbs.large,
-                width: parseInt(wp.resolution.split('x')[0]),
-                height: parseInt(wp.resolution.split('x')[1]),
-            },
+            detail: wallhavenToImage(wp),
         }))
-    }, [update])
+    }, [])
 
     return (
         <div className="settings-groups">
@@ -44,7 +38,7 @@ function BackgroundSettings() {
             </div>
 
             <div className="settings-group settings-group-scroll">
-                <div className="settings-group-title">Wallpaper Search</div>
+                <div className="settings-group-title">{t('wallpaperSearch')}</div>
                 <WallpaperBrowser onSelect={handleWallpaperSelect} />
             </div>
         </div>

@@ -172,3 +172,16 @@ export async function searchWallhaven(params: WallhavenSearchParams = {}): Promi
     if (!res.ok) throw new Error(`Wallhaven API error: ${res.status}`)
     return res.json()
 }
+
+import type { WallpaperImage } from '../types/wallpaper'
+
+export function wallhavenToImage(wp: WallhavenWallpaper): WallpaperImage {
+    const parts = (wp.resolution || '1920x1080').split('x')
+    return {
+        url: wp.path,
+        thumbnail: wp.thumbs.large,
+        source: 'wallhaven',
+        width: parseInt(parts[0]) || 1920,
+        height: parseInt(parts[1]) || 1080,
+    }
+}

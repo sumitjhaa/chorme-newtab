@@ -51,6 +51,7 @@ export default {
     everyDay: 'Every Day',
     daylight: 'Daylight',
     locked: 'Locked',
+    wallpaperSearch: 'Wallpaper Search',
     none: 'None',
     calendar: 'Calendar',
     sun: 'Sun',

@@ -22,16 +22,6 @@ export interface WallpaperImage {
     height?: number
 }
 
-/** Cached collection of wallpaper images */
-export interface WallpaperCache {
-    /** Array of cached images */
-    images: WallpaperImage[]
-    /** Cache timestamp */
-    timestamp: number
-    /** Source provider */
-    source: WallpaperSource
-}
-
 /** Current wallpaper state */
 export interface WallpaperState {
     /** Currently displayed wallpaper */

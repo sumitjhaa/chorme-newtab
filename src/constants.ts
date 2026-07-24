@@ -2,7 +2,7 @@
   * @fileoverview Application constants for API sources, storage keys, and configuration.
   */
 
-import type { WallpaperSource, SearchEngineKey, BgType, BgFrequency } from './types'
+import type { WallpaperSource, SearchEngineKey, BgFrequency } from './types'
 
 /** API source identifiers */
 export const API_SOURCES = {
@@ -14,7 +14,6 @@ export const STORAGE_KEYS = {
     CURRENT_WALLPAPER: 'currentWallpaper',
     WALLPAPER_SOURCE: 'wallpaperSource',
     SEARCH_ENGINE: 'searchEngine',
-    WALLPAPER_CACHE: 'wallpaperCache',
 } as const
 
 /** Search engine configurations */
@@ -33,11 +32,6 @@ export const SEARCH_ENGINES = {
 
 /** Default wallpaper refresh interval (30 minutes) */
 export const DEFAULT_REFRESH_INTERVAL = 30 * 60 * 1000
-
-/** Background type options */
-export const BACKGROUND_TYPES = [
-    { value: 'images' as const, label: 'Images' },
-] satisfies { value: BgType; label: string }[]
 
 /** Wallpaper refresh frequency options */
 export const FREQUENCIES = [

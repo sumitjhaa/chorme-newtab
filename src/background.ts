@@ -6,25 +6,17 @@ const API_ENDPOINTS: Record<string, string> = {
     wallhaven: 'https://wallhaven.cc/api/v1/search',
 }
 
-/** Wallpaper API response format */
 interface WallpaperResponse {
-    /** Full resolution image URL */
     url: string
-    /** Thumbnail URL */
-    thumb: string
-    /** Source provider */
+    thumbnail: string
     source: string
-    /** Image ID */
-    id: string | number
-    /** Image resolution */
-    resolution: string
-    /** Author name (optional) */
-    author?: string
+    width?: number
+    height?: number
 }
 
 /**
   * Fetch random wallpaper from Wallhaven.
-  * @returns Wallpaper response data
+  * @returns Wallpaper response data matching the WallpaperImage shape
   */
 async function fetchWallhaven(): Promise<WallpaperResponse> {
     const params = new URLSearchParams({
@@ -46,44 +38,20 @@ async function fetchWallhaven(): Promise<WallpaperResponse> {
 
     const randomIndex = Math.floor(Math.random() * data.data.length)
     const wallpaper = data.data[randomIndex]
+    const resParts = (wallpaper.resolution || '1920x1080').split('x')
 
     return {
         url: wallpaper.path,
-        thumb: wallpaper.thumbs.large,
+        thumbnail: wallpaper.thumbs.large,
         source: 'wallhaven',
-        id: wallpaper.id,
-        resolution: wallpaper.resolution,
-    }
-}
-
-/**
-  * Fetch random wallpaper from Picsum.
-  * @returns Wallpaper response data
-  */
-async function fetchPicsum(): Promise<WallpaperResponse> {
-    const response = await fetch('https://picsum.photos/1920/1080/random', {
-        redirect: 'follow',
-    })
-
-    if (!response.ok) {
-        throw new Error(`Picsum failed: ${response.status}`)
-    }
-
-    const url = response.url
-
-    return {
-        url: url,
-        thumb: url,
-        source: 'picsum',
-        id: Date.now(),
-        resolution: '1920x1080',
+        width: parseInt(resParts[0]) || 1920,
+        height: parseInt(resParts[1]) || 1080,
     }
 }
 
 /** Map of source names to fetcher functions */
 const fetchers: Record<string, () => Promise<WallpaperResponse>> = {
     wallhaven: fetchWallhaven,
-    picsum: fetchPicsum,
 }
 
 /**

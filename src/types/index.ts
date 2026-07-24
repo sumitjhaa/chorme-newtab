@@ -30,8 +30,6 @@ export type DateFormat = 'DD/MM/YYYY' | 'MM/DD/YYYY' | 'YYYY-MM-DD'
 /** What to show alongside the clock */
 export type ShowClockDate = 'both' | 'date_only' | 'none'
 
-/** Background content type */
-export type BgType = 'images'
 /** How often to refresh the background */
 export type BgFrequency = 'every_tab' | 'every_hour' | 'every_day' | 'daylight' | 'locked'
 /** Wallpaper image source provider */
@@ -118,12 +116,6 @@ export interface Settings {
     greetingName: string
 
     // Background
-    /** Background content type */
-    bgType: BgType
-    /** Background image provider */
-    bgProvider: WallpaperSource
-    /** Background collection/category */
-    bgCollection: string
     /** Background refresh frequency */
     bgFrequency: BgFrequency
     /** Background blur amount (px) */

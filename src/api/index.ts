@@ -10,8 +10,10 @@ export async function fetchRandomWallpaper(): Promise<WallpaperImage> {
             ((response: { wallpaper?: WallpaperImage; error?: string } | null) => {
                 clearTimeout(timeout)
                 if (chrome.runtime.lastError) return reject(new Error(chrome.runtime.lastError.message))
-                if (response?.error) return reject(new Error(response.error))
-                resolve(response!.wallpaper!)
+                if (!response) return reject(new Error('No response from background'))
+                if (response.error) return reject(new Error(response.error))
+                if (!response.wallpaper) return reject(new Error('No wallpaper in response'))
+                resolve(response.wallpaper)
             }) as (response: unknown) => void
         )
     })

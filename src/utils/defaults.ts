@@ -3,7 +3,6 @@
   */
 
 import type { Settings } from '../types'
-import { API_SOURCES } from '../constants'
 
 export const SETTINGS_DEFAULTS: Settings = {
     hideSettingsIcons: false,
@@ -29,9 +28,6 @@ export const SETTINGS_DEFAULTS: Settings = {
     enableGreeting: true,
     greetingName: '',
 
-    bgType: 'images',
-    bgProvider: API_SOURCES.WALLHAVEN,
-    bgCollection: '',
     bgFrequency: 'every_tab',
     bgBlur: 0,
     bgBrightness: 100,

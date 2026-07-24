@@ -2,7 +2,7 @@
  * @fileoverview Wallpaper display component with loading state.
  */
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import type { WallpaperImage } from '../types/wallpaper'
 
 interface WallpaperProps {
@@ -12,6 +12,12 @@ interface WallpaperProps {
 
 function Wallpaper({ wallpaper, isLoading }: WallpaperProps) {
     const [imgLoaded, setImgLoaded] = useState(false)
+    const [imgError, setImgError] = useState(false)
+
+    useEffect(() => {
+        setImgLoaded(false)
+        setImgError(false)
+    }, [wallpaper?.url])
 
     const handleImgLoad = useCallback(() => setImgLoaded(true), [])
 
@@ -23,7 +29,7 @@ function Wallpaper({ wallpaper, isLoading }: WallpaperProps) {
                 </div>
             )}
 
-            {wallpaper?.url ? (
+            {wallpaper?.url && !imgError ? (
                 <picture>
                     {wallpaper.thumbnail && (
                         <source srcSet={wallpaper.thumbnail} media="(max-width: 1024px)" />
@@ -36,10 +42,7 @@ function Wallpaper({ wallpaper, isLoading }: WallpaperProps) {
                         height={wallpaper.height}
                         decoding="async"
                         onLoad={handleImgLoad}
-                        onError={(e) => {
-                            const target = e.target as HTMLImageElement
-                            target.style.display = 'none'
-                        }}
+                        onError={() => setImgError(true)}
                     />
                 </picture>
             ) : (

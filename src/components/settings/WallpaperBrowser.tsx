@@ -48,6 +48,7 @@ function WallpaperBrowser({ onSelect }: WallpaperBrowserProps) {
     const [ended, setEnded] = useState(false)
 
     const bufferRef = useRef<WallhavenWallpaper[]>([])
+    const pageCacheRef = useRef<Map<number, WallhavenWallpaper[]>>(new Map())
     const apiPageRef = useRef(0)
     const totalApiPagesRef = useRef(0)
     const seedRef = useRef<string | null>(null)
@@ -74,7 +75,10 @@ function WallpaperBrowser({ onSelect }: WallpaperBrowserProps) {
         const buffer = bufferRef.current
 
         if (buffer.length >= PER_PAGE) {
-            setVisible(buffer.splice(0, PER_PAGE))
+            const items = [...buffer].slice(0, PER_PAGE)
+            bufferRef.current = buffer.slice(PER_PAGE)
+            pageCacheRef.current.set(targetPage, items)
+            setVisible(items)
             setPage(targetPage)
             setEnded(false)
             return
@@ -87,7 +91,9 @@ function WallpaperBrowser({ onSelect }: WallpaperBrowserProps) {
         try {
             const nextPage = apiPageRef.current + 1
             if (nextPage > totalApiPagesRef.current && totalApiPagesRef.current > 0) {
-                const remaining = buffer.splice(0, buffer.length)
+                const remaining = [...buffer]
+                bufferRef.current = []
+                pageCacheRef.current.set(targetPage, remaining)
                 setVisible(remaining)
                 setPage(targetPage)
                 setEnded(true)
@@ -103,7 +109,10 @@ function WallpaperBrowser({ onSelect }: WallpaperBrowserProps) {
             buffer.push(...res.data)
             setSearchPool([...buffer])
 
-            setVisible(buffer.splice(0, Math.min(PER_PAGE, buffer.length)))
+            const items = [...buffer].slice(0, Math.min(PER_PAGE, buffer.length))
+            bufferRef.current = buffer.slice(items.length)
+            pageCacheRef.current.set(targetPage, items)
+            setVisible(items)
             setPage(targetPage)
             setEnded(false)
             setHasSearched(true)
@@ -117,6 +126,7 @@ function WallpaperBrowser({ onSelect }: WallpaperBrowserProps) {
 
     const doSearch = useCallback(async () => {
         bufferRef.current = []
+        pageCacheRef.current.clear()
         apiPageRef.current = 0
         totalApiPagesRef.current = 0
         seedRef.current = null
@@ -136,7 +146,15 @@ function WallpaperBrowser({ onSelect }: WallpaperBrowserProps) {
     const goNext = useCallback(() => fetchFromBuffer(page + 1), [page, fetchFromBuffer])
 
     const goPrev = useCallback(() => {
-        if (page > 0) setPage(p => p - 1)
+        if (page > 0) {
+            const prevPage = page - 1
+            const cached = pageCacheRef.current.get(prevPage)
+            if (cached) {
+                setVisible(cached)
+                setPage(prevPage)
+                setEnded(false)
+            }
+        }
     }, [page])
 
     return (

@@ -29,9 +29,15 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     const channelTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
     const lastChannelRef = useRef<{ key: string; value: unknown } | null>(null)
 
-    if (!bcRef.current && typeof BroadcastChannel !== 'undefined') {
-        bcRef.current = new BroadcastChannel('newtab-settings')
-    }
+    useEffect(() => {
+        if (typeof BroadcastChannel !== 'undefined') {
+            bcRef.current = new BroadcastChannel('newtab-settings')
+        }
+        return () => {
+            bcRef.current?.close()
+            bcRef.current = null
+        }
+    }, [])
 
     const flushStorage = useCallback(() => {
         if (Object.keys(pendingRef.current).length === 0) return
